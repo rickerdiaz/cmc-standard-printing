@@ -4,7 +4,8 @@ namespace CmcStandardPrinting.Domain.Printers;
 
 public enum GroupLevel
 {
-    Property
+    Property,
+    Site
 }
 
 public sealed class Printer
@@ -73,6 +74,7 @@ public sealed class TreeNode
     public bool Selected { get; set; }
     public string ParentTitle { get; set; } = string.Empty;
     public GroupLevel GroupLevel { get; set; }
+    public object? Note { get; set; }
 }
 
 public sealed class ResponseCallBack
@@ -88,6 +90,13 @@ public sealed class Param
 {
     public string Name { get; set; } = string.Empty;
     public string Value { get; set; } = string.Empty;
+}
+
+public sealed class GenericTranslation
+{
+    public int CodeTrans { get; set; }
+    public string TranslationName { get; set; } = string.Empty;
+    public string Name { get; set; } = string.Empty;
 }
 
 public sealed class GenericDeleteData
