@@ -70,6 +70,8 @@ public sealed class TreeNode
     public int Key { get; set; }
     public bool Icon { get; set; }
     public List<TreeNode> Children { get; set; } = new();
+    public bool Unselectable { get; set; }
+    public string? AddClass { get; set; }
     public bool Select { get; set; }
     public bool Selected { get; set; }
     public string ParentTitle { get; set; } = string.Empty;
