@@ -117,6 +117,7 @@ public sealed class GenericDeleteData
     public List<DeleteCode> CodeList { get; set; } = new();
     public int CodeUser { get; set; }
     public int CodeSite { get; set; }
+    public int Type { get; set; }
     public bool ForceDelete { get; set; }
 }
 
