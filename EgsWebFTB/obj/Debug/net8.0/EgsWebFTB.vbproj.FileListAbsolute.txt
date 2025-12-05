@@ -1,0 +1,15 @@
+C:\StandardPrinting\EgsWebFTB\bin\Debug\net8.0\EgsWebFTB.deps.json
+C:\StandardPrinting\EgsWebFTB\bin\Debug\net8.0\EgsWebFTB.dll
+C:\StandardPrinting\EgsWebFTB\bin\Debug\net8.0\EgsWebFTB.pdb
+C:\StandardPrinting\EgsWebFTB\bin\Debug\net8.0\EgsWebFTB.xml
+C:\StandardPrinting\EgsWebFTB\obj\Debug\net8.0\EgsWebFTB.Resources.resources
+C:\StandardPrinting\EgsWebFTB\obj\Debug\net8.0\EgsWebFTB.vbproj.GenerateResource.cache
+C:\StandardPrinting\EgsWebFTB\obj\Debug\net8.0\EgsWebFTB.GeneratedMSBuildEditorConfig.editorconfig
+C:\StandardPrinting\EgsWebFTB\obj\Debug\net8.0\EgsWebFTB.AssemblyInfoInputs.cache
+C:\StandardPrinting\EgsWebFTB\obj\Debug\net8.0\EgsWebFTB.AssemblyInfo.vb
+C:\StandardPrinting\EgsWebFTB\obj\Debug\net8.0\EgsWebFTB.vbproj.CoreCompileInputs.cache
+C:\StandardPrinting\EgsWebFTB\obj\Debug\net8.0\EgsWebFTB.dll
+C:\StandardPrinting\EgsWebFTB\obj\Debug\net8.0\refint\EgsWebFTB.dll
+C:\StandardPrinting\EgsWebFTB\obj\Debug\net8.0\EgsWebFTB.xml
+C:\StandardPrinting\EgsWebFTB\obj\Debug\net8.0\EgsWebFTB.pdb
+C:\StandardPrinting\EgsWebFTB\obj\Debug\net8.0\ref\EgsWebFTB.dll

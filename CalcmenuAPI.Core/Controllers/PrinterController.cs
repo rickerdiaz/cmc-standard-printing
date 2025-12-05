@@ -1,0 +1,543 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using System.IO;
+using System.Linq;
+using log4net;
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using DevExpress.XtraReports.UI;
+using static EgsData.modGlobalDeclarations; // for ConnectionString, DebugEnabled, GroupLevel, structUser etc.
+using static EgsData.modFunctions;         // for GetInt, GetStr, GetBool, Common.Join, Common.ReplaceSpecialCharacters, Common.SendEmail, GetUserConnectionString, GenericErrorResponse
+
+namespace CalcmenuAPI.Core.Controllers
+{
+    [ApiController]
+    public class PrinterController : ControllerBase
+    {
+        private static readonly ILog Log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
+
+        public class InputData
+        {
+            public string IntCodePrintList { get; set; } = string.Empty;
+            public string userLocale { get; set; } = string.Empty;
+            public string strSelectedCodeListe { get; set; } = string.Empty;
+            public int CodeUser { get; set; }
+            public int intCodeTrans { get; set; }
+            public string strExcelFilename { get; set; } = string.Empty;
+            public string ImagePath { get; set; } = string.Empty;
+        }
+
+        // Display & Search of Printer Configuration
+        [HttpPost("/api/print/search")]
+        public ActionResult<List<Models.Printer>> GetPrinterConfigByName([FromBody] Models.ConfigurationcSearch data)
+        {
+            try
+            {
+                var ds = new DataSet();
+                using (var cmd = new SqlCommand())
+                using (var cn = new SqlConnection(ConnectionString))
+                {
+                    try
+                    {
+                        cmd.Connection = cn;
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.CommandText = "[dbo].[API_MANAGE_Generic]";
+                        cmd.Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.CodeSite;
+                        cmd.Parameters.Add("@Type", SqlDbType.Int).Value = 1;
+                        cmd.Parameters.Add("@CodeTrans", SqlDbType.Int).Value = 1;
+                        cmd.Parameters.Add("@Status", SqlDbType.Int).Value = 1;
+                        cmd.Parameters.Add("@TableName", SqlDbType.NVarChar, 200).Value = "EGSWPRINTERCONFIG";
+                        cmd.Parameters.Add("@CodeProperty", SqlDbType.Int).Value = data.CodeProperty;
+                        cn.Open();
+                        using var _da = new SqlDataAdapter(cmd);
+                        _da.Fill(ds);
+                    }
+                    finally
+                    {
+                        cn.Close();
+                        (cn as IDisposable)?.Dispose();
+                    }
+                }
+
+                var printer = new List<Models.Printer>();
+                foreach (DataRow r in ds.Tables[0].Rows)
+                {
+                    printer.Add(new Models.Printer
+                    {
+                        Code = GetInt(r["ID"]),
+                        Name = GetStr(r["Name"]),
+                        IsGlobal = GetBool(r["IsGlobal"]),
+                        CodeSaleSite = GetInt(r["CodeSaleSite"]),
+                        SaleSiteName = GetStr(r["SaleSiteName"]),
+                        Status = GetInt(r["Status"])
+                    });
+                }
+
+                if (!string.IsNullOrWhiteSpace(data.Name))
+                {
+                    var printerresult = new List<Models.Printer>();
+                    var arrNames = data.Name.Trim().Split(',');
+                    foreach (var word in arrNames)
+                    {
+                        if (!string.IsNullOrWhiteSpace(word))
+                        {
+                            foreach (var s in printer)
+                            {
+                                if (s.Name.ToLower().Contains(Common.ReplaceSpecialCharacters(word.Trim().ToLower())))
+                                {
+                                    printerresult.Add(s);
+                                }
+                            }
+                        }
+                    }
+                    printer = printerresult;
+                }
+
+                return Ok(printer.ToList());
+            }
+            catch (ArgumentException aex)
+            {
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod()!.Name + ": Missing or invalid parameters", aex);
+                return Problem(title: "Request failed", statusCode: 400);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod()!.Name + ": Unexpected error occured", ex);
+                return Problem(title: "Request failed", statusCode: 500);
+            }
+        }
+
+        // Display Printer Sharing
+        [HttpGet("/api/printer/sharing/{codesite:int}/{tree:int}/{codecategory:int}")]
+        public ActionResult<List<Models.TreeNode>> GetPrinterSharing(int codesite, int tree, int codecategory)
+        {
+            try
+            {
+                var ds = new DataSet();
+                using (var cmd = new SqlCommand())
+                using (var cn = new SqlConnection(ConnectionString))
+                {
+                    try
+                    {
+                        cmd.Connection = cn;
+                        cmd.CommandText = "[dbo].[API_GET_SharingPrinter]";
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.Clear();
+                        cmd.Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite;
+                        cmd.Parameters.Add("@CodeCategory", SqlDbType.Int).Value = codecategory;
+                        cn.Open();
+                        using var _da = new SqlDataAdapter(cmd);
+                        _da.Fill(ds);
+                    }
+                    finally
+                    {
+                        cn.Close();
+                        (cn as IDisposable)?.Dispose();
+                    }
+                }
+
+                var sharings = new List<Models.GenericTree>();
+                foreach (DataRow r in ds.Tables[0].Rows)
+                {
+                    sharings.Add(new Models.GenericTree
+                    {
+                        Code = GetInt(r["Code"]),
+                        Name = GetStr(r["Name"]),
+                        ParentCode = GetInt(r["ParentCode"]),
+                        ParentName = GetStr(r["ParentName"]),
+                        Flagged = GetBool(r["Flagged"]),
+                        Type = GetInt(r["Type"]),
+                        Global = GetBool(r["Global"]) 
+                    });
+                }
+
+                var sharingdata = new List<Models.TreeNode>();
+                var parents = sharings.Where(obj => obj.ParentCode == 0 && obj.Type == 1).OrderBy(obj => obj.Name).ToList();
+
+                foreach (var p in parents)
+                {
+                    var parent = new Models.TreeNode
+                    {
+                        title = p.Name,
+                        key = p.Code,
+                        icon = false,
+                        children = CreateChildrenSharing(sharings, p.Code),
+                        select = p.Flagged,
+                        selected = p.Flagged,
+                        parenttitle = p.ParentName,
+                        groupLevel = GroupLevel.Property
+                    };
+                    if (parent.children != null && parent.children.Count > 0) sharingdata.Add(parent);
+                }
+
+                return Ok(sharingdata);
+            }
+            catch (ArgumentException aex)
+            {
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod()!.Name + ": Missing or invalid parameters", aex);
+                return Problem(title: "Request failed", statusCode: 400);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod()!.Name + ": Unexpected error occured", ex);
+                return Problem(title: "Request failed", statusCode: 500);
+            }
+        }
+
+        // Save and Update Printer Configuration
+        [HttpPost("api/printer")]
+        public ActionResult<Models.ResponseCallBack> SavePrinter([FromBody] Models.PrinterData data)
+        {
+            var response = new Models.ResponseCallBack();
+            int resultCode = 0;
+            SqlTransaction? _trans = null;
+
+            try
+            {
+                if (DebugEnabled)
+                {
+                    Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod()!.Name + ":" +
+                             JsonConvert.SerializeObject(
+                                 data,
+                                 new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }
+                             ));
+                }
+
+                var arrSharing = new ArrayList();
+                foreach (var sh in data.Sharing)
+                {
+                    if (!arrSharing.Contains(sh.Code)) arrSharing.Add(sh.Code);
+                }
+                string _codeSiteList = Common.Join(arrSharing, "(", ")", ",");
+
+                using (var cmd = new SqlCommand())
+                using (var cn = new SqlConnection(ConnectionString))
+                {
+                    try
+                    {
+                        cmd.Connection = cn;
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.CommandText = "[MANAGE_PRINTERCONFIGUPDATE]";
+                        cmd.Parameters.Clear();
+                        cmd.Parameters.Add("@Code", SqlDbType.Int).Value = data.Info.Code;
+                        cmd.Parameters.Add("@CodeGroup", SqlDbType.Int).Value = 0;
+                        cmd.Parameters.Add("@Name", SqlDbType.NVarChar, 150).Value = data.Info.Name;
+                        cmd.Parameters.Add("@Status", SqlDbType.Int).Value = data.Info.Status;
+                        cmd.Parameters.Add("@CodeAcct", SqlDbType.NVarChar, 25).Value = "";
+                        cmd.Parameters.Add("@IsGlobal", SqlDbType.Bit).Value = data.Info.IsGlobal;
+                        cmd.Parameters.Add("@CodeSiteList", SqlDbType.NVarChar, 2000).Value = _codeSiteList;
+                        cmd.Parameters.Add("@CodeUser", SqlDbType.Int).Value = data.Profile.Code;
+                        cmd.Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.Profile.CodeSite;
+                        cmd.Parameters.Add("@CodeSaleSite", SqlDbType.Int).Value = data.Info.CodeSaleSite;
+                        var retval = cmd.Parameters.Add("@retval", SqlDbType.Int);
+                        retval.Direction = ParameterDirection.ReturnValue;
+                        cmd.Parameters["@Code"].Direction = ParameterDirection.InputOutput;
+
+                        cn.Open();
+                        _trans = cn.BeginTransaction();
+                        cmd.Transaction = _trans;
+
+                        cmd.ExecuteNonQuery();
+                        resultCode = GetInt(retval.Value, -1);
+                        if (resultCode != 0)
+                        {
+                            throw new DatabaseException($"[{resultCode}] Save printer failed");
+                        }
+
+                        response.Code = 0;
+                        response.Message = "OK";
+                        response.ReturnValue = resultCode;
+                        response.Status = true;
+                        _trans.Commit();
+                    }
+                    catch (DatabaseException ex)
+                    {
+                        Log.Error(System.Reflection.MethodBase.GetCurrentMethod()!.Name + ": Database error occured", ex);
+                        try
+                        {
+                            _trans?.Rollback();
+                            (_trans as IDisposable)?.Dispose();
+                        }
+                        catch { }
+                        if (resultCode == 0) resultCode = 500;
+                        response.Code = resultCode;
+                        response.Status = false;
+                        response.Message = "Save printer configuration failed";
+                        Common.SendEmail(HttpContext?.Request?.Path.ToString() ?? string.Empty, ex.Message, ex.StackTrace ?? string.Empty, "Printer");
+                    }
+                    finally
+                    {
+                        cn.Close();
+                        (cn as IDisposable)?.Dispose();
+                    }
+                }
+            }
+            catch (ArgumentException aex)
+            {
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod()!.Name + ": Missing or invalid parameters", aex);
+                response.Code = 400;
+                response.Message = "Missing or invalid parameters";
+                response.Parameters = new List<Models.param> { new Models.param { name = "data", value = "RecipeData" } };
+                Common.SendEmail(HttpContext?.Request?.Path.ToString() ?? string.Empty, aex.Message, aex.StackTrace ?? string.Empty, "Printer");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod()!.Name + ": Unexpected error occured", ex);
+                response.Status = false;
+                response.Message = "Unexpected error occured";
+                response.Code = 500;
+                Common.SendEmail(HttpContext?.Request?.Path.ToString() ?? string.Empty, ex.Message, ex.StackTrace ?? string.Empty, "Printer");
+            }
+
+            return Ok(response);
+        }
+
+        // Delete Printer Configuration
+        [HttpPost("api/printer/delete")]
+        public ActionResult<Models.ResponseCallBack> DeleteCategory([FromBody] Models.GenericDeleteData data)
+        {
+            var response = new Models.ResponseCallBack();
+            int resultCode = 0;
+            try
+            {
+                if (DebugEnabled)
+                {
+                    Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod()!.Name + ":" +
+                             JsonConvert.SerializeObject(
+                                 data,
+                                 new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }
+                             ));
+                }
+
+                var arrPrinterCodes = new ArrayList();
+                foreach (var c in data.CodeList)
+                {
+                    if (!arrPrinterCodes.Contains(c.Code)) arrPrinterCodes.Add(c.Code);
+                }
+                string _codePrinterList = Common.Join(arrPrinterCodes, "", "", ",");
+
+                using (var cmd = new SqlCommand())
+                using (var cn = new SqlConnection(ConnectionString))
+                {
+                    try
+                    {
+                        cmd.Connection = cn;
+                        cmd.CommandText = "API_DELETE_Generic";
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.Clear();
+                        cmd.Parameters.Add("@CodeList", SqlDbType.VarChar, 4000).Value = _codePrinterList;
+                        cmd.Parameters.Add("@TableName", SqlDbType.VarChar, 200).Value = "EGSWPRINTERCONFIG";
+                        cmd.Parameters.Add("@CodeUser", SqlDbType.Int).Value = data.CodeUser;
+                        cmd.Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.CodeSite;
+                        cmd.Parameters.Add("@ForceDelete", SqlDbType.Bit).Value = data.ForceDelete;
+                        var skipList = cmd.Parameters.Add("@SkipList", SqlDbType.NVarChar, 4000);
+                        skipList.Direction = ParameterDirection.Output;
+                        var ret = cmd.Parameters.Add("@Return", SqlDbType.Int);
+                        ret.Direction = ParameterDirection.ReturnValue;
+
+                        cn.Open();
+                        cmd.ExecuteNonQuery();
+                        resultCode = GetInt(ret.Value, -1);
+                        if (resultCode != 0)
+                        {
+                            throw new DatabaseException($"[{resultCode}] Delete category failed");
+                        }
+
+                        response.Code = 0;
+                        response.Message = "OK";
+                        response.ReturnValue = GetStr(skipList.Value);
+                        response.Status = true;
+                    }
+                    catch (DatabaseException ex)
+                    {
+                        Log.Error(System.Reflection.MethodBase.GetCurrentMethod()!.Name + ": Database error occured", ex);
+                        if (resultCode == 0) resultCode = 500;
+                        response.Code = resultCode;
+                        response.Status = false;
+                        response.ReturnValue = GetStr(cmd.Parameters["@SkipList"].Value);
+                        response.Message = "Delete category failed";
+                        Common.SendEmail(HttpContext?.Request?.Path.ToString() ?? string.Empty, ex.Message, ex.StackTrace ?? string.Empty, "Printer");
+                    }
+                    finally
+                    {
+                        cn.Close();
+                        (cn as IDisposable)?.Dispose();
+                    }
+                }
+            }
+            catch (ArgumentException aex)
+            {
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod()!.Name + ": Missing or invalid parameters", aex);
+                response.Code = 400;
+                response.Message = "Missing or invalid parameters";
+                response.Parameters = new List<Models.param> { new Models.param { name = "data", value = "RecipeData" } };
+                Common.SendEmail(HttpContext?.Request?.Path.ToString() ?? string.Empty, aex.Message, aex.StackTrace ?? string.Empty, "Printer");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod()!.Name + ": Unexpected error occured", ex);
+                response.Status = false;
+                response.Message = "Unexpected error occured";
+                response.Code = 500;
+                Common.SendEmail(HttpContext?.Request?.Path.ToString() ?? string.Empty, ex.Message, ex.StackTrace ?? string.Empty, "Printer");
+            }
+
+            return Ok(response);
+        }
+
+        // Populate the Sales Site
+        [HttpGet("/api/printer/getsalesite")]
+        public ActionResult<List<Models.GenericList>> GetCodeSaleSite()
+        {
+            try
+            {
+                var ds = new DataSet();
+                using (var cmd = new SqlCommand())
+                using (var cn = new SqlConnection(ConnectionString))
+                {
+                    try
+                    {
+                        cmd.Connection = cn;
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.CommandText = "[dbo].[API_GET_PrinterSaleSite]";
+                        cn.Open();
+                        using var _da = new SqlDataAdapter(cmd);
+                        _da.Fill(ds);
+                    }
+                    finally
+                    {
+                        cn.Close();
+                        (cn as IDisposable)?.Dispose();
+                    }
+                }
+
+                var UserAccounts = new List<Models.GenericList>();
+                foreach (DataRow r in ds.Tables[0].Rows)
+                {
+                    UserAccounts.Add(new Models.GenericList
+                    {
+                        Code = GetInt(r["Code"]),
+                        Name = GetStr(r["Name"])
+                    });
+                }
+
+                return Ok(UserAccounts);
+            }
+            catch (ArgumentException aex)
+            {
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod()!.Name + ": Missing or invalid parameters", aex);
+                return Problem(title: "Request failed", statusCode: 400);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod()!.Name + ": Unexpected error occured", ex);
+                return Problem(title: "Request failed", statusCode: 500);
+            }
+        }
+
+        [HttpPost("/api/standardprinting")]
+        public ActionResult<object> standardPrinting([FromBody] InputData inputData)
+        {
+            try
+            {
+                Log.Info("standardPrinting started");
+
+                int intCodePrintList = int.TryParse(inputData.IntCodePrintList, out var t) ? t : 0;
+                int codeUser = inputData.CodeUser;
+                string userLocale = string.IsNullOrWhiteSpace(inputData.userLocale) ? "en-US" : inputData.userLocale;
+
+                string userConnectionString = GetUserConnectionString(codeUser);
+                var cReport = new EgsReport.clsReport();
+
+                string FolderPath = System.Configuration.ConfigurationManager.AppSettings["ReportFolder"] ?? Path.GetTempPath();
+                string FolderURL = System.Configuration.ConfigurationManager.AppSettings["ReportURL"] ?? "/reports";
+                string PicNormal = inputData.ImagePath ?? string.Empty;
+
+                var ds = new DataSet();
+                using (var cmd = new SqlCommand())
+                using (var cn = new SqlConnection(userConnectionString))
+                {
+                    try
+                    {
+                        cmd.Connection = cn;
+                        cmd.CommandText = "[dbo].[sp_EgswPrintListGetListDetails]";
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.CommandTimeout = 600;
+                        cmd.Parameters.Clear();
+                        cmd.Parameters.Add("@intCodePrintList", SqlDbType.Int).Value = intCodePrintList;
+                        cmd.Parameters.Add("@blnDeleteAfterFetch", SqlDbType.Bit).Value = false;
+                        cmd.Parameters.Add("@blnBestUnitConversion", SqlDbType.Bit).Value = false;
+                        cmd.Parameters.Add("@intPictureList", SqlDbType.Int).Value = 0;
+                        cmd.Parameters.Add("@intNutCodeSet", SqlDbType.Int).Value = 0;
+
+                        cn.Open();
+                        using var _da = new SqlDataAdapter(cmd);
+                        _da.Fill(ds);
+                    }
+                    finally
+                    {
+                        cn.Close();
+                        (cn as IDisposable)?.Dispose();
+                    }
+                }
+
+                bool hasData = ds != null && ds.Tables.Count > 0;
+                if (hasData)
+                {
+                    string strFilename = subGetFileName();
+                    string outputPath = Path.Combine(FolderPath, strFilename);
+
+                    string outDir = Path.GetDirectoryName(outputPath)!;
+                    if (!Directory.Exists(outDir))
+                    {
+                        Directory.CreateDirectory(outDir);
+                    }
+
+                    XtraReport report = cReport.CreateReport_CMC(
+                        ds,
+                        userConnectionString,
+                        1,
+                        PicNormal,
+                        "",
+                        "",
+                        "",
+                        false,
+                        false,
+                        intFoodlaw: 2,
+                        CodePrintList: intCodePrintList,
+                        userLocale: userLocale,
+                        codeUser: codeUser
+                    );
+
+                    report.ExportToPdf(outputPath);
+
+                    FolderURL = FolderURL.TrimEnd('/') + "/" + strFilename;
+                    Log.Info("FolderPath: " + outputPath);
+                    Log.Info("FolderURL: " + FolderURL);
+
+                    return Ok(FolderURL);
+                }
+                else
+                {
+                    Log.Warn("standardPrinting: dataset is empty; skipping report generation.");
+                    return Ok(string.Empty);
+                }
+            }
+            catch (Exception ex)
+            {
+                Log.Info(ex.Message);
+                throw;
+            }
+        }
+
+        private static string subGetFileName()
+        {
+            string m_strTime = DateTime.UtcNow.ToFileTimeUtc().ToString();
+            string strFileName = "Export_" + m_strTime + ".pdf";
+            return strFileName;
+        }
+    }
+}

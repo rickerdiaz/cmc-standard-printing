@@ -1,0 +1,779 @@
+﻿Imports System
+Imports System.Web
+Imports System.Collections.Generic
+Imports System.Linq
+Imports AttributeRouting.Web.Http
+Imports System.Data.SqlClient
+Imports System.Web.Script.Serialization
+Imports log4net
+Imports System.Net
+Imports Newtonsoft.Json
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace CalcmenuAPI
+    Public Class SetPriceController
+        Inherits ControllerBase
+
+        Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType)
+
+        '<HttpGet> <[GET]("/api/setprice/{codesite:int}/{type:int}/{name?}")> _
+        'Public Function GetSetPrice(codesite As Integer, _
+        '                         type As Models.SetPriceType) As List(Of Models.GenericList)
+        '    Try
+        '        Dim ds As New DataSet
+        '        Using cmd As New SqlCommand
+        '            With cmd
+        '                Using cn As New SqlConnection(ConnectionString)
+        '                    Try
+        '                        .Connection = cn
+        '                        .CommandType = CommandType.StoredProcedure
+        '                        .CommandText = "[dbo].[GET_SETOFPRICECODENAME]"
+        '                        .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+        '                        .Parameters.Add("@Type", SqlDbType.Int).Value = 1
+        '                        .Parameters.Add("@ActiveOnly", SqlDbType.Bit).Value = True
+        '                        cn.Open()
+        '                        Dim _da As New SqlDataAdapter(cmd)
+        '                        _da.Fill(ds)
+        '                    Finally
+        '                        If Not cn Is Nothing Then
+        '                            cn.Close()
+        '                            CType(cn, IDisposable).Dispose()
+        '                        End If
+        '                    End Try
+        '                End Using
+        '            End With
+        '        End Using
+
+        '        Dim setprices As New List(Of Models.GenericList)
+        '        For Each r In ds.Tables(0).Rows
+        '            setprices.Add(New Models.GenericList With {
+        '                            .Code = GetInt(r("Code")), _
+        '                            .Value = GetStr(r("Name")), _
+        '                            .Name = GetStr(r("Name"))})
+        '        Next
+
+        '        Return setprices.ToList
+        '    Catch aex As ArgumentException
+        '        Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+        '        Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+        '    Catch hex As HttpResponseException
+        '        Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+        '        Throw hex
+        '    Catch ex As Exception
+        '        Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+        '        Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+        '    End Try
+        'End Function
+
+
+        <HttpGet> <[GET]("/api/setprice/sharing/{codesite:int}/{type:int}/{tree:int}/{codesetprice:int}")> _
+        Public Function GetSetPriceSharing(codesite As Integer, _
+                                  type As Integer, _
+                                  tree As Integer, _
+                                  codesetprice As Integer) As List(Of Models.TreeNode)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_SharingAll]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = 2
+                                .Parameters.Add("@Code", SqlDbType.Int).Value = codesetprice
+                                .Parameters.Add("@CodeEgswTable", SqlDbType.Int).Value = 110
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim sharings As New List(Of Models.GenericTree)
+                For Each r In ds.Tables(0).Rows
+                    sharings.Add(New Models.GenericTree With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name")), _
+                                    .ParentCode = GetInt(r("ParentCode")), _
+                                    .ParentName = GetStr(r("ParentName")), _
+                                    .Flagged = GetBool(r("Flagged")), _
+                                    .Type = GetInt(r("Type")), _
+                                    .Global = GetBool(r("Global"))})
+                Next
+
+                Dim sharingdata As New List(Of Models.TreeNode)
+
+                Dim parents = sharings.Where(Function(obj) obj.ParentCode = 0 And obj.Type = 1).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each p In parents
+                    If sharingdata.Where(Function(obj) obj.key = p.Code).Count = 0 Then
+                        Dim parent As New Models.TreeNode
+                        parent.title = p.Name
+                        parent.key = p.Code
+                        parent.icon = False
+                        parent.children = CreateChildren(sharings, p.Code)
+                        parent.select = p.Flagged
+                        parent.parenttitle = p.ParentName
+                        sharingdata.Add(parent)
+                    End If
+                Next
+
+                Return sharingdata
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        Private Function CreateChildren(_sharingdata As List(Of Models.GenericTree),
+                                    _code As Integer) As List(Of Models.TreeNode)
+
+            Dim children As New List(Of Models.TreeNode)
+            If _sharingdata IsNot Nothing Then
+                Dim kids = _sharingdata.Where(Function(obj) obj.ParentCode = _code And obj.Type = 2).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each k In kids
+                    Dim child As New Models.TreeNode
+                    child.title = k.Name
+                    child.key = k.Code
+                    child.icon = False
+                    child.children = Nothing
+                    children.Add(child)
+                    child.select = k.Flagged
+                    child.parenttitle = k.ParentName
+                    child.note = k.Global
+                Next
+            End If
+            Return children
+
+        End Function
+
+        <HttpGet> <[GET]("/api/getsetprice/{codesite:int}/{codesetprice?}")> _
+        Public Function GetSetPriceList(codesite As Integer, _
+                                           Optional codesetprice As Integer = -1
+                                           ) As List(Of Models.SetPrice)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[sp_EgswSetPriceGetList]"
+                                .Parameters.Add("@intCode", SqlDbType.Int).Value = codesetprice
+                                .Parameters.Add("@intCodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@intCodeProperty", SqlDbType.Int).Value = -1
+                                .Parameters.Add("@Status", SqlDbType.Bit).Value = 1
+                                If codesetprice = -1 Then
+                                    .Parameters.Add("@tntType", SqlDbType.Int).Value = -1
+                                Else
+                                    .Parameters.Add("@tntType", SqlDbType.Int).Value = 1
+                                End If
+
+                                .Parameters.Add("@bitGlobalOnly", SqlDbType.Bit).Value = 0
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+                Dim setprice As New List(Of Models.SetPrice)
+
+                For Each r In ds.Tables(1).Rows
+                    setprice.Add(New Models.SetPrice With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name")), _
+                                    .Main = GetBool(r("Main")), _
+                                    .hasMain = GetInt(r("hasMain")), _
+                                    .Global = GetBool(r("IsGlobal")), _
+                                    .CodeCurrency = GetInt(r("CodeCurrency")), _
+                                    .Format = GetStr(r("Format")), _
+                                    .Symbole = GetStr(r("Symbole")), _
+                                    .Description = GetStr(r("Description")), _
+                                    .chkDisable = GetBool(r("chkDisable")), _
+                                    .Factor = GetDbl(r("FactorToMain"))})
+                Next
+
+
+                Return setprice.ToList
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpGet> <[GET]("/api/setprice/{code:int}")> _
+        Public Function GetSetPriceByCodeSource(code As Integer) As DataTable
+            Try
+                Dim dt As New DataTable
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_SetPriceBySource]"
+                                .Parameters.Add("@codeSource", SqlDbType.Int).Value = code
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(dt)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Return dt
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpGet> <[GET]("/api/setprice/{codesite:int}/{type:int}/{name?}")> _
+        Public Function GetSetPriceByName(codesite As Integer, _
+                              type As Integer, _
+                            Optional name As String = "") As List(Of Models.SetPrice)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_MANAGE_Generic]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = 1
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@Status", SqlDbType.Int).Value = 1
+                                .Parameters.Add("@TableName", SqlDbType.NVarChar, 200).Value = "EGSWSETPRICE"
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+                Dim setprice As New List(Of Models.SetPrice)
+                For Each r In ds.Tables(0).Rows
+                    setprice.Add(New Models.SetPrice With {
+                                    .Code = GetInt(r("Code")), _
+                                   .Name = GetStr(r("Name")), _
+                                    .Global = GetBool(r("Global"))})
+                Next
+
+                If name.Trim <> "" Then
+
+                    Dim setpriceresult As New List(Of Models.SetPrice)
+
+                    Dim arrNames() As String = name.Trim.Split(",")
+                    For Each word In arrNames
+                        If word.Trim.ToString <> "" Then    'RDTC 2015.08.10; added this otherwise the rows are getting duplicated
+                            For Each s In setprice
+                                If s.Name.ToLower.Contains(Common.ReplaceSpecialCharacters(word.Trim.ToLower)) Then
+                                    setpriceresult.Add(s)
+                                End If
+                            Next
+                        End If
+                    Next
+                    setprice = setpriceresult
+
+                End If
+
+                Return setprice.ToList
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        'START - Raqi Pinili 08.26.2015
+        <HttpPost> <[POST]("api/setprice/search")> _
+        Public Function GetSetPriceByName2(data As Models.ConfigurationcSearch) As List(Of Models.SetPrice)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_MANAGE_Generic]"
+                                .Parameters.Add("@CodeProperty", SqlDbType.Int).Value = data.CodeProperty
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.CodeSite
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = 1
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = data.CodeTrans
+                                .Parameters.Add("@Status", SqlDbType.Int).Value = 1
+                                .Parameters.Add("@TableName", SqlDbType.NVarChar, 200).Value = "EGSWSETPRICE"
+                                .CommandTimeout = 300
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+                Dim setprice As New List(Of Models.SetPrice)
+                For Each r In ds.Tables(0).Rows
+                    setprice.Add(New Models.SetPrice With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name")), _
+                                    .Factor = GetStr(r("Factor")), _
+                                    .FactorToMain = GetDbl(r("FactorToMain")), _
+                                    .Main = GetBool(r("Main")), _
+                                    .hasMain = GetInt(r("hasMain")), _
+                                    .Global = GetBool(r("Global")), _
+                                    .isUserDefault = GetBool(r("IsUserDefault"))
+                                })
+                Next
+
+                If data.Name.Trim <> "" Then
+
+                    Dim setpriceresult As New List(Of Models.SetPrice)
+
+                    Dim arrNames() As String = data.Name.Trim.Split(",")
+                    For Each word In arrNames
+                        If word.Trim.ToString <> "" Then    'RDTC 2015.08.10; added this otherwise the rows are getting duplicated
+                            For Each s In setprice
+                                If s.Name.ToLower.Contains(Common.ReplaceSpecialCharacters(word.Trim.ToLower)) Then
+                                    setpriceresult.Add(s)
+                                End If
+                            Next
+                        End If
+                    Next
+                    setprice = setpriceresult
+
+                End If
+
+                Return setprice.ToList
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+        'end - Raqi Pinili 08.26.2015
+
+        <HttpGet> <[GET]("/api/setprice/currency")> _
+        Public Function GetSetPriceCurrency() As List(Of Models.GenericList)
+            Dim currency As New List(Of Models.GenericList)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "sp_EgswCurrencyGetList"
+                                .Parameters.Add("@intCode", SqlDbType.Int).Value = -1
+                                .Parameters.Add("@Status", SqlDbType.Int).Value = 1
+                                .Parameters.Add("@nvcName", SqlDbType.NVarChar).Value = ""
+
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+                currency = New List(Of Models.GenericList)(From p In ds.Tables(0)
+                                                               Select New Models.GenericList With {
+                                                                   .Code = p.Item("Code"),
+                                                                   .Value = p.Item("Description")
+                                                               })
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+
+            Return currency
+        End Function
+
+        'here jss
+        <HttpPost> <POST("api/setprice")> _
+        Public Function SaveSetPrice(data As Models.SetPriceData) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim resultCode As Integer
+            Dim _trans As SqlTransaction = Nothing
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + JsonConvert.SerializeObject(data, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+                Using cmd As New SqlCommand
+                    Dim arrSharing As New ArrayList
+                    For Each sh In data.Sharing
+                        If arrSharing.IndexOf(sh.Code) = -1 Then arrSharing.Add(sh.Code)
+                    Next
+                    Dim _codeSiteList As String = Common.Join(arrSharing, "(", ")", ",")
+                    Dim tran As Integer
+                    If data.Info.Code = -1 Then
+                        tran = 1
+                    ElseIf data.Info.Code = -2 Then
+                        tran = 1
+                    Else
+                        tran = 2
+                    End If
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "sp_EgswSetPriceUpdate"
+                                .Parameters.Clear()
+                                .Parameters.Add("@intCodeUser", SqlDbType.Int).Value = data.Profile.Code
+                                .Parameters.Add("@intCodeSite", SqlDbType.Int).Value = data.Profile.CodeSite
+                                .Parameters.Add("@intCode", SqlDbType.Int).Value = data.Info.Code
+                                .Parameters.Add("@nvcName", SqlDbType.NVarChar, 50).Value = data.Info.Name
+                                .Parameters.Add("@tntCurrency", SqlDbType.TinyInt).Value = data.Info.CodeCurrency
+                                .Parameters.Add("@IsGlobal", SqlDbType.Bit).Value = data.Info.Global
+                                .Parameters.Add("@tntTranMode", SqlDbType.TinyInt).Value = tran
+                                .Parameters.Add("@tntType", SqlDbType.TinyInt).Value = 1
+                                .Parameters.Add("@intCodePurchasing", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@intmainSetprice", SqlDbType.Int).Value = data.Info.Main
+                                .Parameters.Add("@fltSPFactor", SqlDbType.Decimal).Value = 1
+                                .Parameters.Add("@fltFactorToMain", SqlDbType.Decimal).Value = data.Info.Factor
+                                .Parameters("@intCode").Direction = ParameterDirection.InputOutput
+
+
+                                .Parameters.Add("@retval", SqlDbType.Int)
+                                .Parameters("@retval").Direction = ParameterDirection.ReturnValue
+
+
+                                _codeSiteList.Trim()
+                                If _codeSiteList <> "" Then
+                                    If Not (_codeSiteList.StartsWith("(") And _codeSiteList.EndsWith(")")) Then
+                                        resultCode = -1
+                                    Else
+                                        .Parameters.Add("@vchCodeSiteList", SqlDbType.Text).Value = _codeSiteList
+                                        .Parameters.Add("@vchCodeSiteList2", SqlDbType.Text).Value = _codeSiteList.Replace("(", "").Replace(")", "")
+                                    End If
+                                End If
+
+
+
+                                cn.Open()
+
+                                _trans = cn.BeginTransaction
+                                .Transaction = _trans
+                                .CommandTimeout = 120
+                                .ExecuteNonQuery()
+
+                                Dim codeSetPrice As Integer = GetInt(.Parameters("@intCode").Value, -1)
+                                resultCode = GetInt(.Parameters("@retval").Value, -1)
+
+                                If resultCode <> 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Save SetPrice failed", resultCode))
+                                End If
+
+                                'MKAM 2016.08.24 Compute Price by Factor
+                                If tran = 1 And codeSetPrice > 0 Then
+                                    .CommandText = "API_UPDATE_PriceFromMainByFactor"
+                                    .CommandTimeout = 1000
+                                    .Parameters.Clear()
+                                    .Parameters.Add("@CodeSetPrice", SqlDbType.Int).Value = codeSetPrice
+                                    .ExecuteNonQuery()
+                                End If
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = codeSetPrice
+                                response.Status = True
+                                _trans.Commit()
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                Try
+                                    _trans.Rollback()
+                                    If Not _trans Is Nothing Then
+                                        CType(_trans, IDisposable).Dispose()
+                                    End If
+                                Catch
+                                End Try
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.Status = False
+                                response.Message = "Save Set Price failed"
+                                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Set Price")
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+
+                End Using
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Set Price")
+            End Try
+            Return response
+        End Function
+
+        <HttpPost> <POST("api/setprice/delete")>
+        Public Function DeleteSetPrice(data As Models.GenericDeleteData) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim resultCode As Integer = 0
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + JsonConvert.SerializeObject(data, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+                Dim arrCodeSetPrice As New ArrayList
+                For Each c In data.CodeList
+                    If arrCodeSetPrice.IndexOf(c.Code) = -1 Then arrCodeSetPrice.Add(c.Code)
+                Next
+                Dim _codeSetPriceList As String = Common.Join(arrCodeSetPrice, "", "", ",")
+
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandText = "API_DELETE_Generic"
+                                .CommandType = CommandType.StoredProcedure
+                                .Parameters.Clear()
+                                .Parameters.Add("@CodeList", SqlDbType.VarChar, 4000).Value = _codeSetPriceList
+                                .Parameters.Add("@TableName", SqlDbType.VarChar, 200).Value = "EGSWSETPRICE"
+                                .Parameters.Add("@CodeUser", SqlDbType.Int).Value = data.CodeUser                    ''codeuser
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.CodeSite                    ''codesite                                                        
+                                .Parameters.Add("@ForceDelete", SqlDbType.Bit).Value = data.ForceDelete              ''force delete
+                                .Parameters.Add("@SkipList", SqlDbType.NVarChar, 4000).Direction = ParameterDirection.Output
+                                .Parameters.Add("@Return", SqlDbType.Int)
+                                .Parameters("@Return").Direction = ParameterDirection.ReturnValue
+                                .CommandTimeout = 10000
+                                cn.Open()
+                                .ExecuteNonQuery()
+                                resultCode = GetInt(.Parameters("@Return").Value, -1) ' RBAJ-2014.01.14                               
+                                If resultCode <> 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Delete setprice failed", resultCode))
+                                End If
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = GetStr(.Parameters("@SkipList").Value)
+                                response.Status = True
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.Status = False
+                                response.ReturnValue = GetStr(.Parameters("@SkipList").Value)
+                                response.Message = "Delete setprice failed"
+                                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Set Price")
+                            Catch exc As Exception
+
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+
+                End Using
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                response.Code = 400
+                response.Message = "Missing or invalid parameters"
+                response.Parameters = New List(Of Models.param) From {New Models.param With {.name = "data", .value = "RecipeData"}}
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), aex.Message.ToString(), aex.StackTrace.ToString(), "Set Price")
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), hex.Message.ToString(), hex.StackTrace.ToString(), "Set Price")
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Set Price")
+            End Try
+            Return response
+
+        End Function
+
+
+
+        '<HttpPost> <POST("api/setprice/delete")>
+        'Public Function DeleteSetPrice(data As Models.GenericDeleteData) As Models.ResponseCallBack
+        '    Dim response As New Models.ResponseCallBack
+        '    Dim resultCode As Integer
+        '    Dim tran As Integer
+        '    Dim intCode As Integer = 0
+
+        '    Try
+        '        If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + JsonConvert.SerializeObject(data, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+        '        Using cmd As New SqlCommand
+        '            Dim arrCodeSetPrice As New ArrayList
+        '            For Each c In data.CodeList
+        '                If arrCodeSetPrice.IndexOf(c.Code) = -1 Then arrCodeSetPrice.Add(c.Code)
+        '            Next
+        '            ''  Dim _codeSetPriceList As String = Common.Join(arrCategoryCodes, "", "", ",")
+        '            Dim _codeSetPriceList As String = Common.Join(arrCodeSetPrice, "(", ")", ",")
+
+
+        '            If arrCodeSetPrice.Count = 1 Then
+        '                tran = 3
+        '                intCode = arrCodeSetPrice(0)
+        '            ElseIf arrCodeSetPrice.Count > 1 Then
+        '                tran = 7
+        '            End If
+
+        '            With cmd
+        '                Using cn = New SqlConnection(ConnectionString)
+        '                    Try
+        '                        .Connection = cn
+        '                        .CommandText = "sp_EgswSetPriceDelete"
+        '                        .CommandType = CommandType.StoredProcedure
+        '                        .Parameters.Clear()
+
+        '                        If tran = 3 Then
+        '                            .Parameters.Add("@intCode", SqlDbType.Int).Value = intCode
+        '                        ElseIf tran = 7 Then
+
+        '                            .Parameters.Add("@intCode", SqlDbType.Int).Value = 0
+        '                            _codeSetPriceList.Trim()
+        '                            If _codeSetPriceList <> "" Then
+        '                                If Not (_codeSetPriceList.StartsWith("(") And _codeSetPriceList.EndsWith(")")) Then
+        '                                    Throw New DatabaseException(String.Format("[{0}] Delete setprice failed", resultCode))
+        '                                Else
+        '                                    .Parameters.Add("@vchCodeList", SqlDbType.VarChar, 8000).Value = _codeSetPriceList
+        '                                End If
+        '                            End If
+        '                        End If
+
+        '                        .Parameters.Add("@IsGlobal", SqlDbType.Bit).Value = 0
+        '                        .Parameters.Add("@intCodeUser", SqlDbType.Int).Value = data.CodeUser
+        '                        .Parameters.Add("@intCodeSite", SqlDbType.Int).Value = data.CodeSite
+        '                        .Parameters.Add("@intCodeProperty", SqlDbType.Int).Value = -1
+        '                        .Parameters.Add("@tntTranMode", SqlDbType.TinyInt).Value = tran
+
+
+        '                        .Parameters.Add("@retval", SqlDbType.Int)
+        '                        .Parameters("@retval").Direction = ParameterDirection.ReturnValue
+
+        '                        cn.Open()
+        '                        .ExecuteNonQuery()
+        '                        resultCode = GetInt(.Parameters("@retval").Value, -1)
+        '                        If resultCode <> 0 Then
+        '                            Throw New DatabaseException(String.Format("[{0}] Delete setprice failed", resultCode))
+        '                        End If
+
+        '                        ' Done without errors
+        '                        response.Code = 0
+        '                        response.Message = "OK"
+        '                        response.ReturnValue = "" ''GetStr(.Parameters("@SkipList").Value)
+        '                        response.Status = True
+        '                    Catch ex As DatabaseException
+        '                        Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+        '                        If resultCode = 0 Then
+        '                            resultCode = 500
+        '                        End If
+        '                        response.Code = resultCode
+        '                        response.ReturnValue = _codeSetPriceList ''GetStr(.Parameters("@SkipList").Value)
+        '                        response.Status = False
+        '                        response.Message = "Delete setprice failed"
+        '                    Finally
+        '                        If Not cn Is Nothing Then
+        '                            cn.Close()
+        '                            CType(cn, IDisposable).Dispose()
+        '                        End If
+        '                    End Try
+        '                End Using
+        '            End With
+
+
+        '        End Using
+        '    Catch ex As Exception
+        '        Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+        '        response.Status = False
+        '        response.Message = "Unexpected error occured"
+        '        response.Code = 500
+        '    End Try
+        '    Return response
+        'End Function
+
+    End Class
+End Namespace
+
+

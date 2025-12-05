@@ -1,0 +1,354 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Models = CalcmenuAPI.Models;
+
+
+
+namespace CalcmenuAPI_CMC_CoopGastro.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public sealed class AliasController : ControllerBase
+    {
+        private readonly ILogger<AliasController> _logger;
+        private readonly string _cs;
+
+        public AliasController(ILogger<AliasController> logger, IConfiguration config)
+        {
+            _logger = logger;
+            _cs = config.GetConnectionString("Default") ?? string.Empty;
+        }
+
+        [HttpGet("{codealias:int}/{codetrans:int}")]
+        public async Task<ActionResult<CalcmenuAPI.Models.AliasData>> GetAlias(int codealias, int codetrans, CancellationToken ct)
+        {
+            try
+            {
+                await using var cn = new SqlConnection(_cs);
+                await using var cmd = new SqlCommand("API_GET_AliasInfo", cn)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+                cmd.Parameters.Add("@CodeAlias", SqlDbType.Int).Value = codealias;
+                cmd.Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans;
+
+                await cn.OpenAsync(ct);
+                await using var rdr = await cmd.ExecuteReaderAsync(ct);
+
+                var result = new CalcmenuAPI.Models.AliasData();
+                if (await rdr.ReadAsync(ct))
+                {
+                    result.Info.Code = ReadInt(rdr, "Code");
+                    result.Info.IdMain = ReadInt(rdr, "IdMain");
+                    result.Info.CodeTrans = ReadInt(rdr, "CodeTrans");
+                    result.Info.Name = ReadString(rdr, "Name");
+                    result.Info.Alias = ReadString(rdr, "Alias");
+                }
+                return Ok(result);
+            }
+            catch (ArgumentException)
+            {
+                return Problem(title: "Request failed", statusCode: 400);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "GetAlias failed: {CodeAlias}/{CodeTrans}", codealias, codetrans);
+                return Problem(title: "Request failed", statusCode: 500);
+            }
+        }
+
+        [HttpPost]
+        public async Task<ActionResult<CalcmenuAPI.Models.ResponseCallBack>> SaveAlias([FromBody] CalcmenuAPI.Models.AliasData data, CancellationToken ct)
+        {
+            var response = new CalcmenuAPI.Models.ResponseCallBack();
+            try
+            {
+                await using var cn = new SqlConnection(_cs);
+                await cn.OpenAsync(ct);
+                await using var tx = (SqlTransaction)await cn.BeginTransactionAsync(ct);
+                await using var cmd = new SqlCommand("API_UPDATE_Alias", cn, tx)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+
+                var pId = cmd.Parameters.Add("@Id", SqlDbType.Int);
+                pId.Value = data?.Info?.Code ?? 0;
+                pId.Direction = ParameterDirection.InputOutput;
+                cmd.Parameters.Add("@IdMain", SqlDbType.Int).Value = data?.Info?.IdMain ?? 0;
+                cmd.Parameters.Add("@CodeTrans", SqlDbType.Int).Value = data?.Info?.CodeTrans ?? 0;
+                cmd.Parameters.Add("@Name", SqlDbType.NVarChar, 260).Value = data?.Info?.Name ?? string.Empty;
+                cmd.Parameters.Add("@Alias", SqlDbType.NVarChar, 260).Value = data?.Info?.Alias ?? string.Empty;
+                var ret = cmd.Parameters.Add("@retval", SqlDbType.Int);
+                ret.Direction = ParameterDirection.ReturnValue;
+
+                await cmd.ExecuteNonQueryAsync(ct);
+                var rc = ret.Value is int i ? i : Convert.ToInt32(ret.Value ?? -1);
+                if (rc != 0)
+                {
+                    throw new InvalidOperationException($"[{rc}] Save alias failed");
+                }
+                await tx.CommitAsync(ct);
+
+                response.Code = 0;
+                response.Message = "OK";
+                response.ReturnValue = Convert.ToInt32(pId.Value);
+                response.Status = true;
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "SaveAlias failed");
+                response.Code = 500;
+                response.Status = false;
+                response.Message = "Save alias failed";
+                return StatusCode(500, response);
+            }
+        }
+
+        [HttpGet("{codetrans:int}")]
+        public async Task<ActionResult<List<CalcmenuAPI.Models.AliasRecord>>> SearchAlias(int codetrans, CancellationToken ct)
+        {
+            try
+            {
+                await using var cn = new SqlConnection(_cs);
+                await using var cmd = new SqlCommand("[dbo].[API_GET_Generic]", cn)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+                cmd.Parameters.Add("@CodeSite", SqlDbType.Int).Value = -1;
+                cmd.Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans;
+                cmd.Parameters.Add("@Type", SqlDbType.Int).Value = -1;
+                cmd.Parameters.Add("@TableName", SqlDbType.NVarChar, 200).Value = "EGSWSEARCHALIASES";
+                cmd.Parameters.Add("@Status", SqlDbType.Int).Value = 1;
+
+                await cn.OpenAsync(ct);
+                await using var rdr = await cmd.ExecuteReaderAsync(ct);
+
+                var aliases = new List<CalcmenuAPI.Models.AliasRecord>();
+                while (await rdr.ReadAsync(ct))
+                {
+                    aliases.Add(new CalcmenuAPI.Models.AliasRecord
+                    {
+                        Code = ReadInt(rdr, "Code"),
+                        IdMain = ReadInt(rdr, "IdMain"),
+                        CodeTrans = ReadInt(rdr, "CodeTrans"),
+                        Name = ReadString(rdr, "Name"),
+                        Alias = ReadString(rdr, "Alias")
+                    });
+                }
+                return Ok(aliases);
+            }
+            catch (ArgumentException)
+            {
+                return Problem(title: "Request failed", statusCode: 400);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "SearchAlias failed: {CodeTrans}", codetrans);
+                return Problem(title: "Request failed", statusCode: 500);
+            }
+        }
+
+        [HttpGet("{codetrans:int}/{name}")]
+        public async Task<ActionResult<List<CalcmenuAPI.Models.AliasRecord>>> SearchAliasByName(int codetrans, string name = "", CancellationToken ct = default)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(name) || name == "null" || name == "undefined") name = null;
+
+                await using var cn = new SqlConnection(_cs);
+                await using var cmd = new SqlCommand("[dbo].[API_MANAGE_Generic]", cn)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+                cmd.Parameters.Add("@CodeSite", SqlDbType.Int).Value = -1;
+                cmd.Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans;
+                cmd.Parameters.Add("@Type", SqlDbType.Int).Value = -1;
+                cmd.Parameters.Add("@Status", SqlDbType.Int).Value = -1;
+                cmd.Parameters.Add("@TableName", SqlDbType.NVarChar, 200).Value = "EGSWSEARCHALIASES";
+                cmd.Parameters.Add("@Name", SqlDbType.NVarChar, 300).Value = (object?)name ?? DBNull.Value;
+
+                await cn.OpenAsync(ct);
+                await using var rdr = await cmd.ExecuteReaderAsync(ct);
+
+                var aliases = new List<CalcmenuAPI.Models.AliasRecord>();
+                while (await rdr.ReadAsync(ct))
+                {
+                    aliases.Add(new CalcmenuAPI.Models.AliasRecord
+                    {
+                        Code = ReadInt(rdr, "Id"),
+                        IdMain = ReadInt(rdr, "IdMain"),
+                        CodeTrans = ReadInt(rdr, "CodeTrans"),
+                        Name = ReadString(rdr, "Name"),
+                        Alias = ReadString(rdr, "Alias")
+                    });
+                }
+                return Ok(aliases);
+            }
+            catch (ArgumentException)
+            {
+                return Problem(title: "Request failed", statusCode: 400);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "SearchAliasByName failed: {CodeTrans} {Name}", codetrans, name);
+                return Problem(title: "Request failed", statusCode: 500);
+            }
+        }
+
+        [HttpPost("search")]
+        public async Task<ActionResult<List<CalcmenuAPI.Models.AliasRecord>>> SearchAliasByName2([FromBody] CalcmenuAPI.Models.ConfigurationcSearch data, CancellationToken ct)
+        {
+            try
+            {
+                await using var cn = new SqlConnection(_cs);
+                await using var cmd = new SqlCommand("[dbo].[API_MANAGE_Generic]", cn)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+                cmd.Parameters.Add("@CodeSite", SqlDbType.Int).Value = -1;
+                cmd.Parameters.Add("@CodeTrans", SqlDbType.Int).Value = data.CodeTrans;
+                cmd.Parameters.Add("@Type", SqlDbType.Int).Value = -1;
+                cmd.Parameters.Add("@Status", SqlDbType.Int).Value = -1;
+                cmd.Parameters.Add("@TableName", SqlDbType.NVarChar, 200).Value = "EGSWSEARCHALIASES";
+                cmd.Parameters.Add("@Name", SqlDbType.NVarChar, 300).Value = data.Name ?? string.Empty;
+
+                await cn.OpenAsync(ct);
+                await using var rdr = await cmd.ExecuteReaderAsync(ct);
+
+                var aliases = new List<CalcmenuAPI.Models.AliasRecord>();
+                while (await rdr.ReadAsync(ct))
+                {
+                    aliases.Add(new CalcmenuAPI.Models.AliasRecord
+                    {
+                        Code = ReadInt(rdr, "Id"),
+                        IdMain = ReadInt(rdr, "IdMain"),
+                        CodeTrans = ReadInt(rdr, "CodeTrans"),
+                        Name = ReadString(rdr, "Name"),
+                        Alias = ReadString(rdr, "Alias")
+                    });
+                }
+                return Ok(aliases);
+            }
+            catch (ArgumentException)
+            {
+                return Problem(title: "Request failed", statusCode: 400);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "SearchAliasByName2 failed: {@Data}", data);
+                return Problem(title: "Request failed", statusCode: 500);
+            }
+        }
+
+        [HttpPost("delete")]
+        public async Task<ActionResult<CalcmenuAPI.Models.ResponseCallBack>> DeleteAlias([FromBody] CalcmenuAPI.Models.GenericDeleteData data, CancellationToken ct)
+        {
+            var response = new CalcmenuAPI.Models.ResponseCallBack();
+            try
+            {
+                var codeList = string.Join(",", (data?.CodeList ?? new List<CalcmenuAPI.Models.GenericList>())
+                    .Select(c => c.Code)
+                    .Distinct());
+
+                await using var cn = new SqlConnection(_cs);
+                await using var cmd = new SqlCommand("API_DELETE_Generic", cn)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+                cmd.Parameters.Clear();
+                cmd.Parameters.Add("@CodeList", SqlDbType.VarChar, 4000).Value = codeList;
+                cmd.Parameters.Add("@TableName", SqlDbType.VarChar, 200).Value = "EGSWSEARCHALIASES";
+                cmd.Parameters.Add("@CodeUser", SqlDbType.Int).Value = data?.CodeUser ?? 0;
+                cmd.Parameters.Add("@CodeSite", SqlDbType.Int).Value = data?.CodeSite ?? 0;
+                cmd.Parameters.Add("@ForceDelete", SqlDbType.Bit).Value = data?.ForceDelete ?? false;
+                var skipList = cmd.Parameters.Add("@SkipList", SqlDbType.NVarChar, 4000);
+                skipList.Direction = ParameterDirection.Output;
+                var ret = cmd.Parameters.Add("@Return", SqlDbType.Int);
+                ret.Direction = ParameterDirection.ReturnValue;
+
+                await cn.OpenAsync(ct);
+                await cmd.ExecuteNonQueryAsync(ct);
+                var rc = ret.Value is int i ? i : Convert.ToInt32(ret.Value ?? -1);
+                if (rc != 0) throw new InvalidOperationException($"[{rc}] Delete alias failed");
+
+                response.Code = 0;
+                response.Message = "OK";
+                response.ReturnValue = Convert.ToString(skipList.Value) ?? string.Empty;
+                response.Status = true;
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "DeleteAlias failed");
+                response.Code = 500;
+                response.Status = false;
+                response.ReturnValue = string.Empty;
+                response.Message = "Delete failed";
+                return StatusCode(500, response);
+            }
+        }
+
+        [HttpPost("purge/{type:int}/{codeUser:int}/{codeSite:int}")]
+        public async Task<ActionResult<CalcmenuAPI.Models.ResponseCallBack>> PurgeAlias(int type, long codeUser, long codeSite, CancellationToken ct)
+        {
+            var response = new CalcmenuAPI.Models.ResponseCallBack();
+            try
+            {
+                await using var cn = new SqlConnection(_cs);
+                await using var cmd = new SqlCommand("API_PURGE_Generic", cn)
+                {
+                    CommandType = CommandType.StoredProcedure
+                };
+                cmd.Parameters.Clear();
+                cmd.Parameters.Add("@TableName", SqlDbType.VarChar, 200).Value = "EGSWSEARCHALIASES";
+                cmd.Parameters.Add("@Type", SqlDbType.Int).Value = type;
+                cmd.Parameters.Add("@CodeUser", SqlDbType.Int).Value = codeUser;
+                cmd.Parameters.Add("@CodeSite", SqlDbType.Int).Value = codeSite;
+                var ret = cmd.Parameters.Add("@Return", SqlDbType.Int);
+                ret.Direction = ParameterDirection.ReturnValue;
+
+                await cn.OpenAsync(ct);
+                await using var tx = (SqlTransaction)await cn.BeginTransactionAsync(ct);
+                cmd.Transaction = tx;
+                await cmd.ExecuteNonQueryAsync(ct);
+                var rc = ret.Value is int i ? i : Convert.ToInt32(ret.Value ?? -1);
+                if (rc != 0) throw new InvalidOperationException($"[{rc}] Purge alias failed");
+                await tx.CommitAsync(ct);
+
+                response.Code = 0;
+                response.Message = "OK";
+                response.Status = true;
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "PurgeAlias failed");
+                response.Code = 500;
+                response.Status = false;
+                response.Message = "Purge alias failed";
+                return StatusCode(500, response);
+            }
+        }
+
+        private static int ReadInt(SqlDataReader rdr, string name)
+        {
+            var i = rdr.GetOrdinal(name);
+            return rdr.IsDBNull(i) ? 0 : Convert.ToInt32(rdr.GetValue(i));
+        }
+
+        private static string ReadString(SqlDataReader rdr, string name)
+        {
+            var i = rdr.GetOrdinal(name);
+            return rdr.IsDBNull(i) ? string.Empty : Convert.ToString(rdr.GetValue(i)) ?? string.Empty;
+        }
+    }
+}

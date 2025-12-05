@@ -1,0 +1,140 @@
+﻿Imports System.Collections.Generic
+
+Namespace Models
+    Public Class ResponseCallBack
+        Public Property Code As Integer
+        Public Property Status As Boolean
+        Public Property Message As String = String.Empty
+        Public Property ReturnValue As Object
+    End Class
+
+    Public Class AliasData
+        Public Property Info As AliasRecord = New AliasRecord()
+    End Class
+
+    Public Class AliasRecord
+        Public Property Code As Integer
+        Public Property IdMain As Integer
+        Public Property CodeTrans As Integer
+        Public Property Name As String = String.Empty
+        Public Property [Alias] As String = String.Empty
+    End Class
+
+    Public Class GenericDeleteData
+        Public Property CodeUser As Integer
+        Public Property CodeSite As Integer
+        Public Property ForceDelete As Boolean
+        Public Property CodeList As List(Of GenericList) = New List(Of GenericList)()
+    End Class
+
+    Public Class GenericList
+        Public Property Code As Integer
+        Public Property CodeDictionary As Integer
+        Public Property Name As String
+        Public Property Value As String
+    End Class
+
+    ' Unified search model (used by Alias and Brand controllers)
+    Public Class ConfigurationcSearch
+        Public Property CodeTrans As Integer
+        Public Property Name As String = String.Empty
+        Public Property CodeSite As Integer
+        Public Property CodeListe As Integer
+        Public Property CodeProperty As Integer
+    End Class
+
+    Public Class GenericTree
+        Public Property Code As Integer
+        Public Property Name As String = String.Empty
+        Public Property ParentCode As Integer
+        Public Property ParentName As String = String.Empty
+        Public Property Flagged As Boolean
+        Public Property [Global] As Boolean
+        Public Property CanBeParent As Boolean
+        Public Property Type As Integer
+        Public Property Note As String = String.Empty
+    End Class
+
+    Public Class Brand
+        Public Property Code As Integer
+        Public Property Name As String = String.Empty
+        Public Property ParentCode As Integer
+        Public Property ParentName As String = String.Empty
+        Public Property Flagged As Boolean
+        Public Property Classification As Integer
+        Public Property Note As Integer
+    End Class
+
+    Public Class BrandTreeNode
+        Public Property title As String = String.Empty
+        Public Property key As Integer
+        Public Property icon As Boolean
+        Public Property children As List(Of BrandTreeNode) = New List(Of BrandTreeNode)()
+        Public Property [select] As Boolean
+        Public Property parenttitle As String = String.Empty
+        Public Property note As Integer
+        Public Property classification As Integer
+    End Class
+
+    Public Enum GroupLevel
+        [Property]
+    End Enum
+
+    Public Class TreeNode
+        Public Property title As String = String.Empty
+        Public Property key As Integer
+        Public Property icon As Boolean
+        Public Property children As List(Of TreeNode)
+        Public Property [select] As Boolean
+        Public Property selected As Boolean
+        Public Property parenttitle As String = String.Empty
+        Public Property note As String = String.Empty
+        Public Property CanBeParent As Boolean
+        Public Property [Global] As Boolean
+        Public Property groupLevel As GroupLevel
+    End Class
+
+    Public Class RecipeTranslation
+        Public Property CodeTrans As Integer
+        Public Property TranslationName As String = String.Empty
+        Public Property Name As String = String.Empty
+    End Class
+
+    Public Class BrandData
+        Public Property Info As BrandInfo = New BrandInfo()
+        Public Property Translation As List(Of BrandTranslation) = New List(Of BrandTranslation)()
+        Public Property Profile As Profile = New Profile()
+        Public Property KioskList As List(Of KioskItem) = New List(Of KioskItem)()
+        Public Property ActionType As Integer
+        Public Property MergeList As List(Of Integer) = New List(Of Integer)()
+        Public Property Sharing As List(Of SharingItem) = New List(Of SharingItem)()
+    End Class
+
+    Public Class BrandInfo
+        Public Property Code As Integer
+        Public Property Name As String = String.Empty
+        Public Property [Global] As Boolean
+        Public Property CodeUser As Integer
+        Public Property CodeSite As Integer
+        Public Property ParentCode As Integer
+        Public Property CanBeParent As Boolean
+    End Class
+
+    Public Class BrandTranslation
+        Public Property Name As String = String.Empty
+        Public Property CodeTrans As Integer
+    End Class
+
+    Public Class Profile
+        Public Property Code As Integer
+        Public Property CodeSite As Integer
+    End Class
+
+    Public Class KioskItem
+        Public Property Code As Integer
+    End Class
+
+    Public Class SharingItem
+        Public Property Code As Integer
+    End Class
+End Namespace

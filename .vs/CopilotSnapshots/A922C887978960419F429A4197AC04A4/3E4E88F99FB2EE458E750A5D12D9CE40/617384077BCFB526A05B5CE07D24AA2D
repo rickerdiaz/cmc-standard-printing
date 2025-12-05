@@ -1,0 +1,630 @@
+﻿Imports System
+Imports System.Web
+Imports System.Collections.Generic
+Imports System.Linq
+Imports AttributeRouting.Web.Http
+Imports System.Data.SqlClient
+Imports System.Web.Script.Serialization
+Imports log4net
+Imports System.Net
+Imports Newtonsoft.Json
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace CalcmenuAPI
+    Public Class SupplierController
+        Inherits ControllerBase
+
+        Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType)
+
+        <HttpGet> <[GET]("/api/suppliers/{codesite:int}/{status:int}")> _
+        Public Function GetSupplierList(codesite As Integer, status As Integer) As List(Of Models.Supplier)
+            Dim Suppliers As New List(Of Models.Supplier)
+            Try
+                Using cmd As New SqlCommand()
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+
+                            .Connection = cn
+                            .CommandType = CommandType.StoredProcedure
+                            .CommandText = "[dbo].[GET_SupplierList]"
+                            .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                            .Parameters.Add("@Status", SqlDbType.Int).Value = status
+                            cn.Open()
+
+                            Using dr As SqlDataReader = cmd.ExecuteReader()
+                                If dr.HasRows Then
+                                    While dr.Read
+                                        Dim supplier_ As New Models.Supplier
+                                        With supplier_
+                                            .Name = GetStr(dr("NameRef"))
+                                            .Code = GetInt(dr("Code"))
+                                            .Number = GetInt(dr("number"))
+                                            .City = GetStr(dr("city"))
+                                            .Country = GetStr(dr("country"))
+                                            .PhoneNumber = GetStr(dr("tel"))
+                                            .Fax = GetStr(dr("fax"))
+                                            .Global = GetBool(dr("IsGlobal"))
+                                        End With
+                                        Suppliers.Add(supplier_)
+                                    End While
+                                End If
+                                dr.Close()
+                            End Using
+
+                        End Using
+                    End With
+                End Using
+                Return Suppliers
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            End Try
+
+        End Function
+
+        <HttpGet> <[GET]("/api/getsupplier/{codesite:int}/{codesupplier?}")> _
+        Public Function GetSupplier(codesite As Integer, _
+                                           Optional codesupplier As Integer = -1
+                                           ) As List(Of Models.Supplier)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[SUP_GetList]"
+                                .Parameters.Add("@intCode", SqlDbType.Int).Value = codesupplier
+                                .Parameters.Add("@intCodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@intCodeProperty", SqlDbType.Int).Value = -1
+                                If codesupplier = -1 Then
+                                    .Parameters.Add("@Status", SqlDbType.Int).Value = -1
+                                End If
+
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+                Dim supplier As New List(Of Models.Supplier)
+                For Each r In ds.Tables(1).Rows
+                    supplier.Add(New Models.Supplier With {
+                                   .Code = GetInt(r("Code")), _
+                                   .Name = GetStr(r("NameRef")), _
+                                   .Global = GetBool(r("IsGlobal")), _
+                                   .Number = GetStr(r("Number")), _
+                                   .City = GetStr(r("City")), _
+                                   .Country = GetStr(r("Country")), _
+                                   .PhoneNumber = GetStr(r("Tel")), _
+                                   .Address1 = GetStr(r("Address1")), _
+                                   .Address2 = GetStr(r("Address2")), _
+                                   .Company = GetStr(r("Company")), _
+                                   .ZipCode = GetStr(r("Zip")), _
+                                   .State = GetStr(r("State")), _
+                                   .Fax = GetStr(r("Fax")), _
+                                   .Email = GetStr(r("Email")), _
+                                   .URL = GetStr(r("URL")), _
+                                   .Remark = GetStr(r("Remark")), _
+                                   .Note = GetStr(r("Note"))})
+                Next
+                'LLG 09.02.2015 - Changed the data type of Number to fix the CWA-18930 which should allow alphanumeric characters.
+                Return supplier.ToList
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpGet> <[GET]("/api/supplier/{codesite:int}/{type:int}/{name?}")> _
+        Public Function GetSupplierByName(codesite As Integer, _
+                              type As Integer, _
+                            Optional name As String = "") As List(Of Models.Supplier)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_MANAGE_Generic]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = 1
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@Status", SqlDbType.Int).Value = 1
+                                .Parameters.Add("@TableName", SqlDbType.NVarChar, 200).Value = "EGSWSUPPLIER"
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+                Dim supplier As New List(Of Models.Supplier)
+                For Each r In ds.Tables(0).Rows
+                    supplier.Add(New Models.Supplier With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name")), _
+                                    .Global = GetBool(r("Global")), _
+                                    .Number = GetInt(r("Number")), _
+                                    .City = GetStr(r("City")), _
+                                    .Country = GetStr(r("Country")), _
+                                    .PhoneNumber = GetStr(r("PhoneNumber")), _
+                                    .Fax = GetStr(r("Fax"))})
+                Next
+
+                If name.Trim <> "" Then
+
+                    Dim supplierresult As New List(Of Models.Supplier)
+
+                    Dim arrNames() As String = name.Trim.Split(",")
+                    For Each word In arrNames
+                        If word.Trim.ToString <> "" Then    'RDTC 2015.08.10; added this otherwise the rows are getting duplicated
+                            For Each s In supplier
+                                If s.Name.ToLower.Contains(Common.ReplaceSpecialCharacters(word.Trim.ToLower)) Then
+                                    supplierresult.Add(s)
+                                End If
+                            Next
+                        End If
+                    Next
+                    supplier = supplierresult
+
+                End If
+
+                Return supplier.ToList
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        'START - Raqi Pinili 08.26.2015
+        <HttpPost> <[POST]("/api/supplier/search")> _
+        Public Function GetSupplierByName2(data As Models.ConfigurationcSearch) As List(Of Models.Supplier)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_MANAGE_Generic]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.CodeSite
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = 1
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = data.CodeTrans '0
+                                .Parameters.Add("@Status", SqlDbType.Int).Value = 1
+                                .Parameters.Add("@TableName", SqlDbType.NVarChar, 200).Value = "EGSWSUPPLIER"
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+                Dim supplier As New List(Of Models.Supplier)
+                For Each r In ds.Tables(0).Rows
+                    supplier.Add(New Models.Supplier With {
+                                    .Code = GetInt(r("Code")), _
+                                   .Name = GetStr(r("Name")), _
+                                    .Global = GetBool(r("Global")), _
+                                    .Number = GetStr(r("Number")), _
+                                    .City = GetStr(r("City")), _
+                                    .Country = GetStr(r("Country")), _
+                                    .PhoneNumber = GetStr(r("PhoneNumber")), _
+                                    .Fax = GetStr(r("Fax"))})
+                    'LLG 09.02.2015 - Changed the data type of Number to fix the CWA-18930 which should allow alphanumeric characters.
+                Next
+
+                If data.Name.Trim <> "" Then
+
+                    Dim supplierresult As New List(Of Models.Supplier)
+
+                    Dim arrNames() As String = data.Name.Trim.Split(",")
+                    For Each word In arrNames
+                        If word.Trim.ToString <> "" Then    'RDTC 2015.08.10; added this otherwise the rows are getting duplicated
+                            For Each s In supplier
+                                If s.Name.ToLower.Contains(Common.ReplaceSpecialCharacters(word.Trim.ToLower)) Then
+                                    supplierresult.Add(s)
+                                End If
+                            Next
+                        End If
+                    Next
+                    supplier = supplierresult
+
+                End If
+
+                Return supplier.ToList
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+        'END - Raqi Pinili 08.26.2015
+
+        <HttpGet> <[GET]("/api/supplier/sharing/{codesite:int}/{type:int}/{tree:int}/{codesupplier:int}")> _
+        Public Function GetSupplierSharing(codesite As Integer, _
+                                  type As Integer, _
+                                  tree As Integer, _
+                                  codesupplier As Integer) As List(Of Models.TreeNode)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_SharingAll]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = type
+                                .Parameters.Add("@Code", SqlDbType.Int).Value = codesupplier
+                                .Parameters.Add("@CodeEgswTable", SqlDbType.Int).Value = 120
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim sharings As New List(Of Models.GenericTree)
+                For Each r In ds.Tables(0).Rows
+                    sharings.Add(New Models.GenericTree With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name")), _
+                                    .ParentCode = GetInt(r("ParentCode")), _
+                                    .ParentName = GetStr(r("ParentName")), _
+                                    .Flagged = GetBool(r("Flagged")), _
+                                    .Type = GetInt(r("Type")), _
+                                    .Global = GetBool(r("Global"))})
+                Next
+
+                Dim sharingdata As New List(Of Models.TreeNode)
+
+                Dim parents = sharings.Where(Function(obj) obj.ParentCode = 0 And obj.Type = 1).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each p In parents
+                    If sharingdata.Where(Function(obj) obj.key = p.Code).Count = 0 Then
+                        Dim parent As New Models.TreeNode
+                        parent.title = p.Name
+                        parent.key = p.Code
+                        parent.icon = False
+                        parent.children = CreateChildren(sharings, p.Code)
+                        parent.select = p.Flagged
+                        parent.parenttitle = p.ParentName
+                        sharingdata.Add(parent)
+                    End If
+                Next
+
+                Return sharingdata
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        Private Function CreateChildren(_sharingdata As List(Of Models.GenericTree),
+                                        _code As Integer) As List(Of Models.TreeNode)
+
+            Dim children As New List(Of Models.TreeNode)
+            If _sharingdata IsNot Nothing Then
+                Dim kids = _sharingdata.Where(Function(obj) obj.ParentCode = _code And obj.Type = 2).OrderBy(Function(obj) obj.Name).ToList() ' RBAJ-2014.04.23 Fixed infinite loop "obj.Code <> _code"
+
+                For Each k In kids
+                    Dim child As New Models.TreeNode
+                    child.title = k.Name
+                    child.key = k.Code
+                    child.icon = False
+                    child.children = Nothing
+                    children.Add(child)
+                    child.select = k.Flagged
+                    child.parenttitle = k.ParentName
+                    child.note = k.Global
+                Next
+            End If
+            Return children
+
+        End Function
+
+        <HttpPost> <POST("api/supplier")> _
+        Public Function SaveSupplier(data As Models.SupplierData) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim resultCode As Integer
+            Dim _trans As SqlTransaction = Nothing
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + JsonConvert.SerializeObject(data, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+                Using cmd As New SqlCommand
+                    Dim arrSharing As New ArrayList
+                    Dim arrMerge As New ArrayList
+                    For Each sh In data.Sharing
+                        If arrSharing.IndexOf(sh.Code) = -1 Then arrSharing.Add(sh.Code)
+                    Next
+                    For Each ml In data.MergeList
+                        If arrMerge.IndexOf(ml) = -1 Then arrMerge.Add(ml)
+                    Next
+
+                    Dim _codeSiteList As String = Common.Join(arrSharing, "(", ")", ",")
+                    Dim _codeMergeList As String = Common.Join(arrMerge, "(", ")", ",")
+                    Dim tran As Integer
+
+
+                    If data.Info.Code = -1 Then
+                        tran = 1
+                    ElseIf data.Info.Code = -2 Then
+                        tran = 4
+                    Else
+                        tran = 2
+                    End If
+
+
+                    If data.Info.ActionType = 5 Then
+                        tran = 4
+                    End If
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[SUP_Update]"
+                                .Parameters.Clear()
+
+                                .Parameters.Add("@retval", SqlDbType.Int)
+                                .Parameters.Add("@intCodeUser", SqlDbType.Int).Value = data.Info.CodeUser
+                                .Parameters.Add("@intCodeSite", SqlDbType.Int).Value = data.Info.CodeSite
+                                .Parameters.Add("@intCode", SqlDbType.Int).Value = data.Info.Code
+
+                                .Parameters.Add("@nvcNumber", SqlDbType.NVarChar, 15).Value = data.Info.Number
+                                .Parameters.Add("@nvcNameRef", SqlDbType.NVarChar, 15).Value = data.Info.Name
+                                .Parameters.Add("@nvcCompany", SqlDbType.NVarChar, 50).Value = data.Info.Company
+                                .Parameters.Add("@nvcURL", SqlDbType.NVarChar, 50).Value = data.Info.URL
+                                .Parameters.Add("@nvcNote", SqlDbType.NVarChar, 2000).Value = data.Info.Note
+                                .Parameters.Add("@nvcTerms", SqlDbType.NVarChar, 2000).Value = ""
+                                .Parameters.Add("@UseDefaultTerms", SqlDbType.Bit).Value = 0
+                                .Parameters.Add("@nvcAcctRef", SqlDbType.NVarChar, 20).Value = ""
+                                .Parameters.Add("@nvcAddress1", SqlDbType.NVarChar, 200).Value = data.Info.Address1
+                                .Parameters.Add("@nvcAddress2", SqlDbType.NVarChar, 200).Value = data.Info.Address2 'JSS CWA-19907 112015
+                                .Parameters.Add("@WithTax", SqlDbType.Bit).Value = 0
+                                .Parameters.Add("@nvcCity", SqlDbType.NVarChar, 30).Value = data.Info.City
+                                .Parameters.Add("@nvcZip", SqlDbType.NVarChar, 15).Value = data.Info.ZipCode
+                                .Parameters.Add("@nvcCountry", SqlDbType.NVarChar, 30).Value = data.Info.Country
+                                .Parameters.Add("@nvcState", SqlDbType.NVarChar, 30).Value = data.Info.State
+                                'JMS 2015-04-29 Change Data Type Length of Tel and Fax to 50 Update start
+                                '.Parameters.Add("@nvcTel", SqlDbType.NVarChar, 15).Value = data.Info.PhoneNumber
+                                '.Parameters.Add("@nvcFax", SqlDbType.NVarChar, 15).Value = data.Info.Fax
+                                .Parameters.Add("@nvcTel", SqlDbType.NVarChar, 15).Value = data.Info.PhoneNumber
+                                .Parameters.Add("@nvcFax", SqlDbType.NVarChar, 15).Value = data.Info.Fax
+                                'JMS 2015-04-29 Change Data Type Length to Tel and Fax 50 Update end
+                                .Parameters.Add("@nvcEmail", SqlDbType.NVarChar, 50).Value = data.Info.Email
+                                .Parameters.Add("@nvcCity2", SqlDbType.NVarChar, 30).Value = ""
+                                .Parameters.Add("@nvcZip2", SqlDbType.NVarChar, 15).Value = ""
+                                .Parameters.Add("@nvcCountry2", SqlDbType.NVarChar, 30).Value = ""
+                                .Parameters.Add("@nvcState2", SqlDbType.NVarChar, 30).Value = ""
+                                .Parameters.Add("@nvcRemark", SqlDbType.NVarChar, 30).Value = data.Info.Remark
+                                .Parameters.Add("@intCodeSupplierGroup", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@AddFlag", SqlDbType.Bit).Value = 0
+                                .Parameters.Add("@UpdateFlag", SqlDbType.Bit).Value = 0
+                                .Parameters.Add("@ImportFlag", SqlDbType.Bit).Value = 0
+                                .Parameters.Add("@IsGlobal", SqlDbType.Bit).Value = data.Info.Global
+                                .Parameters.Add("@tntTranMode", SqlDbType.TinyInt).Value = tran
+
+                                .Parameters("@intCode").Direction = ParameterDirection.InputOutput
+                                _codeSiteList.Trim()
+                                If _codeSiteList <> "" Then
+                                    If Not (_codeSiteList.StartsWith("(") And _codeSiteList.EndsWith(")")) Then
+                                        Throw New DatabaseException(String.Format("[{0}] Save supplier failed", resultCode))
+                                    Else
+                                        .Parameters.Add("@vchCodeSiteList", SqlDbType.VarChar, 8000).Value = _codeSiteList
+                                    End If
+                                End If
+
+                                If tran = 4 Then
+                                    _codeMergeList.Trim()
+                                    If _codeMergeList <> "" Then
+                                        If Not (_codeMergeList.StartsWith("(") And _codeMergeList.EndsWith(")")) Then
+                                            Throw New DatabaseException(String.Format("[{0}] Save supplier failed", resultCode))
+                                        Else
+                                            .Parameters.Add("@vchCodeMergeList", SqlDbType.VarChar, 8000).Value = _codeMergeList
+                                        End If
+                                    End If
+                                End If
+
+
+
+                                .Parameters("@retval").Direction = ParameterDirection.ReturnValue
+
+                                cn.Open()
+                                _trans = cn.BeginTransaction
+                                .Transaction = _trans
+                                .ExecuteNonQuery()
+                                Dim codeKiosk As Integer = GetInt(.Parameters("@intCode").Value, -1)
+                                resultCode = GetInt(.Parameters("@retval").Value, -1)
+                                If resultCode <> 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Save supplier failed", resultCode))
+                                End If
+
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = codeKiosk
+                                response.Status = True
+                                _trans.Commit()
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                Try
+                                    _trans.Rollback()
+                                    If Not _trans Is Nothing Then
+                                        CType(_trans, IDisposable).Dispose()
+                                    End If
+                                Catch
+                                End Try
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.Status = False
+                                response.Message = "Save kiosk failed"
+                                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Supplier")
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+
+                End Using
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Supplier")
+            End Try
+            Return response
+        End Function
+
+        <HttpPost> <POST("api/supplier/delete")>
+        Public Function DeleteSupplier(data As Models.GenericDeleteData) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim resultCode As Integer
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + JsonConvert.SerializeObject(data, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+                Using cmd As New SqlCommand
+                    Dim arrCategoryCodes As New ArrayList
+                    For Each c In data.CodeList
+                        If arrCategoryCodes.IndexOf(c.Code) = -1 Then arrCategoryCodes.Add(c.Code)
+                    Next
+
+                    Dim _codeSupplierList As String = Common.Join(arrCategoryCodes, "(", ")", ",")
+                    With cmd
+                        Using cn = New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandText = "SUP_Delete"
+                                .CommandType = CommandType.StoredProcedure
+                                .Parameters.Clear()
+
+                                .Parameters.Add("@intCode", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@IsGlobal", SqlDbType.Bit).Value = 0
+                                .Parameters.Add("@intCodeUser", SqlDbType.Int).Value = data.CodeUser
+                                .Parameters.Add("@intCodeSite", SqlDbType.Int).Value = data.CodeSite
+                                .Parameters.Add("@intCodeProperty", SqlDbType.Int).Value = -1
+                                .Parameters.Add("@tntTranMode", SqlDbType.TinyInt).Value = 7
+                                .Parameters.Add("@SkipList", SqlDbType.VarChar, 4000).Direction = ParameterDirection.Output
+
+
+                                _codeSupplierList.Trim()
+                                If _codeSupplierList <> "" Then
+                                    If Not (_codeSupplierList.StartsWith("(") And _codeSupplierList.EndsWith(")")) Then
+                                        Throw New DatabaseException(String.Format("[{0}] Delete supplier failed", resultCode))
+                                    Else
+                                        .Parameters.Add("@vchCodeList", SqlDbType.VarChar, 8000).Value = _codeSupplierList
+                                    End If
+                                End If
+
+                                .Parameters.Add("@retval", SqlDbType.Int)
+                                .Parameters("@retval").Direction = ParameterDirection.ReturnValue
+
+                                cn.Open()
+                                .ExecuteNonQuery()
+                                resultCode = GetInt(.Parameters("@retval").Value, -1)
+                                If resultCode <> 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Delete supplier failed", resultCode))
+                                End If
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = GetStr(.Parameters("@SkipList").Value)
+                                response.Status = True
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.ReturnValue = GetStr(.Parameters("@SkipList").Value)
+                                response.Status = False
+                                response.Message = "Delete supplier failed"
+                                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Supplier")
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+
+                End Using
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Supplier")
+            End Try
+            Return response
+        End Function
+
+
+    End Class
+End Namespace

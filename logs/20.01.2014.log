@@ -1,0 +1,48 @@
+2014-01-20 13:02:58,931 [6] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2014-01-20 13:02:59,041 [6] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2014-01-20 13:02:59,062 [6] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2014-01-20 13:03:11,215 [14] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2014-01-20 13:03:11,224 [14] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2014-01-20 13:03:11,726 [5] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2014-01-20 13:03:11,728 [5] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2014-01-20 13:03:26,252 [5] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2014-01-20 13:03:26,254 [5] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2014-01-20 13:14:24,403 [20] INFO  CalcmenuAPI.Common - Calling GetIngredients(codesite;codetrans;codesetprice;name;skip;take;searchtype;category;sharetype)(1;1;1;a;0;10;0;-1;0)
+2014-01-20 13:21:04,436 [15] INFO  CalcmenuAPI.Common - Calling CheckOut(data)(CalcmenuAPI.CalcmenuAPI.Models.RecipeCheckout)
+2014-01-20 13:21:20,667 [17] INFO  CalcmenuAPI.Common - Calling CheckOut(data)(CalcmenuAPI.CalcmenuAPI.Models.RecipeCheckout)
+2014-01-20 13:21:21,920 [38] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2014-01-20 13:21:21,922 [38] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2014-01-20 13:21:22,692 [28] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2014-01-20 13:21:22,694 [28] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2014-01-20 13:21:36,041 [19] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2014-01-20 13:21:36,046 [19] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2014-01-20 16:10:19,134 [7] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2014-01-20 16:12:42,599 [12] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started

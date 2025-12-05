@@ -1,0 +1,420 @@
+﻿Imports System
+Imports System.Web
+Imports System.Collections.Generic
+Imports System.Linq
+Imports AttributeRouting.Web.Http
+Imports System.Data.SqlClient
+Imports System.Web.Script.Serialization
+Imports log4net
+Imports System.Net
+Imports Newtonsoft.Json
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace CalcmenuAPI
+    Public Class SiteController
+        Inherits ControllerBase
+
+        Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType)
+
+        ''' <summary>
+        ''' JPJA 2014.04.25 @pauloadaoag
+        ''' Generic api end point that returns the current sites and properties in tree form
+        ''' </summary>
+        ''' <returns></returns>
+        ''' <remarks></remarks>
+        <HttpGet> <[GET]("/api/sites")> _
+        Public Function GetSites() As List(Of Models.TreeNode)
+            Try
+                Dim ds As New DataSet
+                Dim groupLevel As Integer
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_Sites_Generic]"
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim sharings As New List(Of Models.GenericTree)
+                For Each r In ds.Tables(0).Rows
+                    sharings.Add(New Models.GenericTree With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name")), _
+                                    .ParentCode = GetInt(r("ParentCode")), _
+                                    .ParentName = GetStr(r("ParentName")), _
+                                    .Type = GetInt(r("Type"))})
+                Next
+                groupLevel = GetInt(ds.Tables(0).Rows(0).Item("GroupLevel"))
+
+                Dim sharingdata As New List(Of Models.TreeNode)
+
+                Dim parents = sharings.Where(Function(obj) obj.ParentCode = 0 And obj.Type = 1).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each p In parents
+                    Dim parent As New Models.TreeNode
+                    parent.title = p.Name
+                    parent.key = p.Code
+                    parent.icon = False
+                    parent.children = CreateChildrenSharing(sharings, p.Code)
+                    parent.parenttitle = p.ParentName
+                    parent.groupLevel = groupLevel
+                    sharingdata.Add(parent)
+                Next
+
+                Return sharingdata
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpGet> <[GET]("/api/site/{codesite:int}/{codetrans:int}")> _
+        Public Function GetSite(codesite As Integer, codetrans As Integer) As Models.SiteData
+            Try
+                Dim data As New Models.SiteData
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = Common.SP_API_GET_SiteInfo
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                If ds IsNot Nothing AndAlso ds.Tables.Count = 8 Then
+                    Dim tblInfo As DataTable = ds.Tables(0),
+                    tblTranslation As DataTable = ds.Tables(1),
+                    tblAutonumber As DataTable = ds.Tables(2),
+                    tblConfig As DataTable = ds.Tables(3),
+                    tblNutrientSet As DataTable = ds.Tables(4),
+                    tblSetOfPrice As DataTable = ds.Tables(5),
+                    tblTax As DataTable = ds.Tables(6),
+                    tblUnits As DataTable = ds.Tables(7)
+
+                    For Each dr As DataRow In tblInfo.Rows
+                        data.Info.Name = GetStr(dr("Name"))
+                        data.Info.RefName = GetStr(dr("RefName"))
+                        data.Info.Group = GetStr(dr("Group"))
+                        data.Info.SiteLevel = GetStr(dr("SiteLevel"))
+                    Next
+
+                    If tblTranslation.Rows.Count > 0 Then
+                        data.Translation = New List(Of Models.Translation)
+                        For Each dr In tblTranslation.Rows
+                            data.Translation.Add(New Models.Translation With {.Code = GetInt(dr("Code")), .Value = GetStr(dr("Value")), .CodeDict = GetInt(dr("CodeDict"))})
+                        Next
+                    End If
+
+                    If tblAutonumber.Rows.Count > 0 Then
+                        data.Autonumber = New List(Of Models.GenericList)
+                        For Each dr In tblAutonumber.Rows
+                            data.Autonumber.Add(New Models.GenericList With {.Code = GetInt(dr("Code")), .Value = GetStr(dr("Value")).ToLower()})
+                        Next
+                    End If
+
+                    Dim config = New List(Of Models.GenericList)
+                    If tblConfig.Rows.Count > 0 Then
+                        For Each dr In tblConfig.Rows
+                            config.Add(New Models.GenericList With {.Code = GetInt(dr("Code")), .Value = GetStr(dr("Value"))})
+                        Next
+                    End If
+                    data.Config = ProxyEncode(JsonConvert.SerializeObject(config, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+                    If tblNutrientSet.Rows.Count > 0 Then
+                        data.NutrientSet = New List(Of Models.GenericList)
+                        For Each dr In tblNutrientSet.Rows
+                            data.NutrientSet.Add(New Models.GenericList With {.Code = GetInt(dr("Code")), .Value = GetStr(dr("Value"))})
+                        Next
+                    End If
+
+                    If tblSetOfPrice.Rows.Count > 0 Then
+                        data.SetOfPrice = New List(Of Models.GenericList)
+                        For Each dr In tblSetOfPrice.Rows
+                            data.SetOfPrice.Add(New Models.GenericList With {.Code = GetInt(dr("Code")), .Value = GetStr(dr("Value")), .Value2 = GetStr(dr("Format")), .Name = GetStr(dr("Sign"))})
+                        Next
+                    End If
+
+                    If tblTax.Rows.Count > 0 Then
+                        data.Tax = New List(Of Models.Tax)
+                        For Each dr In tblTax.Rows
+                            data.Tax.Add(New Models.Tax With { _
+                                    .TaxCode = GetInt(dr("Code")), _
+                                    .TaxValue = GetDbl(dr("Value")), _
+                                    .TaxName = GetStr(dr("Description")), _
+                                    .Global = GetBool(dr("Global"))})
+                        Next
+                    End If
+
+                    If tblUnits.Rows.Count > 0 Then
+                        data.Units = New List(Of Models.Unit)
+                        For Each dr In tblUnits.Rows
+                            data.Units.Add(New Models.Unit With {
+                                    .Code = GetInt(dr("CodeUnit")), _
+                                    .Value = GetStr(dr("UnitName")), _
+                                    .Type = GetInt(dr("Type")), _
+                                    .TypeMain = GetInt(dr("TypeMain")), _
+                                    .FactorToMain = GetDbl(dr("FactorToMain")), _
+                                    .IsMetric = GetInt(dr("IsMetric")), _
+                                    .IsIngredient = GetBool(dr("IsIngredient")), _
+                                    .IsYield = GetBool(dr("IsYield")), _
+                                    .Format = GetStr(dr("Format"))})
+
+                        Next
+                    End If
+
+                End If
+
+                Return data
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpGet> <[GET]("/api/site/property/{codeproperty:int}")> _
+        Public Function GetSiteProperty(codeproperty As Integer) As List(Of Models.GenericList)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = Common.SP_API_GET_Sites
+                                .Parameters.Add("@Group", SqlDbType.Int).Value = codeproperty
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim sites As New List(Of Models.GenericList)
+                For Each r In ds.Tables(0).Rows
+                    sites.Add(New Models.GenericList With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Value = GetStr(r("Name"))})
+                Next
+
+                Return sites.ToList
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpGet> <[GET]("/api/site/config/{codesite:int}/{id?}")> _
+        Public Function GetSiteConfig(codesite As Integer, Optional id As Integer = -1) As List(Of Models.GenericList)
+            Dim config As New List(Of Models.GenericList)
+            Try
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = Common.SP_API_GET_Config
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = -3
+                                .Parameters.Add("@Code", SqlDbType.Int).Value = GetInt(codesite)
+                                .Parameters.Add("@ID", SqlDbType.Int).Value = GetInt(id, -1)
+                                cn.Open()
+                                Using dr As SqlDataReader = cmd.ExecuteReader()
+                                    While dr.Read
+                                        config.Add(New Models.GenericList With {.Code = GetInt(dr("Code")), .Value = GetStr(dr("Value"))
+                                        })
+                                    End While
+                                    dr.Close()
+                                End Using
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Return config.ToList
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpGet> <[GET]("/api/markeditems/{codeuser?}/{type?}/{picktype?}")> _
+        Public Function GetGroupMarked(codeuser As Integer, Optional type As Integer = -1, Optional picktype As Integer = -1) As List(Of Models.GenericItem)
+
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_MarkedItems]"
+                                .Parameters.Add("@CodeUser", SqlDbType.Int).Value = codeuser
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = type
+                                .Parameters.Add("@PickType", SqlDbType.Int).Value = picktype
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+
+                End Using
+                Dim markeditems As New List(Of Models.GenericItem)
+                For Each r In ds.Tables(0).Rows
+                    markeditems.Add(New Models.GenericItem With {
+                                    .Code = GetInt(r("Id")), _
+                                    .Name = GetStr(r("Name"))})
+                Next
+                Return markeditems.ToList
+
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpGet> <[GET]("/api/language/{selected?}/{used?}")> _
+        Public Function GetLanguage(Optional selected As Integer = 0, Optional used As Integer = -1) As List(Of Models.UsedLanguages)
+            Dim language As New List(Of Models.UsedLanguages)
+            Try
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[sp_EgswLanguageGetList]"
+                                .Parameters.Add("@Selected", SqlDbType.Int).Value = GetInt(selected)
+                                .Parameters.Add("@Used", SqlDbType.Int).Value = GetInt(used, -1)
+                                cn.Open()
+                                Using dr As SqlDataReader = cmd.ExecuteReader()
+                                    While dr.Read
+                                        language.Add(New Models.UsedLanguages With {.CodeRef = GetInt(dr("CodeRef")), .Language = GetStr(dr("Language"))
+                                        })
+                                    End While
+                                    dr.Close()
+                                End Using
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Return language.ToList
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        Public Function CreateChildrenSharing(_sharingdata As List(Of Models.GenericTree),
+                                               _code As Integer) As List(Of Models.TreeNode)
+
+
+            Dim children As New List(Of Models.TreeNode)
+
+            If _sharingdata IsNot Nothing Then
+                Dim kids = _sharingdata.Where(Function(obj) obj.ParentCode = _code And obj.Type = 2).OrderBy(Function(obj) obj.Name).ToList() ' RBAJ-2014.04.23 Fixed infinite loop "obj.Code <> _code"
+
+                For Each k In kids
+                    Dim child As New Models.TreeNode
+                    child.title = k.Name
+                    child.key = k.Code
+                    child.icon = False
+                    child.children = Nothing
+                    children.Add(child)
+                    child.select = k.Flagged
+                    child.parenttitle = k.ParentName
+                    child.note = k.Global
+                Next
+            End If
+
+            Return children
+
+        End Function
+    End Class
+End Namespace

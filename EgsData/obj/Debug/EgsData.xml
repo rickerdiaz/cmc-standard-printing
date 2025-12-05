@@ -1,0 +1,4646 @@
+﻿<?xml version="1.0"?>
+<doc>
+<assembly>
+<name>
+EgsData
+</name>
+</assembly>
+<members>
+<member name="T:EgsData.My.Resources.Resources">
+<summary>
+  A strongly-typed resource class, for looking up localized strings, etc.
+</summary>
+</member>
+<member name="P:EgsData.My.Resources.Resources.ResourceManager">
+<summary>
+  Returns the cached ResourceManager instance used by this class.
+</summary>
+</member>
+<member name="P:EgsData.My.Resources.Resources.Culture">
+<summary>
+  Overrides the current thread's CurrentUICulture property for all
+  resource lookups using this strongly typed resource class.
+</summary>
+</member>
+<member name="M:EgsData.clsAllergen.GetList(System.Int32,System.Int32,System.Int32,System.Byte)">
+ <summary>
+ Returns list of Allergens per Site or property 
+ </summary>
+ <param name="intCodeSite">Used if Property is Disabled</param>
+ <param name="intCodeProperty">Used if Property is Enabled</param>
+ <param name="intCodeTrans"></param>
+ <param name="bytStatus"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsAllergen.GetList(System.Int32)">
+ <summary>
+ Get ALlergen Translation and Main Info
+ </summary>
+ <param name="intCode"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsAllergen.GetName(System.Data.SqlClient.SqlDataReader@,System.Int16,EgsData.clsEGSLanguage)">
+ <summary>
+ 
+ </summary>
+ <param name="drAllergen"></param>
+ <param name="shtType">
+ 1: Get translation/abbreviation/FTBCode Translation/Name
+ 2: Get FTBCode Translation/Name
+ 3. Get Name
+ </param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsAllergen.Remove(System.String,System.Int32,System.Int32,EgsData.modGlobalDeclarations.enumEgswTransactionMode)">
+ <summary>
+ Unassign item from site / property
+ </summary>
+ <param name="strCodeList"></param>
+ <param name="intCodeSite">Used if Property is disabled</param>
+ <param name="intCodeProperty">Used if Property is Enabled</param>
+ <param name="tranMode"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsApproval.IsRequireApproval(EgsData.modGlobalDeclarations.UserRightsFunction,EgsData.modGlobalDeclarations.structUser,EgsData.modGlobalDeclarations.enumDataListItemType)">
+ <summary>
+ Returns TRUE if given action mark function requires approval, otherwise, false.
+ </summary>
+ <param name="fnc"></param>
+ <param name="udtUser"></param>
+ <param name="listetype"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsApproval.UpdateApprovalSetting(System.Int32,System.Boolean,System.Boolean,System.Boolean,System.Boolean)">
+ <summary>
+ Save approval setting
+ </summary>
+ <param name="intlisteType"></param>
+ <param name="blnApproveSite"></param>
+ <param name="blnApproveProperty"></param>
+ <param name="blnapproveSystem"></param>
+ <param name="blnapprovalFlag"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsApproval.UpdateListeApproveChangeStatus(System.Int32,EgsData.modGlobalDeclarations.enumApprovalStatus,System.Int32,EgsData.modGlobalDeclarations.enumGroupLevel)">
+ <summary>
+ Approve or disapprove a pending request
+ </summary>
+ <param name="intID"></param>
+ <param name="status"></param>
+ <param name="intCodeUserApprover"></param>
+ <param name="approverroleLevel"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsApproval.UpdateListeApproveEmailSentFlag(System.String,System.Boolean)">
+ <summary>
+ Sent Request Email Flag as Sent/Not Yet Send
+ </summary>
+ <param name="strIDList"></param>
+ <param name="IsEmailSent"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsApproval.UpdateListeApproval(System.Int32,EgsData.modGlobalDeclarations.enumRequestType,System.Int32,System.Double,System.Int32,EgsData.modGlobalDeclarations.enumGroupLevel,System.Int32)">
+ <summary>
+ Add request in EgswListeApprove table
+ </summary>
+ <param name="intCodeListe"></param>
+ <param name="requestType"></param>
+ <param name="intCodeSetPrice"></param>
+ <param name="dblApprovedPriceNew"></param>
+ <param name="intCodeReplace"></param>
+ <param name="ApproverRoleLevel"></param>
+ <param name="intCodeSite"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsApproval.GetApprovalSetting">
+ <summary>
+ Fetch List of Approval Settings
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsApproval.GetListeListRequest(System.Int32)">
+ <summary>
+ Get List of items requested by the current user
+ </summary>
+ <param name="intCodeUserFrom"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsApproval.GetNextRoleApprover(System.Int32,EgsData.modGlobalDeclarations.enumRequestType,EgsData.modGlobalDeclarations.enumDataListItemType)">
+ <summary>
+  Determines the next approver of this request.
+ </summary>
+ <param name="intCodeListe"></param>
+ <param name="requestType"></param>
+ <param name="listeType">Assign listtype if codeliste doesn't exist</param>
+ <returns>Returns -1 if there's no approver for this request. Otherwise, returns Next Role Level</returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsApproval.GetCurrentRoleApprover(System.Int32,EgsData.modGlobalDeclarations.enumRequestType,EgsData.modGlobalDeclarations.enumDataListItemType)">
+ <summary>
+  Determines the current approver of this request.
+ </summary>
+ <param name="intCodeListe"></param>
+ <param name="requestType"></param>
+ <param name="listeType">Assign listtype if codeliste doesn't exist</param>
+ <returns>Returns -1 if there's no approver for this request. Otherwise, returns Next Role Level</returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsApproval.GetListeListToApprove(System.Int32)">
+ <summary>
+ Get List of items for approval
+ </summary>
+ <param name="intCodeUserApprover"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="T:EgsData.clsBrand">
+ <summary>
+ Manages Brand Table
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsBrand.GetList">
+ <summary>
+ Get all Brands.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsBrand.GetList(System.Int32)">
+ <summary>
+ Get a Brand by Code.
+ </summary>
+ <param name="lngCode">The Code of the Brand to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsBrand.GetList(EgsData.modGlobalDeclarations.enumDataListType)">
+ <summary>
+ Get all Brands by Type.
+ </summary>
+ <param name="eType">One of the enumDataListType values.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsBrand.GetList(System.Byte)">
+ <summary>
+ Get all Brands by Status.
+ </summary>
+ <param name="bytStatus">The status of the Brands to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsBrand.GetList(EgsData.modGlobalDeclarations.enumDataListType,System.Int32,System.Byte)">
+ <summary>
+ Get all Brands with the list of Site names to which they are shared to.
+ </summary>
+ <param name="eType">One of the enumDataListType values.</param>
+ <param name="lngCodeTrans">The Code of the language translation.</param>
+ <param name="bytStatus">The status of the Brands to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsBrand.GetList(EgsData.modGlobalDeclarations.enumDataListType,System.Int32,System.Byte,System.Int32)">
+ <summary>
+ Get all Brands shared to a specific site.
+ </summary>
+ <param name="eType">One of the enumDataListType values.</param>
+ <param name="lngCodeTrans">The Code of the language translation.</param>
+ <param name="bytStatus">The status of the Brand to be fetched.</param>
+ <param name="lngCodeSite">The site to which the Brand is shared.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsBrand.GetTranslationList">
+ <summary>
+ Get all Translations.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsBrand.GetTranslationList(System.Int64)">
+ <summary>
+ Get a specific translation.
+ </summary>
+ <param name="lngCodeTrans">The Code of the language translation.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsBrand.GetList(System.String,EgsData.modGlobalDeclarations.enumDataListType,System.Int32,System.Int32,System.Byte)">
+ <summary>
+ Get a Category by Name w/in the codesite.
+ </summary>
+ <param name="strName">The name of the Category to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsBrand.Standardize(System.Int32,System.Int32,EgsData.modGlobalDeclarations.enumDataListType,EgsData.modGlobalDeclarations.enumDataListItemType,EgsData.modGlobalDeclarations.enumEgswStandardizationFormat)">
+ <summary>
+ Standardize Brands
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="eListeType">One of the enumDataListType values.</param>
+ <param name="eItemListType">One of the enumDataListType values.</param>
+ <param name="eFormat">One of the enumEgswStandardizationFormat values.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsBrand.UpdateGlobalStatus(System.Int32,System.Int32,System.Boolean)">
+ <summary>
+ Updates the global status of a Brand.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCode">The Code of the Brand to be updated.</param>
+ <param name="IsGlobal">The global status of the Brand to be updated.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsBrand.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structBrand)">
+ <summary>
+ Updates Brand without sharing it to any sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the Brand to be updated.</param>
+ <param name="udtBrand">One of the structBrand values.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsBrand.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structBrand,System.String)">
+ <summary>
+ Updates Brand sharing it to specified sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="udtBrand">One of the structBrand values.</param>
+ <param name="strCodeSiteList">The list of sites where Brand will be shared.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsBrand.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structBrand,System.String,System.String[],System.String[])">
+ <summary>
+ Updates Brand and its Translations and share it to specified sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="udtBrand">One of the structBrand values.</param>
+ <param name="strCodeSiteList">The list of sites where Brand will be shared.</param>
+ <param name="arrTransCode">The list of Translation Codes of the Brand.</param>
+ <param name="arrTransName">The list of Translation Names of the Brand.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsBrand.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structBrand,System.String,System.Data.DataTable)">
+ <summary>
+ Updates Brand and its Translations and share it to specified sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="udtBrand">One of the structBrand values.</param>
+ <param name="strCodeSiteList">The list of sites where Brand will be shared.</param>
+ <param name="dtTranslations">The list of Translations of the Brand.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsBrand.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.enumDataListType,System.Data.DataTable)">
+ <summary>
+ Updatess Brand's translations (multiple update)
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="eListeType">One of the enumDataListType values.</param>
+ <param name="dtTranslations">The list of Translations of the Brand.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsBrand.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.enumDataListType,System.Int32,System.String)">
+ <summary>
+ Updates a Brand's translation (single update)
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="eListeType">One of the enumDataListType values.</param>
+ <param name="lngCodeTrans">The code of the Brand's translation.</param>
+ <param name="strNameTrans">The name of the Brand's translation.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsBrand.Update(System.Int32,System.Int32,System.String,EgsData.modGlobalDeclarations.structBrand)">
+ <summary>
+ Merge Brands
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="strCodeBrandList">The list of Brand Codes to be merged.</param>
+ <param name="udtBrand">Brand info.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsBrand.Update(System.Int32,System.String,System.Byte)">
+ <summary>
+ Updates Status of the Brands specified in the list (strCodeList).
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="strCodeList">The list of Brand Codes to be updated.</param>
+ <param name="bytStatus">The Status of the Brand.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsBrand.Update(System.Int32,System.Int32,System.Boolean,System.Byte)">
+ <summary>
+ Updates Status of a Brand.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCode">The Code of the Brand to be updated.</param>
+ <param name="IsGlobal">The Global Status of the Brand.</param>
+ <param name="bytStatus">The Status of the Brand.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsBrand.UpdatePosition(System.String,System.Boolean,System.Int32)">
+ <summary>
+ Updates the position of items.
+ </summary>
+ <param name="strCodeList">The list of item codes to be moved.</param>
+ <param name="flagMoveUp"></param>
+ <param name="lngCodeSite">The CodeSite of the items to be moved.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsBrand.Remove">
+ <summary>
+ Purge Brand List.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsBrand.Remove(System.Int32,System.Int32,System.Int32,System.Boolean)">
+ <summary>
+ Deletes a Brand.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCode">The Code of the Brand to be deleted.</param>
+ <param name="IsGlobal">The Global status of the Brand to be deleted.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsBrand.Remove(System.Int32,System.Int32,System.String)">
+ <summary>
+ Deletes Brands specified in the list strCodeList.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="strCodeList">The list of Brand Codes to be deleted.</param>
+ <param name="lngCodeSite">The CodeSite from were you are trying to delete, pass -1 if you want to delete using the user's role.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="T:EgsData.clsCategory">
+ <summary>
+ Manages Category Table
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsCategory.GetList">
+ <summary>
+ Get all Categorys.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>    
+</member>
+<member name="M:EgsData.clsCategory.GetList(System.String,EgsData.modGlobalDeclarations.enumDataListItemType)">
+ <summary>
+ Get a Category by Name.
+ </summary>
+ <param name="strName">The name of the Category to be fetched.</param>
+ <param name="eType">One of the enumDataListType values.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsCategory.GetList(System.Int32)">
+ <summary>
+ Get a Category by Code.
+ </summary>
+ <param name="lngCode">The Code of the Category to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsCategory.GetList(EgsData.modGlobalDeclarations.enumDataListItemType)">
+ <summary>
+ Get all Categorys by Type.
+ </summary>
+ <param name="eType">One of the enumDataListType values.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsCategory.GetList(System.Int16)">
+ <summary>
+ Get all Categorys by Status.
+ </summary>
+ <param name="bytStatus">The status of the Categorys to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsCategory.GetList(EgsData.modGlobalDeclarations.enumDataListItemType,System.Int32,System.Int16)">
+ <summary>
+ Get all Categorys with the list of Site names to which they are shared to.
+ </summary>
+ <param name="eType">One of the enumDataListType values.</param>
+ <param name="lngCodeTrans">The Code of the language translation.</param>
+ <param name="bytStatus">The status of the Categorys to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsCategory.GetList(EgsData.modGlobalDeclarations.enumDataListItemType,System.Int32)">
+ <summary>
+ Get all Categories used by items marked for Kiosk
+ </summary>
+ <param name="eType">One of the enumDataListType values.</param>
+ <param name="lngCodeTrans">The Code of the language translation.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsCategory.GetList(EgsData.modGlobalDeclarations.enumDataListItemType,System.Int32,System.Int32,System.Int32,System.Boolean)">
+ <summary>
+ Get all Categorys shared to a specific site.
+ </summary>
+ <param name="eType">One of the enumDataListType values.</param>
+ <param name="lngCodeTrans">The Code of the language translation.</param>
+ <param name="bytStatus">The status of the Category to be fetched.</param>
+ <param name="lngCodeSite">The site to which the Category is shared.</param>
+ <param name="flagIncludeAll">Include "All Category" from the list.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsCategory.GetList(EgsData.modGlobalDeclarations.enumDataListItemType,System.Int32,System.Int16,EgsData.modGlobalDeclarations.FilterSite,System.String,System.Boolean)">
+ <summary>
+ Get all Categories 
+ </summary>    
+ <param name="eType"></param>
+ <param name="lngCodeTrans"></param>
+ <param name="bytStatus"></param>
+ <param name="ESiteFilter"></param>
+ <param name="flagIncludeAll"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsCategory.GetTranslationList">
+ <summary>
+ Get all Translations.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsCategory.GetTranslationList(System.Int64)">
+ <summary>
+ Get a specific translation.
+ </summary>
+ <param name="lngCodeTrans">The Code of the language translation.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsCategory.GetList(System.String,EgsData.modGlobalDeclarations.enumDataListItemType,System.Int32,System.Int32,System.Int32)">
+ <summary>
+ Get a Category by Name w/in the codesite.
+ </summary>
+ <param name="strName">The name of the Category to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsCategory.GetListMark(System.Int32,System.Int32,System.Int32,EgsData.modGlobalDeclarations.FilterMark)">
+ <summary>
+ Get categories by site for markings.
+ </summary>
+ <param name="intCodeUser">The code of the user.</param>
+ <param name="intCodeSite">The code of the site.</param>    
+ <param name="EMarkFilter">One of FilterMark values.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsCategory.Standardize(System.Int32,System.Int32,EgsData.modGlobalDeclarations.enumDataListItemType,EgsData.modGlobalDeclarations.enumDataListType,EgsData.modGlobalDeclarations.enumEgswStandardizationFormat)">
+ <summary>
+ Standardize Categorys
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="eListeType">One of the enumDataListType values.</param>
+ <param name="eItemListType">One of the enumDataListType values.</param>
+ <param name="eFormat">One of the enumEgswStandardizationFormat values.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsCategory.UpdateGlobalStatus(System.Int32,System.Int32,System.Boolean)">
+ <summary>
+ Updates the global status of a Category.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCode">The Code of the Category to be updated.</param>
+ <param name="IsGlobal">The global status of the Category to be updated.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsCategory.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structCategory)">
+ <summary>
+ Updates Category without sharing it to any sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the Category to be updated.</param>
+ <param name="udtCategory">One of the structCategory values.</param>
+ <returns></returns>
+ <remarks></remarks>
+ 
+</member>
+<member name="M:EgsData.clsCategory.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structCategory,System.String)">
+ <summary>
+ Updates Category sharing it to specified sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="udtCategory">One of the structCategory values.</param>
+ <param name="strCodeSiteList">The list of sites where Category will be shared.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsCategory.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structCategory,System.String,System.String[],System.String[])">
+ <summary>
+ Updates Category and its Translations and share it to specified sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="udtCategory">One of the structCategory values.</param>
+ <param name="strCodeSiteList">The list of sites where Category will be shared.</param>
+ <param name="arrTransCode">The list of Translation Codes of the Category.</param>
+ <param name="arrTransName">The list of Translation Names of the Category.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsCategory.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structCategory,System.String,System.Data.DataTable)">
+ <summary>
+ Updates Category and its Translations and share it to specified sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="udtCategory">One of the structCategory values.</param>
+ <param name="strCodeSiteList">The list of sites where Category will be shared.</param>
+ <param name="dtTranslations">The list of Translations of the Category.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsCategory.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.enumDataListType,System.Data.DataTable)">
+ <summary>
+ Updates Category's translations (multiple update)
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="eListeType">One of the enumDataListType values.</param>
+ <param name="dtTranslations">The list of Translations of the Category.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsCategory.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.enumDataListType,System.Int32,System.String)">
+ <summary>
+ Updates a Category's translation (single update)
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="eListeType">One of the enumDataListType values.</param>
+ <param name="lngCodeTrans">The code of the Category's translation.</param>
+ <param name="strNameTrans">The name of the Category's translation.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsCategory.Update(System.Int32,System.Int32,System.String,EgsData.modGlobalDeclarations.structCategory,System.Int32@)">
+ <summary>
+ Merge Categorys
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="strCodeCategoryList">The list of Category Codes to be merged.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsCategory.Update(System.Int32,System.String,System.Int16,EgsData.modGlobalDeclarations.enumDataListItemType)">
+ <summary>
+ Updates Status of the Categorys specified in the list (strCodeList).
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>    
+ <param name="strCodeList">The list of Category Codes to be updated.</param>
+ <param name="bytStatus">The Status of the Category.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsCategory.Update(System.Int32,System.Int32,System.Boolean,System.Int16,EgsData.modGlobalDeclarations.enumDataListItemType)">
+ <summary>
+ Updates Status of a Category.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>    
+ <param name="lngCode">The Code of the Category to be updated.</param>
+ <param name="IsGlobal">The Global Status of the Category.</param>
+ <param name="bytStatus">The Status of the Category.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsCategory.UpdatePosition(System.String,System.Boolean,System.Int32,EgsData.modGlobalDeclarations.enumDataListItemType)">
+ <summary>
+ Updates the position of items.
+ </summary>
+ <param name="strCodeList">The list of item codes to be moved.</param>
+ <param name="flagMoveUp"></param>
+ <param name="lngCodeSite">The CodeSite of the items to be moved.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsCategory.Remove(EgsData.modGlobalDeclarations.enumDataListItemType)">
+ <summary>
+ Purge Category List.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsCategory.Remove(System.Int32,System.Int32,System.Boolean,EgsData.modGlobalDeclarations.enumDataListItemType,System.Boolean)">
+ <summary>
+ Deletes a Category.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>    
+ <param name="lngCode">The Code of the Category to be deleted.</param>
+ <param name="IsGlobal">The Global status of the Category to be deleted.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsCategory.Remove(System.Int32,System.Int32,System.String,EgsData.modGlobalDeclarations.enumDataListItemType,System.Boolean)">
+ <summary>
+ Deletes Categorys specified in the list strCodeList.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>    
+ <param name="strCodeList">The list of Category Codes to be deleted.</param>
+ <param name="lngCodeSite">The CodeSite from were you are trying to delete, pass -1 if you want to delete using the user's role.</param>
+ <returns></returns>
+ <remarks></remarks>    
+</member>
+<member name="T:EgsData.FBControl.clsClient">
+ <summary>
+ Manages Client Table
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsClient.GetList">
+ <summary>
+ Get all Clients with the list of Site names to which they are shared to.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsClient.GetList(System.String)">
+ <summary>
+ Get a Client by Name.
+ </summary>
+ <param name="strName">The name of the Client to be fetched.</param>    
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsClient.GetList(System.Int32)">
+ <summary>
+ Get a Client by Code.
+ </summary>
+ <param name="lngCode">The Code of the Client to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsClient.GetList(System.Int32,System.Int32,System.Boolean)">
+ <summary>
+ Get all Clients shared to a specific site and filtered by status.
+ </summary>
+ <param name="bytStatus">The status of the Clients to be fetched.</param>    
+ <param name="lngCodeSite">The CodeSite where the Clients is shared to.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsClient.GetList(System.Int32,System.Int32,System.Int32,System.Boolean)">
+ <summary>
+ Get all Clients to a specific site.
+ </summary>
+ <param name="lngCodeTrans">The Code of the language translation.</param>
+ <param name="bytStatus">The status of the Client to be fetched.</param>
+ <param name="lngCodeSite">The site to which the Client is shared.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsClient.GetList(System.String,System.Int32,System.Int32)">
+ <summary>
+ Get a Client by Name w/in the codesite.
+ </summary>
+ <param name="strName">The name of the Client to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsClient.GetListMark(System.Int32,System.Int32,EgsData.modGlobalDeclarations.FilterMark)">
+ <summary>
+ Get clients by site for markings.
+ </summary>
+ <param name="intCodeUser">The code of the user.</param>
+ <param name="intCodeSite">The code of the site.</param>    
+ <param name="EMarkFilter">One of FilterMark values.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsClient.GetListContact(System.Int32,System.Int32)">
+ <summary>
+ Get a ClientContact by CodeSite and CodeClient
+ </summary>
+ <param name="lngCodeClient">The Code of the Client to be fetched.</param>
+ <param name="lngCodeSite">The Code of the Client Site to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsClient.GetListContact(System.Int32)">
+ <summary>
+ Get a Client Contact by Code.
+ </summary>
+ <param name="lngCode">The Code of the Client Contact to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsClient.UpdateGlobalStatus(System.Int32,System.Int32,System.Boolean)">
+ <summary>
+ Updates the global status of a Client.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCode">The Code of the Client to be updated.</param>
+ <param name="IsGlobal">The global status of the Client to be updated.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsClient.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structClient)">
+ <summary>
+ Updates Client without sharing it to any sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the Client to be updated.</param>
+ <param name="udtClient">Client info.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsClient.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structClient,System.String)">
+ <summary>
+ Updates Client sharing it to specified sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="udtClient">Client info.</param>
+ <param name="strCodeSiteList">The list of sites where Client will be shared.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsClient.Update(System.Int32,System.Int32,System.String,EgsData.modGlobalDeclarations.structClient)">
+ <summary>
+ Merge Clients
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="strCodeClientList">The list of Client Codes to be merged.</param>
+ <param name="udtClient">Client info.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsClient.Update(System.Int32,System.Int32,System.String,System.Int32)">
+ <summary>
+ Updates Status of the Clients specified in the list (strCodeList).
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="strCodeList">The list of Client Codes to be updated.</param>
+ <param name="bytStatus">The Status of the Client.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsClient.Update(System.Int32,System.Int32,System.Int32,System.Boolean,System.Int32)">
+ <summary>
+ Updates Status of a Client.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the Client to be updated.</param>
+ <param name="IsGlobal">The Global Status of the Client.</param>
+ <param name="bytStatus">The Status of the Client.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsClient.UpdateContact(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structClient)">
+ <summary>
+ Updates Client without sharing it to any sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the Client to be updated.</param>
+ <param name="udtClient">Client info.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsClient.UpdateContact(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structClient,System.String)">
+ <summary>
+ Updates Client sharing it to specified sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="udtClient">Client info.</param>
+ <param name="strCodeSiteList">The list of sites where Client will be shared.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsClient.Remove">
+ <summary>
+ Purge Client List.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsClient.Remove(System.Int32,System.Int32,System.Boolean)">
+ <summary>
+ Deletes a Client.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>    
+ <param name="lngCode">The Code of the Client to be deleted.</param>
+ <param name="IsGlobal">The Global status of the Client to be deleted.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsClient.Remove(System.Int32,System.Int32,System.String)">
+ <summary>
+ Deletes Clients specified in the list strCodeList.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>    
+ <param name="strCodeList">The list of Client Codes to be deleted.</param>
+ <param name="lngCodeSite">The CodeSite from were you are trying to delete, pass -1 if you want to delete using the user's role.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsClient.RemoveContact(System.Int32,System.Int32,System.Boolean)">
+ <summary>
+ Deletes a Client Contact.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>    
+ <param name="lngCode">The Code of the Client to be deleted.</param>
+ <param name="IsGlobal">The Global status of the Client to be deleted.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsClient.RemoveContact(System.Int32,System.Int32,System.String)">
+ <summary>
+ Deletes Client Contacts specified in the list strCodeList.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>    
+ <param name="strCodeList">The list of Client Codes to be deleted.</param>
+ <param name="lngCodeSite">The CodeSite from were you are trying to delete, pass -1 if you want to delete using the user's role.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsClient.RemoveContact">
+ <summary>
+ Purge Client Contact List.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="T:EgsData.FBControl.clsIssuanceType">
+ <summary>
+ Manages IssuanceType Table
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsIssuanceType.GetList">
+ <summary>
+ Get all IssuanceTypes.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsIssuanceType.GetList(System.Int32)">
+ <summary>
+ Get a IssuanceType by Code.
+ </summary>
+ <param name="lngCode">The Code of the IssuanceType to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsIssuanceType.GetList(System.Byte)">
+ <summary>
+ Get all IssuanceTypes by Status.
+ </summary>
+ <param name="bytStatus">The status of the IssuanceTypes to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsIssuanceType.GetList(System.Int32,System.Byte)">
+ <summary>
+ Get all IssuanceTypes with the list of Site names to which they are shared to.
+ </summary>
+ <param name="lngCodeTrans">The Code of the language translation.</param>
+ <param name="bytStatus">The status of the IssuanceTypes to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsIssuanceType.GetList(System.Int32,System.Byte,System.Int32)">
+ <summary>
+ Get all IssuanceTypes shared to a specific site.
+ </summary>
+ <param name="lngCodeTrans">The Code of the language translation.</param>
+ <param name="bytStatus">The status of the IssuanceType to be fetched.</param>
+ <param name="lngCodeSite">The site to which the IssuanceType is shared.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsIssuanceType.GetTranslationList">
+ <summary>
+ Get all Translations.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsIssuanceType.GetTranslationList(System.Int64)">
+ <summary>
+ Get a specific translation.
+ </summary>
+ <param name="lngCodeTrans">The Code of the language translation.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsIssuanceType.GetList(System.String,System.String,System.Int32,System.Int32,System.Byte)">
+ <summary>
+ Get an IssuanceType by Name w/in the codesite.
+ </summary>
+ <param name="strName">The name of the IssuanceType to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsIssuanceType.Standardize(System.Int32,System.Int32,EgsData.modGlobalDeclarations.enumDataListType,EgsData.modGlobalDeclarations.enumDataListItemType,EgsData.modGlobalDeclarations.enumEgswStandardizationFormat)">
+ <summary>
+ Standardize IssuanceTypes
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="eListeType">One of the enumDataListType values.</param>
+ <param name="eItemListType">One of the enumDataListType values.</param>
+ <param name="eFormat">One of the enumEgswStandardizationFormat values.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsIssuanceType.UpdateGlobalStatus(System.Int32,System.Int32,System.Boolean)">
+ <summary>
+ Updates the global status of a IssuanceType.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCode">The Code of the IssuanceType to be updated.</param>
+ <param name="IsGlobal">The global status of the IssuanceType to be updated.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsIssuanceType.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structIssuanceType)">
+ <summary>
+ Updates IssuanceType without sharing it to any sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the Brand to be updated.</param>
+ <param name="udtIssuance">One of the structIssuanceType values.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsIssuanceType.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structIssuanceType,System.String)">
+ <summary>
+ Updates IssuanceType sharing it to specified sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="udtIssuance">One of the structIssuanceType values.</param>
+ <param name="strCodeSiteList">The list of sites where IssuanceType will be shared.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsIssuanceType.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structIssuanceType,System.String,System.String[],System.String[])">
+ <summary>
+ Updates IssuanceType and its Translations and share it to specified sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="udtIssuance">One of the structIssuanceType values.</param>
+ <param name="strCodeSiteList">The list of sites where Brand will be shared.</param>
+ <param name="arrTransCode">The list of Translation Codes of the IssuanceType.</param>
+ <param name="arrTransName">The list of Translation Names of the IssuanceType.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsIssuanceType.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structIssuanceType,System.String,System.Data.DataTable)">
+ <summary>
+ Updates IssuanceType and its Translations and share it to specified sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="udtIssuance">One of the structIssuanceType values.</param>
+ <param name="strCodeSiteList">The list of sites where IssuanceType will be shared.</param>
+ <param name="dtTranslations">The list of Translations of the IssuanceType.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsIssuanceType.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.enumDataListType,System.Data.DataTable)">
+ <summary>
+ Updatess IssuanceType's translations (multiple update)
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="eListeType">One of the enumDataListType values.</param>
+ <param name="dtTranslations">The list of Translations of the Brand.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsIssuanceType.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.enumDataListType,System.Int32,System.String)">
+ <summary>
+ Updates a IssuanceType's translation (single update)
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="eListeType">One of the enumDataListType values.</param>
+ <param name="lngCodeTrans">The code of the IssuanceType's translation.</param>
+ <param name="strNameTrans">The name of the IssuanceType's translation.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsIssuanceType.Update(System.Int32,System.Int32,System.String,EgsData.modGlobalDeclarations.structIssuanceType)">
+ <summary>
+ Merge IssuanceTypes
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="strCodeIssuanceList">The list of IssuanceType Codes to be merged.</param>
+ <param name="udtIssuance">IssuanceType info.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsIssuanceType.Update(System.Int32,System.String,System.Byte)">
+ <summary>
+ Updates Status of the IssuanceTypes specified in the list (strCodeList).
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="strCodeList">The list of IssuanceType Codes to be updated.</param>
+ <param name="bytStatus">The Status of the IssuanceType.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsIssuanceType.Update(System.Int32,System.Int32,System.Boolean,System.Byte)">
+ <summary>
+ Updates Status of a IssuanceType.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCode">The Code of the IssuanceType to be updated.</param>
+ <param name="IsGlobal">The Global Status of the IssuanceType.</param>
+ <param name="bytStatus">The Status of the IssuanceType.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsIssuanceType.UpdatePosition(System.String,System.Boolean,System.Int32)">
+ <summary>
+ Updates the position of items.
+ </summary>
+ <param name="strCodeList">The list of item codes to be moved.</param>
+ <param name="flagMoveUp"></param>
+ <param name="lngCodeSite">The CodeSite of the items to be moved.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsIssuanceType.Remove">
+ <summary>
+ Purge Brand List.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsIssuanceType.Remove(System.Int32,System.Int32,System.Int32,System.Boolean)">
+ <summary>
+ Deletes an IssuanceType.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCode">The Code of the IssuanceType to be deleted.</param>
+ <param name="IsGlobal">The Global status of the IssuanceType to be deleted.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsIssuanceType.Remove(System.Int32,System.Int32,System.String)">
+ <summary>
+ Deletes IssuanceTypes specified in the list strCodeList.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="strCodeList">The list of IssuanceType Codes to be deleted.</param>
+ <param name="lngCodeSite">The CodeSite from were you are trying to delete, pass -1 if you want to delete using the user's role.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="T:EgsData.FBControl.clsLocation">
+ <summary>
+ Manages Location Table
+ </summary>
+ <remarks></remarks>
+ 
+</member>
+<member name="M:EgsData.FBControl.clsLocation.GetList">
+ <summary>
+ Get all Locations.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>    
+</member>
+<member name="M:EgsData.FBControl.clsLocation.GetList(System.Int32)">
+ <summary>
+ Get a Location by Code.
+ </summary>
+ <param name="lngCode">The Code of the Location to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsLocation.GetListMark(System.Int32,System.Int32,EgsData.modGlobalDeclarations.FilterMark)">
+ <summary>
+ Get locations by site for markings.
+ </summary>
+ <param name="intCodeUser">The code of the user.</param>
+ <param name="intCodeSite">The code of the site.</param>    
+ <param name="EMarkFilter">One of FilterMark values.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsLocation.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.LocationData)">
+ <summary>
+ Updates Location without sharing it to any sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the Location to be updated.</param>
+ <param name="udtLocation">One of the structLocation values.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsLocation.Update(System.Int32,System.Int32,System.String,EgsData.modGlobalDeclarations.LocationData)">
+ <summary>
+ Merge Locations
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="strCodeLocationList">The list of Location Codes to be merged.</param>
+ <param name="udtLocation">Location info.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsLocation.Remove(System.Int32)">
+ <summary>
+ Purge Location List.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsLocation.Remove(System.Int32,System.Int32,System.Int32,System.Boolean)">
+ <summary>
+ Deletes a Location.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCode">The Code of the Location to be deleted.</param>
+ <param name="IsGlobal">The Global status of the Location to be deleted.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.FBControl.clsLocation.Remove(System.Int32,System.Int32,System.String)">
+ <summary>
+ Deletes Locations specified in the list strCodeList.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="strCodeList">The list of Location Codes to be deleted.</param>
+ <param name="lngCodeSite">The CodeSite from were you are trying to delete, pass -1 if you want to delete using the user's role.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsConfig.UpdateConfig(System.Int32,EgsData.clsConfig.CodeGroup,EgsData.clsConfig.enumNumeros,System.String,System.Boolean)">
+ <summary>
+ Updates an option in Configuration 
+ </summary>
+ <param name="intCodeUser"></param>
+ <param name="intCodeGroup"></param>
+ <param name="enumNumero"></param>
+ <param name="value"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsConfig.GetConfig(System.Int32,EgsData.clsConfig.enumNumeros,EgsData.clsConfig.CodeGroup,System.String)">
+ <summary>
+ Fetch a row in Configuration
+ </summary>
+ <param name="intCodeUser"></param>
+ <param name="enumNumero"></param>
+ <param name="intCodeGroup"></param>
+ <param name="strReturnDefaultString"></param>
+ <returns></returns>
+ <remarks></remarks>    
+</member>
+<member name="M:EgsData.clsConfig.GetBackupList(System.Int16)">
+ <summary>
+ 1=dbase, 2= picture
+ </summary>
+ <param name="shortType"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsCurrency.UpdateCurrency(System.Int32,System.String,System.String,System.String,System.Byte,EgsData.modGlobalDeclarations.enumEgswTransactionMode,System.Int32,System.String)">
+ <summary>
+ Update Currency
+ </summary>
+ <param name="intCode"></param>
+ <param name="strSymbole"></param>
+ <param name="strDescription"></param>
+ <param name="strFormat"></param>
+ <param name="Status"></param>
+ <param name="TranMode"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsCurrency.UpdateCurrency(System.Int32,System.Int32,System.Decimal)">
+ <summary>
+ Update Currency Rate
+ </summary>
+ <param name="intCodeCur1"></param>
+ <param name="intCodeCur2"></param>
+ <param name="dblRate"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsCurrency.FetchList(System.Int32,System.Byte,System.String)">
+ <summary>
+ Fetch list of currencies
+ </summary>
+ <param name="intCode"></param>
+ <param name="bytStatus"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsCurrency.FetchListRate(System.Int32,System.Int32)">
+ <summary>
+ Get Currency rate conversion  from database
+ </summary>
+ <param name="intCode1"></param>
+ <param name="intCode2"></param>
+ <returns></returns>
+ <remarks></remarks>
+ Changed 
+</member>
+<member name="M:EgsData.clsCurrency.GetList(System.Int32)">
+ <summary>
+ Get one currency 
+ </summary>
+ <param name="intCode"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsCurrency.GetList(System.String)">
+ <summary>
+ Get one currency 
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsCurrency.GetList">
+ <summary>
+ Get List of Currencies
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsCurrency.GetList(System.Int32,System.Int32)">
+ <summary>
+ Get currency exchange rate
+ </summary>
+ <param name="intCodeCur1"></param>
+ <param name="intCodeCur2"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsCurrency.GetList(System.Int32,System.Byte)">
+ <summary>
+ Get list of Currencies. Filter by Status.
+ </summary>
+ <param name="intCode"></param>
+ <param name="bytStatus"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsDBRoutine.ExecuteFetchType(EgsData.modGlobalDeclarations.enumEgswFetchType,System.String,System.Data.CommandType,System.String,System.Data.SqlClient.SqlParameter[])">
+ <summary>
+ Fetch Data using 3 different objects
+ </summary>
+ <param name="eFetchType"></param>
+ <param name="strCnn"></param>
+ <param name="cmdType"></param>
+ <param name="strCommandText"></param>
+ <param name="arrParam"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsDBRoutine.ExecuteFetchType(EgsData.modGlobalDeclarations.enumEgswFetchType,System.String,System.Data.CommandType,System.String)">
+ <summary>
+ Fetch Data with Parameters required
+ </summary>
+ <param name="eFetchType"></param>
+ <param name="strCnn"></param>
+ <param name="cmdType"></param>
+ <param name="strCommandText"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="T:EgsData.clsItem">
+ <summary>
+ Manages basic list Table
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsItem.UpdateStatus(System.Int32,System.Int32,EgsData.modGlobalDeclarations.enumDbaseTables,System.Int16,System.Int32,System.String)">
+ <summary>
+ update staus of the item
+ </summary>
+ <param name="intCode">will be used if no strCodeList supplied</param>
+ <param name="intCodeSite">site owner of the item</param>
+ <param name="intCodeEgswTable">table enum</param>
+ <param name="tntStatus">status, active/deactive</param>
+ <param name="strCodeList">if this is supplied, it will be used</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="T:EgsData.clsKeyword">
+ <summary>
+ Manages Keyword Table
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsKeyword.GetList">
+ <summary>
+ Get all Keywords.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsKeyword.GetList(System.Int32)">
+ <summary>
+ Get a Keyword by Code.
+ </summary>
+ <param name="lngCode">The Code of the Keyword to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsKeyword.GetList(EgsData.modGlobalDeclarations.enumDataListItemType)">
+ <summary>
+ Get all Keywords by Type.
+ </summary>
+ <param name="eType">One of the enumDataListType values.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsKeyword.GetList(System.Byte)">
+ <summary>
+ Get all Keywords by Status.
+ </summary>
+ <param name="bytStatus">The status of the Keywords to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsKeyword.GetList(EgsData.modGlobalDeclarations.enumDataListItemType,System.Int32,System.Byte)">
+ <summary>
+ Get all Keywords with the list of Site names to which they are shared to.
+ </summary>
+ <param name="eType">One of the enumDataListType values.</param>
+ <param name="lngCodeTrans">The Code of the language translation.</param>
+ <param name="bytStatus">The status of the Keywords to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsKeyword.GetList(EgsData.modGlobalDeclarations.enumDataListItemType,System.Int32,System.Byte,System.Int32)">
+ <summary>
+ Get all Keywords shared to a specific site.
+ </summary>
+ <param name="eType">One of the enumDataListType values.</param>
+ <param name="lngCodeTrans">The Code of the language translation.</param>
+ <param name="bytStatus">The status of the Keyword to be fetched.</param>
+ <param name="lngCodeSite">The site to which the Keyword is shared.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsKeyword.GetTranslationList">
+ <summary>
+ Get all Translations.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsKeyword.GetTranslationList(System.Int64)">
+ <summary>
+ Get a specific translation.
+ </summary>
+ <param name="lngCodeTrans">The Code of the language translation.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsKeyword.GetList(System.String,EgsData.modGlobalDeclarations.enumDataListItemType,System.Int32,System.Int32,System.Byte)">
+ <summary>
+ Get a Category by Name w/in the codesite.
+ </summary>
+ <param name="strName">The name of the Category to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsKeyword.Standardize(System.Int32,System.Int32,EgsData.modGlobalDeclarations.enumDataListType,EgsData.modGlobalDeclarations.enumDataListType,EgsData.modGlobalDeclarations.enumEgswStandardizationFormat)">
+ <summary>
+ Standardize Keywords
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="eListeType">One of the enumDataListType values.</param>
+ <param name="eItemListType">One of the enumDataListType values.</param>
+ <param name="eFormat">One of the enumEgswStandardizationFormat values.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsKeyword.UpdateGlobalStatus(System.Int32,System.Int32,System.Boolean)">
+ <summary>
+ Updates the global status of a Keyword.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCode">The Code of the Keyword to be updated.</param>
+ <param name="IsGlobal">The global status of the Keyword to be updated.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsKeyword.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structKeyword)">
+ <summary>
+ Updates Keyword without sharing it to any sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the Keyword to be updated.</param>
+ <param name="udtKeyword">One of the structKeyword values.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsKeyword.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structKeyword,System.String)">
+ <summary>
+ Updates Keyword sharing it to specified sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="udtKeyword">One of the structKeyword values.</param>
+ <param name="strCodeSiteList">The list of sites where Keyword will be shared.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsKeyword.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structKeyword,System.String,System.String[],System.String[],System.String)">
+ <summary>
+ Updates Keyword and its Translations and share it to specified sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="udtKeyword">One of the structKeyword values.</param>
+ <param name="strCodeSiteList">The list of sites where Keyword will be shared.</param>
+ <param name="strTransCodeList">The list of Translation Codes of the Keyword.</param>
+ <param name="strTransNameList">The list of Translation Names of the Keyword.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsKeyword.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structKeyword,System.String,System.Data.DataTable)">
+ <summary>
+ Updates Keyword and its Translations and share it to specified sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="udtKeyword">One of the structKeyword values.</param>
+ <param name="strCodeSiteList">The list of sites where Keyword will be shared.</param>
+ <param name="dtTranslations">The list of Translations of the Keyword.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsKeyword.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.enumDataListType,System.Data.DataTable)">
+ <summary>
+ Updatess Keyword's translations (multiple update)
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="eListeType">One of the enumDataListType values.</param>
+ <param name="dtTranslations">The list of Translations of the Keyword.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsKeyword.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.enumDataListType,System.Int32,System.String)">
+ <summary>
+ Updates a Keyword's translation (single update)
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="eListeType">One of the enumDataListType values.</param>
+ <param name="lngCodeTrans">The code of the Keyword's translation.</param>
+ <param name="strNameTrans">The name of the Keyword's translation.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsKeyword.Update(System.Int32,System.Int32,System.String,EgsData.modGlobalDeclarations.structKeyword)">
+ <summary>
+ Merge Keywords
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="strCodeKeywordList">The list of Keyword Codes to be merged.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsKeyword.Update(System.Int32,System.String,System.Byte,EgsData.modGlobalDeclarations.enumDataListItemType)">
+ <summary>
+ Updates Status of the Keywords specified in the list (strCodeList).
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="strCodeList">The list of Keyword Codes to be updated.</param>
+ <param name="bytStatus">The Status of the Keyword.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsKeyword.Update(System.Int32,System.Int32,System.Boolean,System.Byte,EgsData.modGlobalDeclarations.enumDataListItemType)">
+ <summary>
+ Updates Status of a Keyword.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCode">The Code of the Keyword to be updated.</param>
+ <param name="IsGlobal">The Global Status of the Keyword.</param>
+ <param name="bytStatus">The Status of the Keyword.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsKeyword.UpdatePosition(System.String,System.Boolean,System.Int32,EgsData.modGlobalDeclarations.enumDataListItemType)">
+ <summary>
+ Updates the position of items.
+ </summary>
+ <param name="strCodeList">The list of item codes to be moved.</param>
+ <param name="flagMoveUp"></param>
+ <param name="lngCodeSite">The CodeSite of the items to be moved.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsKeyword.Remove(EgsData.modGlobalDeclarations.enumDataListItemType)">
+ <summary>
+ Purge Keyword List.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsKeyword.Remove(System.Int32,System.Int32,System.Boolean,EgsData.modGlobalDeclarations.enumDataListItemType)">
+ <summary>
+ Deletes a Keyword.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCode">The Code of the Keyword to be deleted.</param>
+ <param name="IsGlobal">The Global status of the Keyword to be deleted.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsKeyword.Remove(System.Int32,System.Int32,System.String,EgsData.modGlobalDeclarations.enumDataListItemType,System.Boolean)">
+ <summary>
+ Deletes Keywords specified in the list strCodeList.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="strCodeList">The list of Keyword Codes to be deleted.</param>
+ <param name="lngCodeSite">The CodeSite from were you are trying to delete, pass -1 if you want to delete using the user's role.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsLanguage.UpdateTranslation(System.Int32,System.String,System.Int32,System.Byte,EgsData.modGlobalDeclarations.enumEgswTransactionMode,System.Boolean)">
+ <summary>
+ Update Translation
+ </summary>
+ <param name="intCode">Code of Translation</param>
+ <param name="strName">Translation name</param>
+ <param name="intCodeDict">EGS Language</param>
+ <param name="Status">Set Active True/False </param>
+ <param name="TranMode">Add, Edit, Update Status</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsLanguage.FetchList(System.Int32,System.Int32,System.Byte)">
+ <summary>
+ Fetch list of translations
+ </summary>
+ <param name="intCode"></param>
+ <param name="bytStatus"></param>
+ <param name="intCodeSite"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsLanguage.FetchLanguageList(System.Int32,System.Int32,System.Boolean)">
+ <summary>
+ Fetch list of EGS Languages
+ </summary>
+ <param name="intUsed"></param>
+ <param name="intSelected"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsLanguage.DeleteFromList(System.Int32,System.String,EgsData.modGlobalDeclarations.enumEgswTransactionMode)">
+ <summary>
+ Delete 
+ </summary>
+ <param name="intCode"></param>
+ <param name="TrandMode"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsLanguage.GetList(System.Int32)">
+ <summary>
+ Get one translation 
+ </summary>
+ <param name="intCode"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsLanguage.GetList(System.Int32,System.Byte,System.Int32)">
+ <summary>
+ Get one translation 
+ </summary>
+ <param name="intcodesite"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsLanguage.GetList">
+ <summary>
+ Get List of tranlsations
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsLanguage.GetList(System.Int32,System.Int32)">
+ <summary>
+ Get List of Translations shared to this site.
+ </summary>
+ <param name="intCodeSite"></param>
+ <param name="bytStatus"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsLanguage.GetLanguageList(System.Int32,System.Int32,System.Boolean)">
+ <summary>
+ Get List of EGS Languages
+ </summary>
+ <param name="intUsed"></param>
+ <param name="intSelected"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsLanguage.GetLanguageList(System.String)">
+ <summary>
+ Get if ISOCode exists
+ </summary>
+ <param name="strISOCode"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsLanguage.DeleteFromList(System.Int32)">
+ <summary>
+ Delete one item from the list
+ </summary>
+ <param name="intCode"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsListe.GetLocalItemsOwned(System.Int32)">
+ <summary>
+ Returns list of codes of local items owned by given site.
+ </summary>
+ <param name="intCodeSite"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsListe.CleanUnevenDoubleQuotes(System.String)">
+ <summary>
+ Cleans uneven double-quotes, used for searching
+ </summary>
+ <param name="str">String to clean</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsListe.RemoveListe(EgsData.modGlobalDeclarations.structUser,System.Int32)">
+ <summary>
+ Remove Liste
+ </summary>
+ <param name="udtUser"></param>
+ <param name="intCodeListe"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsListe.UpdateListeMassMutation(EgsData.modGlobalDeclarations.structUser,System.String,System.Int32,System.Double,System.Boolean,System.Int32,EgsData.modGlobalDeclarations.enumGroupLevel,System.Data.DataTable@,EgsData.modGlobalDeclarations.UserRightsFunction,System.String,System.Boolean@)">
+ <summary>
+ Liste mass mutation 
+ </summary>
+ <param name="udtUser"></param>
+ <param name="strCodeListeList"></param>
+ <param name="intCodeSetPrice"></param>
+ <param name="ApprovedPriceNew"></param>
+ <param name="blnCheckStatusOnly"></param>
+ <param name="intCodeReplace"></param>
+ <param name="rolelevel"></param>
+ <param name="dtStatus"></param>
+ <param name="IsApprovalRequired">Returns true if approval is required, otherwise, false.</param>
+ <param name="fnc"></param>
+ <param name="strCodeSiteList"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsListe.UpdateListeReplaceIngredient(EgsData.modGlobalDeclarations.enumRequestType,System.Int32,System.Int32,EgsData.modGlobalDeclarations.enumDataListItemType,System.Int32,System.Data.DataTable@,EgsData.modGlobalDeclarations.structUser,System.Boolean@,System.Int32,System.String,System.String,System.String,System.String,System.Int32)">
+ <summary>
+ Replace ingredient in recipe or menu
+ </summary>
+ <param name="intCodeListeOld"></param>
+ <param name="intcodeListeNew"></param>
+ <param name="ReplaceInListeType"></param>
+ <param name="intCodeTrans"></param>
+ <param name="dtMissingUnits"></param>
+ <param name="udtUser"></param>
+ <param name="IsRequiredApproval"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsListe.ConvertToSystem(System.Int32,System.Int32,System.Int32@)">
+ <summary>
+ Creates a copy of the liste for System Site ownership and the new copy is exposed / shared to all users
+ </summary>
+ <param name="intCodeuser"></param>
+ <param name="intCodeListe"></param>
+ <param name="intCodeListeNew"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsListe.GetRawMerchandiseList(System.Int32,System.Int32,System.String,EgsData.clsListe.enumFilter)">
+ <summary>
+ Gets raw merchandise list from Egsw_Food_Desc
+ </summary>
+ <param name="intCodeSet">Code Nutrient Set</param>
+ <param name="intCodeSite">Code Site</param>
+ <param name="strSearchString">Search String</param>
+ <param name="intFilter">Search Filter</param>
+ <returns>DataTable</returns>
+ <remarks>Used primarily in Nutrient Linking, for merchandise</remarks>
+</member>
+<member name="M:EgsData.clsMail.SetEmailForApprovers(System.String)">
+ <summary>
+ Add email alerts for pending requests in email queue table
+ </summary>
+ <param name="strWebURL"></param>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsMail.SetEmailForRequestors(System.String)">
+ <summary>
+ Add email alerts for requestse that have been approved or rejected
+ </summary>
+ <param name="strWebURL"></param>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsMail.UpdateEmailQueue(System.Int32,System.String,System.String,System.String,System.String,System.String,System.String,System.Net.Mail.MailPriority,System.Boolean)">
+ <summary>
+ Add or update record in EGswEmaileQueue table
+ </summary>
+ <param name="intID"></param>
+ <param name="strTo"></param>
+ <param name="strFrom"></param>
+ <param name="strSubject"></param>
+ <param name="strBody"></param>
+ <param name="strCC"></param>
+ <param name="strBCC"></param>
+ <param name="priority"></param>
+ <param name="IsSent"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsMail.GetList">
+ <summary>
+ Returns list of items in queue for email sending
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsMail.SendMailBCC(System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.Boolean)">
+ <summary>
+ Send Email 
+ </summary>
+ <param name="SenderName"></param>
+ <param name="SenderEmail"></param>
+ <param name="RecipientName"></param>
+ <param name="RecipientEmail"></param>
+ <param name="Subj"></param>
+ <param name="Messg"></param>
+ <param name="strFile"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsMail.SendMail(System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.Boolean,System.String,System.Int32,System.String,System.Int32)">
+ <summary>
+ Send Email 
+ </summary>
+ <param name="SenderName"></param>
+ <param name="SenderEmail"></param>
+ <param name="RecipientName"></param>
+ <param name="RecipientEmail"></param>
+ <param name="Subj"></param>
+ <param name="Messg"></param>
+ <param name="strFile"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsMail.SendMail(System.String,System.String,System.String,System.Int32,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.String,System.Boolean)">
+ <summary>
+ Send Email
+ </summary>
+ <param name="strSMTPUsername"></param>
+ <param name="strSMTPPassword"></param>
+ <param name="strSMTPServer"></param>
+ <param name="strSMTPPort"></param>
+ <param name="strSMTPEmailSender"></param>
+ <param name="strSMTPSendUsing"></param>
+ <param name="SenderName"></param>
+ <param name="SenderEmail"></param>
+ <param name="RecipientName"></param>
+ <param name="RecipientEmail"></param>
+ <param name="Subj"></param>
+ <param name="Messg"></param>
+ <param name="strFile"></param>
+ <param name="IsBodyHTML"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsMail.SendEmailInQueue">
+ <summary>
+ Send all emails in queue
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="T:EgsData.clsMark">
+ <summary>
+ Manages Marking Table
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsMark.UpdateMarkGroupList(System.Int32@,System.String,EgsData.modGlobalDeclarations.enumEgswTypeItems,System.String,System.String,EgsData.modGlobalDeclarations.enumEgswMarkType,System.Boolean,System.Boolean)">
+ <summary>
+ Save Mark Group List
+ </summary>
+ <param name="intID">Mark Group ID</param>
+ <param name="strName">Mark Group Name</param>
+ <param name="typeItem">Mark Group Type Item</param>
+ <param name="strTableName">Mark Group Details Table Name</param>
+ <param name="strCodesList">Codes to be saved or updated</param>
+ <param name="PickType">Mark Group Details Pick Type</param>
+ <param name="ClearExistingMarkDetails">Delete existing saved codes </param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsMark.DeleteFromList(System.String)">
+ <summary>
+ Delete Mark Group and details associated to it
+ </summary>
+ <param name="strCodesList">List of IDs</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsMark.GetMarkGroupList(EgsData.modGlobalDeclarations.enumEgswTypeItems,EgsData.modGlobalDeclarations.enumEgswMarkType)">
+ <summary>
+ Returns list of mark groups of the current user
+ </summary>
+ <param name="typeitem"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsMark.GetMarkGroupDetailsList(System.Int32,EgsData.modGlobalDeclarations.enumEgswMarkType)">
+ <summary>
+ Return list of code belonging to the current Mark Group ID
+ </summary>
+ <param name="intID"></param>
+ <param name="pickType"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsMark.GetCountMarkedItem(System.Int32,EgsData.modGlobalDeclarations.enumDbaseTables)">
+ <summary>
+ Returns the number of items currently marked per site.
+ </summary>
+ <param name="intCodeSite">The code of the site where items will be retrieved.</param>
+ <param name="ETable">One of enumDbaseTables values.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsMasterPlan.GetRestaurant(System.Int32,System.Int32,System.String,System.Int32)">
+============================================================================================================    
+ <summary>
+ MIGROS MASTER PLAN
+ </summary>
+ <param name="tntDisplayMode"></param>    
+ <returns></returns>
+ <remarks></remarks>
+ 
+</member>
+<member name="M:EgsData.clsMenuplan.GetRestaurant(System.Int32,System.Int32,System.String)">
+============================================================================================================    
+ <summary>
+ MIGROS MASTER PLAN
+ </summary>
+ <param name="tntDisplayMode"></param>    
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsNutrient.SaveNutrientToList(System.Int32,System.String,System.String,System.Int32,System.Int32,EgsData.modGlobalDeclarations.enumEgswTransactionMode,System.Int32,System.Double,System.Boolean,System.Int32)">
+ <summary>
+ Update Nutrient List
+ </summary>
+ <param name="intNutr_No"></param>
+ <param name="strName"></param>
+ <param name="strFormat"></param>
+ <param name="intCodeUser"></param>
+ <param name="intCodeSite"></param>
+ <param name="TranMode"></param>
+ <param name="intnutrientdbcode"></param>
+ <returns></returns>
+ <remarks>Add,Edit,Delete,MoveUp,MoveDown,Fix Order Position</remarks>
+</member>
+<member name="M:EgsData.clsNutrient.GetList(System.Int32,System.Int32,System.Int32)">
+ <summary>
+ Get List of selected Nutrients and Nutrient Databases
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsNutrient.GetListDB(System.Int32,System.Int32)">
+ <summary>
+ Get List of nutrients of a Nutrient Database
+ </summary>
+ <param name="intCodeNutrientDB"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsNutrient.GetList(System.String,System.String)">
+ <summary>
+ Get List by Nutrient name
+ </summary>
+ <param name="strNutrientRefName"></param>
+ <param name="strNutrDB"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsNutrient.DeleteFromList(System.Int32,System.Int32,System.Int32,System.Boolean,System.Int32)">
+ <summary>
+ Remove Nutrient from the List
+ </summary>
+ <param name="intNutr_No"></param>
+ <param name="intCodeUser"></param>
+ <param name="intCodeSite"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsNutrient.UpdateNutrient(System.Int32,System.Int32,System.Int32,System.Boolean,System.Int32)">
+ <summary>
+ Add Nutrient to  the List
+ </summary>
+ <param name="intNutr_No"></param>
+ <param name="intCodeUser"></param>
+ <param name="intCodeSite"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsNutrient.UpdateNutrient(System.Int32,System.Int32,System.Int32)">
+ <summary>
+ Set Nutrient Database
+ </summary>
+ <param name="intNutrientDBCode"></param>
+ <param name="intCodeUser"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsNutrient.UpdateNutrient(System.Int32,System.String,System.String,System.Int32,System.Int32,System.Double,System.Boolean,System.Int32)">
+ <summary>
+ Update Nutrient's name and format
+ </summary>
+ <param name="intNutr_No"></param>
+ <param name="strName"></param>
+ <param name="strFormat"></param>
+ <param name="intCodeUser"></param>
+ <param name="intCodeSite"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsNutrient.UpdateNutrientMoveUp(System.Int32,System.Int32,System.Int32,System.Boolean,System.Int32)">
+ <summary>
+ Move Position of the Nutrient Up
+ </summary>
+ <param name="intNutr_No"></param>
+ <param name="intCodeUser"></param>
+ <param name="intCodeSite"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsNutrient.UpdateNutrientMoveDown(System.Int32,System.Int32,System.Int32,System.Boolean,System.Int32)">
+ <summary>
+ Move Position of the Nutrient Down
+ </summary>
+ <param name="intNutr_No"></param>
+ <param name="intCodeUser"></param>
+ <param name="intCodeSite"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsNutrient.UpdateNutrientValRecomputeListe(System.Int32,EgsData.modGlobalDeclarations.enumDataListType)">
+ <summary>
+ Recompute all recipes or menus
+ </summary>
+ <param name="intCodeUser"></param>
+ <param name="type"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="T:EgsData.clsNutrientRules">
+ <summary>
+ Manages NutrientRules Table
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsNutrientRules.GetList">
+ <summary>
+ Get all NutrientRuless with the list of Site names to which they are shared to.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsNutrientRules.GetListForSearchPick(System.Int32)">
+ <summary>
+ Return list of Nutrients rules that can be used as Search Option
+ </summary>
+ <param name="intCodeSite"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsNutrientRules.GetList(System.Byte,System.Int32,System.Int32)">
+ <summary>
+ Get all NutrientRuless shared to a specific site and filtered by status.
+ </summary>
+ <param name="bytStatus">The Status of the NutrientRules to be fetched.</param>    
+ <param name="lngCodeSite">The CodeSite where the item is shared to.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsNutrientRules.GetList(System.Int32)">
+ <summary>
+ Get a NutrientRules by Code.
+ </summary>
+ <param name="lngCode">The Code of the NutrientRules to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsNutrientRules.GetList(System.Byte)">
+ <summary>
+ Get all NutrientRuless by Status.
+ </summary>
+ <param name="bytStatus">The status of the NutrientRuless to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsNutrientRules.GetList(System.String)">
+ <summary>
+ Get a NutrientRules by Name.
+ </summary>
+ <param name="strName">The name of the NutrientRule to be fetched.</param>    
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsNutrientRules.UpdateGlobalStatus(System.Int32,System.Int32,System.Boolean)">
+ <summary>
+ Updates the global status of a NutrientRules.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCode">The Code of the NutrientRules to be updated.</param>
+ <param name="IsGlobal">The global status of the NutrientRules to be updated.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsNutrientRules.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structNutrientRules)">
+ <summary>
+ Updates NutrientRules without sharing it to any sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the NutrientRules to be updated.</param>
+ <param name="udtNutrientRules">One of the structNutrientRules values.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsNutrientRules.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structNutrientRules,System.String)">
+ <summary>
+ Updates NutrientRules sharing it to specified sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="udtNutrientRules">One of the structNutrientRules values.</param>
+ <param name="strCodeSiteList">The list of sites where NutrientRules will be shared.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsNutrientRules.Update(System.Int32,System.Int32,System.String,System.Byte)">
+ <summary>
+ Updates Status of the NutrientRules specified in the list (strCodeList).
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="strCodeList">The list of NutrientRules Codes to be updated.</param>
+ <param name="bytStatus">The Status of the NutrientRules.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsNutrientRules.Update(System.Int32,System.Int32,System.Int32,System.Boolean,System.Byte)">
+ <summary>
+ Updates Status of a NutrientRules.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the NutrientRules to be updated.</param>
+ <param name="IsGlobal">The Global Status of the NutrientRules.</param>
+ <param name="bytStatus">The Status of the NutrientRules.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsNutrientRules.Remove">
+ <summary>
+ Purge NutrientRules List.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsNutrientRules.Remove(System.Int32,System.Int32,System.Boolean)">
+ <summary>
+ Deletes a NutrientRules.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>    
+ <param name="lngCode">The Code of the NutrientRules to be deleted.</param>
+ <param name="IsGlobal">The Global status of the NutrientRules to be deleted.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsNutrientRules.Remove(System.Int32,System.Int32,System.String)">
+ <summary>
+ Deletes NutrientRuless specified in the list strCodeList.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>    
+ <param name="strCodeList">The list of NutrientRules Codes to be deleted.</param>
+ <param name="lngCodeSite">The CodeSite from were you are trying to delete, pass -1 if you want to delete using the user's role.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="T:EgsData.clsPOS">
+ <summary>
+ Manages POS Configuration
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsPOS.UpdatePosition(System.String,System.Boolean,System.Int32,EgsData.modGlobalDeclarations.enumDataListItemType)">
+ <summary>
+ Updates the position of items.
+ </summary>
+ <param name="strCodeList">The list of item codes to be moved.</param>
+ <param name="flagMoveUp"></param>
+ <param name="lngCodeSite">The CodeSite of the items to be moved.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsPOS.GetList">
+ <summary>
+ Get all POS Types.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>    
+</member>
+<member name="M:EgsData.clsPOS.GetList(System.String)">
+ <summary>
+ Get a POSType by Name.
+ </summary>
+ <param name="strName">The name of the Terminal to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsPOS.GetList(System.Int32)">
+ <summary>
+ Get a Terminal by Code or by Site
+ </summary>
+ <param name="lngCode">The Code of the Terminal to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsPOS.GetPOSConfigList">
+ <summary>
+ Get POS Config List
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsPOS.GetPOSConfigList(System.Int32)">
+ <summary>
+ Get POS Config List
+ </summary>
+ <param name="intID">The Code of the POS to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsPOS.GetPOSData(System.Int32)">
+For POS Import
+ <summary>
+ Get Import POS Record based on ID
+ </summary>
+ <param name="intID">The ID of the record to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsPOS.GetPOSData">
+ <summary>
+ Get List of Records Not Imported because of data errors
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsPOS.GetPOSData(System.Int32,System.Int32)">
+ <summary>
+ Get List of Records not imported by site
+ </summary>
+ <param name="intID">pass -1</param>
+ <param name="intCodesite">pass the codesite wanted</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsPOS.Update(System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structPOSAutoConfig)">
+ <summary>
+ Updates Terminal
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngID">The Code of the Terminal to be updated.</param>
+ <param name="udtPOSAutoConfig">One of the structTerminal values.</param>
+ <returns></returns>
+ <remarks></remarks>
+ 
+</member>
+<member name="M:EgsData.clsPOS.Remove(System.Int32)">
+ <summary>
+ Deletes a POS auto config
+ </summary>
+ <param name="intId">The Code of the POS auto config to be deleted.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsPOS.Remove(System.String)">
+ <summary>
+ Deletes POS autoconfig specified in the list strCodeList.
+ </summary>
+ <param name="strIDList">The List of Id to be deleted.</param>    
+ <returns></returns>
+ <remarks></remarks>    
+</member>
+<member name="M:EgsData.clsPOS.RemoveTempData(System.Int32)">
+ <summary>
+ Deletes a POS Tempdata
+ </summary>
+ <param name="intId">The id of the POS temp data to be deleted.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsPOS.RemoveTempData(System.String)">
+ <summary>
+ Deletes POS Tempdata  specified in the list strIDList.
+ </summary>
+ <param name="strIDList">The List of Id to be deleted.</param>    
+ <returns></returns>
+ <remarks></remarks>    
+</member>
+<member name="T:EgsData.clsPrintList">
+ <summary>
+ Manages PrintList Table
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsPrintList.UpdatePrintList(EgsData.modGlobalDeclarations.structUser,System.String,System.Int32,System.Boolean,System.Data.DataTable@,System.Int32,EgsData.modGlobalDeclarations.enumPrintSortType,EgsData.modGlobalDeclarations.enumPrintGroupType,EgsData.modGlobalDeclarations.enumPrintSubRecipesOptions,System.Double,System.Boolean,EgsData.modGlobalDeclarations.enumFileType,System.Boolean,System.Int32@,EgsData.modGlobalDeclarations.enumDbaseTables,System.String,System.String,EgsData.modGlobalDeclarations.enumDataListItemType,System.Boolean,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32)">
+ <summary>
+ Preview or Add Selected codes in print list
+ </summary>
+ <param name="udtUser"></param>
+ <param name="strCodeList"></param>
+ <param name="intCodeSetPrice"></param>
+ <param name="blnCheckStatusOnly"></param>
+ <param name="dtStatus"></param>
+ <param name="intCodePrintProfile"></param>
+ <param name="sortBy"></param>
+ <param name="groupBy"></param>
+ <param name="SubRecipes"></param>
+ <param name="dblYieldNew"></param>
+ <param name="ShowToNewPageIfNewSupplier"></param>
+ <param name="documentOutput"></param>
+ <param name="PrintQueue"></param>
+ <param name="intCodePrintList"></param>
+ <param name="strIncludeAllByCategoryList">Print all liste </param>
+ <param name="strIncludeAllBySiteCodeList"></param>
+ <param name="table"></param>
+ <returns></returns>
+ <remarks></remarks>
+ JBB 05.21.2012 Add intCodeSet for Nutrient Set
+ RDC 08.05.2013 Add intNutrientDisplay for displaying Imposed and/or Calculated Nutrient
+</member>
+<member name="M:EgsData.clsPrintList.GetListDetails(System.Int32,System.Boolean,System.Int32,System.Int32,System.Int32,System.Boolean,System.Int32,System.Int32,System.Int32)">
+ <summary>+
+ Returns list of details of a given code
+ </summary>
+ <param name="intCodePrintList"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="T:EgsData.clsPrintProfile">
+ <summary>
+ Manages PrintProfile Table
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsPrintProfile.GetList">
+ <summary>
+ Get all PrintProfiles.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsPrintProfile.GetList(System.Int32)">
+ <summary>
+ Get a PrintProfile by Code.
+ </summary>
+ <param name="lngCode">The Code of the PrintProfile to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsPrintProfile.GetList(EgsData.modGlobalDeclarations.enumReportType)">
+ <summary>
+ Get all PrintProfiles by Type.
+ </summary>
+ <param name="eType">One of the enumReportType values.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsPrintProfile.GetList(System.Byte)">
+ <summary>
+ Get all PrintProfiles by Status.
+ </summary>
+ <param name="bytStatus">The status of the PrintProfiles to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsPrintProfile.GetList(EgsData.modGlobalDeclarations.enumReportType,System.Int32,System.Byte)">
+ <summary>
+ Get all PrintProfiles with the list of Site names to which they are shared to.
+ </summary>
+ <param name="eType">One of the enumDataListType values.</param>
+ <param name="lngCodeTrans">The Code of the language translation.</param>
+ <param name="bytStatus">The status of the PrintProfiles to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsPrintProfile.GetList(EgsData.modGlobalDeclarations.enumReportType,System.Int32,System.Byte,System.Int32)">
+ <summary>
+ Get all PrintProfiles shared to a specific site.
+ </summary>
+ <param name="eType">One of the enumDataListType values.</param>
+ <param name="lngCodeTrans">The Code of the language translation.</param>
+ <param name="bytStatus">The status of the PrintProfile to be fetched.</param>
+ <param name="lngCodeSite">The site to which the PrintProfile is shared.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsPrintProfile.GetTranslationList">
+ <summary>
+ Get all Translations.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsPrintProfile.GetTranslationList(System.Int64)">
+ <summary>
+ Get a specific translation.
+ </summary>
+ <param name="lngCodeTrans">The Code of the language translation.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsPrintProfile.GetList(System.String,EgsData.modGlobalDeclarations.enumReportType,System.Int32,System.Int32,System.Byte)">
+ <summary>
+ Get a Category by Name w/in the codesite.
+ </summary>
+ <param name="strName">The name of the Category to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsPrintProfile.Standardize(System.Int32,System.Int32,EgsData.modGlobalDeclarations.enumDataListType,EgsData.modGlobalDeclarations.enumDataListItemType,EgsData.modGlobalDeclarations.enumEgswStandardizationFormat)">
+ <summary>
+ Standardize PrintProfiles
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="eListeType">One of the enumDataListType values.</param>
+ <param name="eItemListType">One of the enumDataListType values.</param>
+ <param name="eFormat">One of the enumEgswStandardizationFormat values.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsPrintProfile.UpdateGlobalStatus(System.Int32,System.Int32,System.Boolean)">
+ <summary>
+ Updates the global status of a PrintProfile.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCode">The Code of the PrintProfile to be updated.</param>
+ <param name="IsGlobal">The global status of the PrintProfile to be updated.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsPrintProfile.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structPrintProfile)">
+ <summary>
+ Updates PrintProfile without sharing it to any sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the PrintProfile to be updated.</param>
+ <param name="udtPrintProfile">One of the structPrintProfile values.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsPrintProfile.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structPrintProfile,System.String)">
+ <summary>
+ Updates PrintProfile sharing it to specified sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="udtPrintProfile">One of the structPrintProfile values.</param>
+ <param name="strCodeSiteList">The list of sites where PrintProfile will be shared.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsPrintProfile.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structPrintProfile,System.String,System.String[],System.String[])">
+ <summary>
+ Updates PrintProfile and its Translations and share it to specified sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="udtPrintProfile">One of the structPrintProfile values.</param>
+ <param name="strCodeSiteList">The list of sites where PrintProfile will be shared.</param>
+ <param name="strTransCodeList">The list of Translation Codes of the PrintProfile.</param>
+ <param name="strTransNameList">The list of Translation Names of the PrintProfile.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsPrintProfile.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structPrintProfile,System.String,System.Data.DataTable)">
+ <summary>
+ Updates PrintProfile and its Translations and share it to specified sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="udtPrintProfile">One of the structPrintProfile values.</param>
+ <param name="strCodeSiteList">The list of sites where PrintProfile will be shared.</param>
+ <param name="dtTranslations">The list of Translations of the PrintProfile.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsPrintProfile.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.enumDataListType,System.Data.DataTable)">
+ <summary>
+ Updatess PrintProfile's translations (multiple update)
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="eListeType">One of the enumDataListType values.</param>
+ <param name="dtTranslations">The list of Translations of the PrintProfile.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsPrintProfile.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.enumDataListType,System.Int32,System.String)">
+ <summary>
+ Updates a PrintProfile's translation (single update)
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="eListeType">One of the enumDataListType values.</param>
+ <param name="lngCodeTrans">The code of the PrintProfile's translation.</param>
+ <param name="strNameTrans">The name of the PrintProfile's translation.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsPrintProfile.Update(System.Int32,System.Int32,System.String,EgsData.modGlobalDeclarations.structPrintProfile)">
+ <summary>
+ Merge PrintProfiles
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="strCodePrintProfileList">The list of PrintProfile Codes to be merged.</param>
+ <param name="udtPrintProfile">PrintProfile info.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsPrintProfile.Update(System.Int32,System.String,System.Byte)">
+ <summary>
+ Updates Status of the PrintProfiles specified in the list (strCodeList).
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="strCodeList">The list of PrintProfile Codes to be updated.</param>
+ <param name="bytStatus">The Status of the PrintProfile.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsPrintProfile.Update(System.Int32,System.Int32,System.Boolean,System.Byte)">
+ <summary>
+ Updates Status of a PrintProfile.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCode">The Code of the PrintProfile to be updated.</param>
+ <param name="IsGlobal">The Global Status of the PrintProfile.</param>
+ <param name="bytStatus">The Status of the PrintProfile.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsPrintProfile.UpdatePosition(System.String,System.Boolean,System.Int32)">
+ <summary>
+ Updates the position of items.
+ </summary>
+ <param name="strCodeList">The list of item codes to be moved.</param>
+ <param name="flagMoveUp"></param>
+ <param name="lngCodeSite">The CodeSite of the items to be moved.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsPrintProfile.Remove">
+ <summary>
+ Purge PrintProfile List.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsPrintProfile.Remove(System.Int32,System.Int32,System.Int32,System.Boolean)">
+ <summary>
+ Deletes a PrintProfile.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCode">The Code of the PrintProfile to be deleted.</param>
+ <param name="IsGlobal">The Global status of the PrintProfile to be deleted.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsPrintProfile.Remove(System.Int32,System.Int32,System.String)">
+ <summary>
+ Deletes PrintProfiles specified in the list strCodeList.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="strCodeList">The list of PrintProfile Codes to be deleted.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsProduct.GetList(System.Int32,System.Int32,System.String,System.Int32,System.String,System.Int32,System.Int32,System.Int32,System.Int32,System.Int16,System.Boolean,System.Boolean,System.Double,System.Double,System.Int32,System.Int32,System.Int32@,System.String,EgsData.modGlobalDeclarations.structSearchWineFilter,EgsData.modGlobalDeclarations.enumEgswFetchType,System.Boolean)">
+ <summary>
+ 
+ </summary>
+ <param name="intCode"></param>
+ <param name="fetchType"></param>
+ <returns></returns>
+ <remarks>MRC 05.06.09 - Added a structSearchWineFilter param</remarks>
+</member>
+<member name="M:EgsData.clsProduct.GetList2(System.Int32,System.Int32,System.String,System.Int32,System.String,System.Int32,System.Int32,System.Int32,System.Int32,System.Int16,System.Boolean,System.Boolean,System.Double,System.Double,System.Int32,System.Int32,System.Int32@,System.String,EgsData.modGlobalDeclarations.structSearchWineFilter,EgsData.modGlobalDeclarations.enumEgswFetchType,System.Boolean,System.Boolean)">
+ <summary>
+ 
+ </summary>
+ <param name="intCode"></param>
+ <param name="fetchType"></param>
+ <returns></returns>
+ <remarks>MRC 05.06.09 - Added a structSearchWineFilter param</remarks>
+</member>
+<member name="M:EgsData.clsProduct.ProducLocationUpdate(System.Int32,System.Int32,System.Int32,System.Int32,System.Double,System.Double)">
+ <summary>
+ 
+ </summary>
+ <param name="intCodeProduct"></param>
+ <param name="intCodeLocation"></param>
+ <param name="intUpdateMode">0: insert/update 1: Update from Inventory module. 2: Delete</param>
+ <returns></returns>
+ <remarks>Updated by marvin, added qtymax and qtymin fields</remarks>
+</member>
+<member name="T:EgsData.clsProductionPlace">
+ <summary>
+ Manages ProductionPlace Table
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsProductionPlace.GetList">
+ <summary>
+ Get all Taxes with the list of Site names to which they are shared to.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsProductionPlace.GetList(System.String,System.Int32)">
+ <summary>
+ Get a Tax by description.
+ </summary>
+ <param name="strName">The name of the Category to be fetched.</param>    
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsProductionPlace.GetList(System.Int32,System.Int32)">
+ <summary>
+ Get a Tax by Code.
+ </summary>
+ <param name="lngCode">The Code of the Tax to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsProductionPlace.UpdateGlobalStatus(System.Int32,System.Int32,System.Boolean)">
+ <summary>
+ Updates the global status of a Tax.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCode">The Code of the Tax to be updated.</param>
+ <param name="IsGlobal">The global status of the Tax to be updated.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsProductionPlace.Remove">
+ <summary>
+ Purge Tax List.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsProductionPlace.Remove(System.Int32,System.Int32,System.Boolean)">
+ <summary>
+ Deletes a Tax.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCode">The Code of the Tax to be deleted.</param>
+ <param name="IsGlobal">The Global status of the Tax to be deleted.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsProductionPlace.Remove(System.Int32,System.Int32,System.String)">
+ <summary>
+ Deletes Taxes specified in the list strCodeList.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite from were you are trying to delete, pass -1 if you want to delete using the user's role.</param>
+ <param name="strCodeList">The list of Tax Codes to be deleted.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsProperty.GetList">
+ <summary>
+ Fetch list of properties
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsProperty.GetList(System.Int32)">
+ <summary>
+ Fetch a Property
+ </summary>
+ <param name="intCode"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsProperty.DeleteFromList(System.Int32)">
+ <summary>
+ Delete one item from the list
+ </summary>
+ <param name="intCode">Code of the property. </param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsProperty.FetchPropertyList(System.Int32)">
+ <summary>
+ Get list of properties
+ </summary>
+ <param name="intCodeProperty"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsProperty.DeleteFromList(System.Int32,System.String,EgsData.modGlobalDeclarations.enumEgswTransactionMode)">
+ <summary>
+ Delete property
+ </summary>
+ <param name="intCode"></param>
+ <param name="strCodeList">JRL: Not yet working.</param>
+ <param name="TrandMode"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsRoles.GetMenus">
+ <summary>
+ Fetch List of All Menus Enum
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsRoles.GetUserRightsFunctions">
+ <summary>
+ Fetch List of All Rights
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsRoles.GetList(System.Int32,System.Int32)">
+ <summary>
+ Returns list of module rights of a role 
+ </summary>
+ <param name="intRole"></param>
+ <param name="intModule"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsRoles.GetList(System.Int32)">
+ <summary>
+ Return list of rights of a role
+ </summary>
+ <param name="intRole"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsRoles.GetList">
+ <summary>
+ get all roles
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsRoles.FetchList(System.Int32,System.Int32)">
+ <summary>
+ Fetch list of roles rights
+ </summary>
+ <param name="intRole"></param>
+ <param name="intModule"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsRoles.UpdateList(EgsData.modGlobalDeclarations.UserRightsFunction,EgsData.modGlobalDeclarations.MenuType,System.Int32,System.Boolean)">
+ <summary>
+ Update Role Rights
+ </summary>
+ <param name="fnc"></param>
+ <param name="typeModule"></param>
+ <param name="intRole"></param>
+ <param name="IsAllowed"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSalesItem.RemoveFromListPrice(System.Int32,System.String,System.Boolean,System.Data.SqlClient.SqlTransaction@)">
+ <summary>
+ 
+ </summary>
+ <param name="intCodeSalesItem"></param>
+ <param name="strCodeSetPriceList"></param>
+ <param name="blnDeleteNotInList">if it will delete set prices not in list for the salesitem</param>
+ <param name="sqlTran"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSalesItem.GetListPrice(System.Int32,System.Int32)">
+ <summary>
+ get sales item price by code sales item and set price
+ </summary>
+ <param name="intCodeSalesItem"></param>
+ <param name="intCodeSetPrice"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSalesItem.GetListPrice(System.Int32)">
+ <summary>
+ get sales item price by code sales item
+ </summary>
+ <param name="intCodeSalesItem"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSalesItem.GetList(System.Int32)">
+ <summary>
+ Get Sales Item by Code.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>    
+</member>
+<member name="M:EgsData.clsSalesItem.GetList(System.Int32,System.Int32@)">
+ <summary>
+ Get Sales Item by Code with rowcount return.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>    
+</member>
+<member name="M:EgsData.clsSalesItem.GetList(System.String,System.Boolean)">
+ <summary>
+ Get a SalesItem by Name.
+ </summary>
+ <param name="strName">The name of the SalesItem to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSalesItem.GetList(EgsData.modGlobalDeclarations.structSearchSalesFilter,System.Int32@)">
+ <summary>
+ Get a SalesItem by filter values.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSalesItem.GetList2(EgsData.modGlobalDeclarations.structSearchSalesFilter,System.Int32@)">
+ <summary>
+ Get a SalesItem by filter values.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSalesItem.GetSalesItemName(System.Int32)">
+ <summary>
+ Get a SalesItem Name.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSalesItem.GetCodeSalesItem(System.String)">
+ <summary>
+ Get Code of a SalesItem by Name.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSalesItem.Update(System.Int32@,EgsData.modGlobalDeclarations.structSalesItem)">
+ <summary>
+ Updates SalesItem
+ </summary>
+ <param name="intCode">The Code of the SalesItem to be updated.</param>
+ <param name="udtSalesItem">One of the structSalesItem values.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSalesItem.UpdatePrice(System.Int32,System.Data.DataTable)">
+ <summary>
+ used to update the salesitem price table, it deletes setprices not in the strCodeSetPriceList
+ </summary>
+ <param name="intcodeSalesItem">code of the sales item</param>
+ <param name="dt">datatable conatining a replica of salesitem price</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSalesItem.Update(System.Int32,System.Int32,System.Int32,System.Int32,EgsData.modGlobalDeclarations.structSalesItem)">
+ <summary>
+ Create Sales Item from Merchandise, Recipe, or Menu of Cm
+ </summary>
+ <param name="intCodeListe">The Code of Merchandise, Recipe, or Menu</param>
+ <param name="intOldNumber">Sales Item Number to be updated.</param>
+ <param name="intNewNumber"> Given Sales Item Number.</param>
+ <param name="intType"> 1=Merchandise, 2=Recipe, 3= Menu.</param>
+ <param name="udtSalesItem"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSalesItem.Remove(System.String,System.Boolean,System.Data.DataTable@)">
+ <summary>
+ Purge Sales Item List
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSalesItem.Remove(System.Int32)">
+ <summary>
+ Delete a SalesItem.
+ </summary>
+ <param name="intCode">The Code of the Terminal to be deleted.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="T:EgsData.clsSetPrice">
+ <summary>
+ Manages SetPrice Table
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSetPrice.GetList(EgsData.modGlobalDeclarations.SetPriceType)">
+ <summary>
+ Get all SetPrices with the list of Site names to which they are shared to.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSetPrice.GetList(System.Byte,System.Int32,EgsData.modGlobalDeclarations.SetPriceType,System.Boolean,System.Int32)">
+ <summary>
+ Get all SetPrices shared to a specific site and filtered by status.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSetPrice.GetList(System.Int32)">
+ <summary>
+ Get a SetPrice by Code.
+ </summary>
+ <param name="lngCode">The Code of the SetPrice to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSetPrice.GetList(System.Int32,System.String,EgsData.modGlobalDeclarations.SetPriceType)">
+ <summary>
+ Get setprice by name
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSetPrice.UpdateGlobalStatus(System.Int32,System.Int32,System.Boolean)">
+ <summary>
+ Updates the global status of a SetPrice.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCode">The Code of the SetPrice to be updated.</param>
+ <param name="IsGlobal">The global status of the SetPrice to be updated.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSetPrice.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structSetPrice)">
+ <summary>
+ Updates SetPrice without sharing it to any sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the SetPrice to be updated.</param>
+ <param name="udtSetPrice">One of the structSetPrice values.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSetPrice.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structSetPrice,System.String)">
+ <summary>
+ Updates SetPrice sharing it to specified sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="udtSetPrice">One of the structSetPrice values.</param>
+ <param name="strCodeSiteList">The list of sites where SetPrice will be shared.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSetPrice.Update(System.Int32,System.Int32,System.String,System.Byte)">
+ <summary>
+ Updates Status of the SetPrices specified in the list (strCodeList).
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="strCodeList">The list of SetPrice Codes to be updated.</param>
+ <param name="bytStatus">The Status of the SetPrice.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSetPrice.Update(System.Int32,System.Int32,System.Int32,System.Boolean,System.Byte)">
+ <summary>
+ Updates Status of a SetPrice.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the SetPrice to be updated.</param>
+ <param name="IsGlobal">The Global Status of the SetPrice.</param>
+ <param name="bytStatus">The Status of the SetPrice.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSetPrice.Remove">
+ <summary>
+ Purge SetPrice List.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSetPrice.Remove(System.Int32,System.Int32,System.Boolean)">
+ <summary>
+ Deletes a SetPrice.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>    
+ <param name="lngCode">The Code of the SetPrice to be deleted.</param>
+ <param name="IsGlobal">The Global status of the SetPrice to be deleted.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSetPrice.Remove(System.Int32,System.Int32,System.String)">
+ <summary>
+ Deletes SetPrices specified in the list strCodeList.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>    
+ <param name="strCodeList">The list of SetPrice Codes to be deleted.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsShopping.GetList(System.Int32,System.Int32)">
+ <summary>
+ Returns list of shopping list ingredients of the given shopping group
+ And the shopping group profile.
+ </summary>
+ <param name="intCodeShoppingList"></param>
+ <param name="intCodeTrans"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsShopping.GetListDetail(System.Int32)">
+ <summary>
+ Returns information about the given shopping list group
+ </summary>
+ <param name="intCodeShoppingList"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsShopping.GetList(System.Int32)">
+ <summary>
+ Returns list of saved shopping list of the given user
+ </summary>
+ <param name="intCodeUser"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsShopping.GetList2(System.Collections.ArrayList,System.Int32,System.Double,System.Boolean)">
+ <summary>
+ Returns list of ingredients of selected recipes/menu
+ </summary>
+ <param name="arrCodesListe"></param>
+ <param name="intFirstCodeSetPrice"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSite.GetList(System.Int32)">
+ <summary>
+ Return Site
+ </summary>
+ <param name="intCodeSite"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSite.GetList">
+ <summary>
+ Get List of all sites
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSite.GetList(System.String)">
+ <summary>
+ Get List of all sites
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSite.GetListByProperty(System.Int32)">
+ <summary>
+ Fetch List of Sites belonging to a property
+ </summary>
+ <param name="intCodeProperty"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSite.GetListByProperty(System.Int32,System.Int32,System.String)">
+ <summary>
+ Fetch List of Sites belonging to a property
+ </summary>
+ <param name="intCodeProperty"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSite.GetListByCodeUser(System.Int32)">
+ <summary>
+ Fetch sites accessible to the current user
+ </summary>
+ <param name="intCodeUser"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSite.GetListMark(System.Int32,EgsData.modGlobalDeclarations.FilterMark)">
+ <summary>
+ Get sites by marking.
+ </summary>
+ <param name="intCodeUser">The code of the user.</param>        
+ <param name="EMarkFilter">One of FilterMark values.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSite.UpdateSite(System.Int32@,System.String,System.Int32,EgsData.modGlobalDeclarations.enumGroupLevel,System.Int32,EgsData.modGlobalDeclarations.enumEgswTransactionMode,System.String,System.Int32)">
+ <summary>
+ Save Site
+ </summary>
+ <param name="intCode"></param>
+ <param name="strName"></param>
+ <param name="intGroup"></param>
+ <param name="SiteLevel"></param>
+ <param name="intCodeUser"></param>
+ <param name="TranMode"></param>
+ <param name="strTranslationCodeList"></param>
+ <param name="intCodeSiteCopyLocalItemsFrom">Copy all local items like category of a site. Value is zero if not used.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSite.CopyLocalItems(System.Int32,System.Int32,System.Int32)">
+ <summary>
+ Copy all local basic items to another site
+ </summary>
+ <param name="intCodeSiteSource"></param>
+ <param name="intCodeSiteNew"></param>
+ <param name="intCodeUser"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSite.DeleteFromList(System.Int32)">
+ <summary>
+ Delete one item from the list
+ </summary>
+ <param name="intCode">Code of the site. </param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSite.FetchList(System.Int32,System.Int32,System.String,System.Int32,System.Int32,System.String)">
+ <summary>
+ Fetch site list
+ </summary>
+ <param name="intCodeSite"></param>
+ <param name="intCodeProperty"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSite.DeleteFromList(System.Int32,System.String,EgsData.modGlobalDeclarations.enumEgswTransactionMode)">
+ <summary>
+ Delete list of sites or one site
+ </summary>
+ <param name="intCode"></param>
+ <param name="strCodeList"></param>
+ <param name="TrandMode"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="T:EgsData.clsSource">
+ <summary>
+ Manages Source Table
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSource.GetList">
+ <summary>
+ Get all Source with the list of Site names to which they are shared to.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSource.GetList(System.String)">
+ <summary>
+ Get a Category by Name.
+ </summary>
+ <param name="strName">The name of the Category to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSource.GetList(System.String,System.Int32,System.Byte)">
+ <summary>
+ Get a Category by Name w/in the codesite.
+ </summary>
+ <param name="strName">The name of the Category to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSource.GetList(System.Int32)">
+ <summary>
+ Get a Source by Code.
+ </summary>
+ <param name="lngCode">The Code of the Source to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSource.GetList(System.Byte)">
+ <summary>
+ Get all Source by Status.
+ </summary>
+ <param name="bytStatus">The status of the Source to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSource.GetList(System.Byte,System.Int32)">
+ <summary>
+ Get all Source shared to a specific site and filtered by status.
+ </summary>
+ <param name="bytStatus">The Status of the Source to be fetched.</param>    
+ <param name="lngCodeSite">The CodeSite where the Source is shared to.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSource.UpdateGlobalStatus(System.Int32,System.Int32,System.Boolean)">
+ <summary>
+ Updates the global status of a Source.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCode">The Code of the Source to be updated.</param>
+ <param name="IsGlobal">The global status of the Source to be updated.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSource.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structSource)">
+ <summary>
+ Updates Source without sharing it to any sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the Source to be updated.</param>
+ <param name="udtSource">One of the structSource values.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSource.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structSource,System.String)">
+ <summary>
+ Updates Source sharing it to specified sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="udtSource">One of the structSource values.</param>
+ <param name="strCodeSiteList">The list of sites where Source will be shared.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSource.Update(System.Int32,System.Int32,System.String,EgsData.modGlobalDeclarations.structSource)">
+ <summary>
+ Merge Sources
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="strCodeSourceList">The list of Source Codes to be merged.</param>
+ <param name="udtSource">One of the structSource values.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSource.Update(System.Int32,System.Int32,System.String,System.Byte)">
+ <summary>
+ Updates Status of the Sources specified in the list (strCodeList).
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="strCodeList">The list of Source Codes to be updated.</param>
+ <param name="bytStatus">The Status of the Source.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSource.Update(System.Int32,System.Int32,System.Int32,System.Boolean,System.Byte)">
+ <summary>
+ Updates Status of a Source.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the Source to be updated.</param>
+ <param name="IsGlobal">The Global Status of the Source.</param>
+ <param name="bytStatus">The Status of the Source.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSource.Remove">
+ <summary>
+ Purge Source List.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSource.Remove(System.Int32,System.Int32,System.Boolean)">
+ <summary>
+ Deletes a Source.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>    
+ <param name="lngCode">The Code of the Source to be deleted.</param>
+ <param name="IsGlobal">The Global status of the Source to be deleted.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSource.Remove(System.Int32,System.Int32,System.String)">
+ <summary>
+ Deletes Source specified in the list strCodeList.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>    
+ <param name="strCodeList">The list of Source Codes to be deleted.</param>
+ <param name="lngCodeSite">The CodeSite from were you are trying to delete, pass -1 if you want to delete using the user's role.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="T:EgsData.clsSupplier">
+ <summary>
+ Manages Supplier Table
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSupplier.GetList">
+ <summary>
+ Get all Suppliers with the list of Site names to which they are shared to.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSupplier.GetList(System.String)">
+ <summary>
+ Get a Supplier by Name.
+ </summary>
+ <param name="strName">The name of the Supplier to be fetched.</param>    
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSupplier.GetList(System.Int32)">
+ <summary>
+ Get a Supplier by Code.
+ </summary>
+ <param name="lngCode">The Code of the Supplier to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSupplier.GetList(System.Int32,System.Int32,System.Boolean)">
+ <summary>
+ Get all Suppliers shared to a specific site and filtered by status.
+ </summary>
+ <param name="bytStatus">The status of the Suppliers to be fetched.</param>    
+ <param name="lngCodeSite">The CodeSite where the Suppliers is shared to.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSupplier.GetList(System.String,System.Int32,System.Int32)">
+ <summary>
+ Get a Supplier by Name w/in the codesite.
+ </summary>
+ <param name="strName">The name of the Supplier to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSupplier.GetListMark(System.Int32,System.Int32,EgsData.modGlobalDeclarations.FilterMark)">
+ <summary>
+ Get suppliers by site for markings.
+ </summary>
+ <param name="intCodeUser">The code of the user.</param>
+ <param name="intCodeSite">The code of the site.</param>    
+ <param name="EMarkFilter">One of FilterMark values.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSupplier.GetListContact(System.Int32,System.Int32)">
+ <summary>
+ Get a ClientSupplier by CodeSite and CodeSupplier
+ </summary>
+ <param name="lngCodeSupplier">The Code of the Supplier to be fetched.</param>
+ <param name="lngCodeSite">The Code of the Client Site to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSupplier.GetListContact(System.Int32)">
+ <summary>
+ Get a Client Contact by Code.
+ </summary>
+ <param name="lngCode">The Code of the Client Contact to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSupplier.GetListGroup(System.Int32)">
+ <summary>
+ Get a Supplier Group by Code.
+ </summary>
+ <param name="lngCode">The Code of the Supplier Group to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSupplier.GetListGroup(System.Int32,System.Int32)">
+ <summary>
+ Get a Supplier Group by Site and status
+ </summary>
+ <param name="bytStatus">The status of the Supplier Group to be fetched.</param> 
+ <param name="lngCodeSite">The CodeSite of the Supplier Group to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSupplier.UpdateGlobalStatus(System.Int32,System.Int32,System.Boolean)">
+ <summary>
+ Updates the global status of a Supplier.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCode">The Code of the Supplier to be updated.</param>
+ <param name="IsGlobal">The global status of the Supplier to be updated.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSupplier.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structSupplier)">
+ <summary>
+ Updates Supplier without sharing it to any sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the Supplier to be updated.</param>
+ <param name="udtSupplier">Supplier info.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSupplier.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structSupplier,System.String)">
+ <summary>
+ Updates Supplier sharing it to specified sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="udtSupplier">Supplier info.</param>
+ <param name="strCodeSiteList">The list of sites where Supplier will be shared.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSupplier.Update(System.Int32,System.Int32,System.String,EgsData.modGlobalDeclarations.structSupplier)">
+ <summary>
+ Merge Suppliers
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="strCodeSupplierList">The list of Supplier Codes to be merged.</param>
+ <param name="udtSupplier">Supplier info.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSupplier.Update(System.Int32,System.Int32,System.String,System.Int32)">
+ <summary>
+ Updates Status of the Suppliers specified in the list (strCodeList).
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="strCodeList">The list of Supplier Codes to be updated.</param>
+ <param name="bytStatus">The Status of the Supplier.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSupplier.Update(System.Int32,System.Int32,System.Int32,System.Boolean,System.Int32)">
+ <summary>
+ Updates Status of a Supplier.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the Supplier to be updated.</param>
+ <param name="IsGlobal">The Global Status of the Supplier.</param>
+ <param name="bytStatus">The Status of the Supplier.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSupplier.UpdateContact(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structSupplier)">
+ <summary>
+ Updates Client without sharing it to any sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the Client to be updated.</param>
+ <param name="udtSupplier">Client info.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSupplier.UpdateContact(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structSupplier,System.String)">
+ <summary>
+ Updates Client sharing it to specified sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="udtSupplier">Client info.</param>
+ <param name="strCodeSiteList">The list of sites where Client will be shared.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSupplier.UpdateGroup(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structSupplier)">
+ <summary>
+ Updates Client without sharing it to any sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the Client to be updated.</param>
+ <param name="udtSupplier">Client info.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSupplier.UpdateGroup(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structSupplier,System.String)">
+ <summary>
+ Updates Client sharing it to specified sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="udtSupplier">Client info.</param>
+ <param name="strCodeSiteList">The list of sites where Client will be shared.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSupplier.Remove">
+ <summary>
+ Purge Supplier List.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSupplier.Remove(System.Int32,System.Int32,System.Boolean)">
+ <summary>
+ Deletes a Supplier.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>    
+ <param name="lngCode">The Code of the Supplier to be deleted.</param>
+ <param name="IsGlobal">The Global status of the Supplier to be deleted.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSupplier.Remove(System.Int32,System.Int32,System.String)">
+ <summary>
+ Deletes Suppliers specified in the list strCodeList.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>    
+ <param name="strCodeList">The list of Supplier Codes to be deleted.</param>
+ <param name="lngCodeSite">The CodeSite from were you are trying to delete, pass -1 if you want to delete using the user's role.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSupplier.RemoveContact(System.Int32,System.Int32,System.Boolean)">
+ <summary>
+ Deletes a Supplier Contact.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>    
+ <param name="lngCode">The Code of the Client to be deleted.</param>
+ <param name="IsGlobal">The Global status of the Supplier to be deleted.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSupplier.RemoveContact(System.Int32,System.Int32,System.String)">
+ <summary>
+ Deletes Supplier Contacts specified in the list strCodeList.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>    
+ <param name="strCodeList">The list of Supplier Codes to be deleted.</param>
+ <param name="lngCodeSite">The CodeSite from were you are trying to delete, pass -1 if you want to delete using the user's role.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSupplier.RemoveContact">
+ <summary>
+ Purge Client Contact List.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSupplier.RemoveGroup(System.Int32,System.Int32,System.Boolean)">
+ <summary>
+ Deletes a Supplier Contact.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>    
+ <param name="lngCode">The Code of the Client to be deleted.</param>
+ <param name="IsGlobal">The Global status of the Supplier to be deleted.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSupplier.RemoveGroup(System.Int32,System.Int32,System.String)">
+ <summary>
+ Deletes Supplier Contacts specified in the list strCodeList.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>    
+ <param name="strCodeList">The list of Supplier Codes to be deleted.</param>
+ <param name="lngCodeSite">The CodeSite from were you are trying to delete, pass -1 if you want to delete using the user's role.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSupplier.RemoveGroup">
+ <summary>
+ Purge Client Contact List.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="P:EgsData.clsSystem.RegistryInformation">
+ <summary>
+ Returns decomposed Registry Options in memory. Call DecomposeRegistrationKey first before this function
+ </summary>
+ <value></value>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSystem.CheckRegistrationVersionType(System.String,System.String,System.Boolean@)">
+ <summary>
+ Returns 1 if CheckVersion is valid, otherwise, 0.
+ </summary>
+ <param name="strKey"></param>
+ <param name="strheader"></param>
+ <param name="versionOnLine"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSystem.CheckProtection">
+ <summary>
+ Returns Licencse Status
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSystem.GetSystem">
+ <summary>
+ Get System Information
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSystem.DecomposeRegistrationKey(System.String@)">
+ <summary>
+ Decompose License Key for RecipeNet Web
+ </summary>
+ <param name="strDecomposedKey"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSystem.DecomposeOptions(EgsData.clsSystem.structRegOptions@)">
+ <summary>
+ Decompose Option Key to specific program options.
+ </summary>
+ <param name="strucRegOption"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSystem.UpdateGroupLevel(EgsData.modGlobalDeclarations.enumGroupLevel,System.Data.SqlClient.SqlTransaction)">
+ <summary>
+ Enable Usage of Properties and Sites or Sites Only.
+ </summary>
+ <param name="eGoupLevel"></param>
+ <param name="oTrans"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSystem.UpdateLicense(System.String,System.String,System.Data.SqlClient.SqlTransaction)">
+ <summary>
+ Update License Key
+ </summary>
+ <param name="strprgKey"></param>
+ <param name="strHeader"></param>
+ <param name="oTrans"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsSystem.SaveIntoList(System.Int32,EgsData.modGlobalDeclarations.enumGroupLevel,System.Int32,System.String,System.String,System.DateTime,System.DateTime,System.Boolean,System.String,System.Boolean,System.Int32,System.DateTime,EgsData.modGlobalDeclarations.enumEgswTransactionMode,System.Data.SqlClient.SqlTransaction)">
+ <summary>
+ Update System Registry Information
+ </summary>
+ <param name="intCode"></param>
+ <param name="grouplevel"></param>
+ <param name="intVersion"></param>
+ <param name="strPrgKey"></param>
+ <param name="strHeader"></param>
+ <param name="dtDates"></param>
+ <param name="dtStartDate"></param>
+ <param name="blnAcknAgreement"></param>
+ <param name="strSaved"></param>
+ <param name="IsNewVersion"></param>
+ <param name="intCountLog"></param>
+ <param name="dteLastDateLog"></param>
+ <param name="TranMode"></param>
+ <param name="oTransaction"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="T:EgsData.clsTax">
+ <summary>
+ Manages Tax Table
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsTax.GetList">
+ <summary>
+ Get all Taxes with the list of Site names to which they are shared to.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsTax.GetList(System.String)">
+ <summary>
+ Get a Tax by description.
+ </summary>
+ <param name="strName">The name of the Category to be fetched.</param>    
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsTax.GetList(System.Int32,System.Double,System.Byte)">
+ <summary>
+ Get a Tax by value w/in copdesite.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsTax.GetList(System.Int32)">
+ <summary>
+ Get a Tax by Code.
+ </summary>
+ <param name="lngCode">The Code of the Tax to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsTax.GetList(System.Byte)">
+ <summary>
+ Get all Taxes by Status.
+ </summary>
+ <param name="bytStatus">The status of the Taxes to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsTax.GetList(System.Byte,System.Int32)">
+ <summary>
+ Get all Taxes shared to a specific site and filtered by status.
+ </summary>    
+ <param name="bytStatus">The status of the Tax to be fetched.</param>
+ <param name="lngCodeSite">The site to which the Tax is shared.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsTax.UpdateGlobalStatus(System.Int32,System.Int32,System.Boolean)">
+ <summary>
+ Updates the global status of a Tax.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCode">The Code of the Tax to be updated.</param>
+ <param name="IsGlobal">The global status of the Tax to be updated.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsTax.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structTax)">
+ <summary>
+ Updates Tax without sharing it to any sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the Tax to be updated.</param>
+ <param name="udtTax">One of the structTax values.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsTax.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structTax,System.String)">
+ <summary>
+ Updates Tax sharing it to specified sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="udtTax">One of the structTax values.</param>
+ <param name="strCodeSiteList">The list of sites where Tax will be shared.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsTax.Update(System.Int32,System.Int32,System.String,EgsData.modGlobalDeclarations.structTax)">
+ <summary>
+ Merge Taxes
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="strCodeTaxList">The list of Tax Codes to be merged.</param>
+ <param name="udtTax">Tax info.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsTax.Update(System.Int32,System.String,System.Byte)">
+ <summary>
+ Updates Status of the Taxes specified in the list (strCodeList).
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="strCodeList">The list of Tax Codes to be updated.</param>
+ <param name="bytStatus">The Status of the Tax.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsTax.Update(System.Int32,System.Int32,System.Boolean,System.Byte)">
+ <summary>
+ Updates Status of a Tax.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCode">The Code of the Tax to be updated.</param>
+ <param name="IsGlobal">The Global Status of the Tax.</param>
+ <param name="bytStatus">The Status of the Tax.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsTax.Remove">
+ <summary>
+ Purge Tax List.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsTax.Remove(System.Int32,System.Int32,System.Boolean)">
+ <summary>
+ Deletes a Tax.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCode">The Code of the Tax to be deleted.</param>
+ <param name="IsGlobal">The Global status of the Tax to be deleted.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsTax.Remove(System.Int32,System.Int32,System.String)">
+ <summary>
+ Deletes Taxes specified in the list strCodeList.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite from were you are trying to delete, pass -1 if you want to delete using the user's role.</param>
+ <param name="strCodeList">The list of Tax Codes to be deleted.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsTerminal.UpdatePosition(System.String,System.Boolean,System.Int32,EgsData.modGlobalDeclarations.enumDataListItemType)">
+ <summary>
+ Updates the position of items.
+ </summary>
+ <param name="strCodeList">The list of item codes to be moved.</param>
+ <param name="flagMoveUp"></param>
+ <param name="lngCodeSite">The CodeSite of the items to be moved.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsTerminal.GetList(System.String)">
+ <summary>
+ Get a Terminal by Name.
+ </summary>
+ <param name="strName">The name of the Terminal to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsTerminal.GetList(System.Int32,System.Int32)">
+ <summary>
+ Get a Terminal by Code or by Site
+ </summary>
+ <param name="lngCode">The Code of the Terminal to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsTerminal.GetList(System.Int32,System.Int32,System.Int32)">
+ <summary>
+ Get Terminal by Code, by Site, or by POS Type
+ </summary>
+ <param name="lngCode">The Code of the Terminal to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsTerminal.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structTerminal)">
+ <summary>
+ Updates Terminal
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the Terminal to be updated.</param>
+ <param name="udtTerminal">One of the structTerminal values.</param>
+ <returns></returns>
+ <remarks></remarks>
+ 
+</member>
+<member name="M:EgsData.clsTerminal.Update(System.Int32,System.Int32,System.String,EgsData.modGlobalDeclarations.structTerminal)">
+ <summary>
+ Merge Terminals
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="strCodeTerminalList">The list of Terminal Codes to be merged.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsTerminal.Remove(System.Int32)">
+ <summary>
+ Deletes a Terminal.
+ </summary>
+ <param name="lngCode">The Code of the Terminal to be deleted.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsTerminal.Remove(System.String)">
+ <summary>
+ Deletes Terminals specified in the list strCodeList.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>    
+ <param name="strCodeList">The list of Terminal Codes to be deleted.</param>
+ <param name="lngCodeSite">The CodeSite from were you are trying to delete, pass -1 if you want to delete using the user's role.</param>
+ <returns></returns>
+ <remarks></remarks>    
+</member>
+<member name="T:EgsData.clsUnit">
+ <summary>
+ Manages Unit Table
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUnit.GetList">
+ <summary>
+ Get all Units.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUnit.GetList(System.String,EgsData.modGlobalDeclarations.enumDataListItemType)">
+ <summary>
+ Get a unit by Name.
+ </summary>
+ <param name="strName">The name of the Category to be fetched.</param>
+ <param name="eType">One of the enumDataListType values.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUnit.GetList(System.Int32)">
+ <summary>
+ Get a Unit by Code.
+ </summary>
+ <param name="lngCode">The Code of the Unit to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUnit.GetList(EgsData.modGlobalDeclarations.enumDataListItemType)">
+ <summary>
+ Get all Units by Type.
+ </summary>
+ <param name="eType">One of the enumDataListType values.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUnit.GetList(System.Byte)">
+ <summary>
+ Get all Units by Status.
+ </summary>
+ <param name="bytStatus">The status of the Units to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUnit.GetList(EgsData.modGlobalDeclarations.enumDataListItemType,System.Int32,System.Byte)">
+ <summary>
+ Get all Units with the list of Site names to which they are shared to.
+ </summary>
+ <param name="eType">One of the enumDataListType values.</param>
+ <param name="lngCodeTrans">The Code of the language translation.</param>
+ <param name="bytStatus">The status of the Units to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUnit.GetList(EgsData.modGlobalDeclarations.enumDataListItemType,System.Int32,System.Byte,System.Int32)">
+ <summary>
+ Get all Units shared to a specific site.
+ </summary>
+ <param name="eType">One of the enumDataListItemType values.</param>
+ <param name="lngCodeTrans">The Code of the language translation.</param>
+ <param name="bytStatus">The status of the Unit to be fetched.</param>
+ <param name="lngCodeSite">The site to which the Unit is shared.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUnit.GetList(EgsData.modGlobalDeclarations.enumDataListItemType,System.Int32,System.Byte,System.Int32,System.Boolean,System.Boolean,System.Boolean,System.Boolean,System.Boolean)">
+ <summary>
+ Get all Units shared to a specific site, filtered by unit type.
+ </summary>
+ <param name="eType">One of the enumDataListItemType values.</param>
+ <param name="lngCodeTrans">The Code of the language translation.</param>
+ <param name="bytStatus">The status of the Unit to be fetched.</param>
+ <param name="lngCodeSite">The site to which the Unit is shared.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUnit.GetList(EgsData.modGlobalDeclarations.enumDataListItemType,System.Int32,System.Byte,System.Int32,System.String)">
+ <summary>
+ Get a unit by Name w/in the codesite.
+ </summary>
+ <param name="strName">The name of the unit to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUnit.GetTranslationList">
+ <summary>
+ Get all Translations.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUnit.GetTranslationList(System.Int64)">
+ <summary>
+ Get a specific translation.
+ </summary>
+ <param name="lngCodeTrans">The Code of the language translation.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUnit.Standardize(System.Int32,System.Int32,EgsData.modGlobalDeclarations.enumDataListItemType,EgsData.modGlobalDeclarations.enumDataListType,EgsData.modGlobalDeclarations.enumEgswStandardizationFormat)">
+ <summary>
+ Standardize Units
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="eListeType">One of the enumDataListItemType values.</param>
+ <param name="eItemListType">One of the enumDataListItemType values.</param>
+ <param name="eFormat">One of the enumEgswStandardizationFormat values.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUnit.UpdateGlobalStatus(System.Int32,System.Int32,System.Boolean)">
+ <summary>
+ Updates the global status of a Unit.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCode">The Code of the Unit to be updated.</param>
+ <param name="IsGlobal">The global status of the Unit to be updated.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUnit.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structUnit)">
+ <summary>
+ Updates Unit without sharing it to any sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the Unit to be updated.</param>
+ <param name="udtUnit">One of the structUnit values.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUnit.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structUnit,System.String)">
+ <summary>
+ Updates Unit sharing it to specified sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="udtUnit">One of the structUnit values.</param>
+ <param name="strCodeSiteList">The list of sites where Unit will be shared.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUnit.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structUnit,System.String,System.String[],System.String[],System.String[],System.String[])">
+ <summary>
+ Updates Unit and its Translations and share it to specified sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="udtUnit">One of the structUnit values.</param>
+ <param name="strCodeSiteList">The list of sites where Unit will be shared.</param>
+ <param name="arrTransCode">The list of Translation Codes of the Unit.</param>
+ <param name="arrTransName">The list of Translation Names of the Unit.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUnit.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.structUnit,System.String,System.Data.DataTable)">
+ <summary>
+ Updates Unit and its Translations and share it to specified sites.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="udtUnit">One of the structUnit values.</param>
+ <param name="strCodeSiteList">The list of sites where Unit will be shared.</param>
+ <param name="dtTranslations">The list of Translations of the Unit.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUnit.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.enumDataListType,System.Data.DataTable)">
+ <summary>
+ Updatess Unit's translations (multiple update)
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="eListeType">One of the enumDataListType values.</param>
+ <param name="dtTranslations">The list of Translations of the Unit.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUnit.Update(System.Int32,System.Int32,System.Int32@,EgsData.modGlobalDeclarations.enumDataListType,System.Int32,System.String)">
+ <summary>
+ Updates a Unit's translation (single update)
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="lngCode">The Code of the item to be updated.</param>
+ <param name="eListeType">One of the enumDataListType values.</param>
+ <param name="lngCodeTrans">The code of the Unit's translation.</param>
+ <param name="strNameTrans">The name of the Unit's translation.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUnit.Update(System.Int32,System.Int32,System.Int32@,System.String,EgsData.modGlobalDeclarations.structUnit,System.String,System.String[],System.String[],System.String[],System.String[])">
+ <summary>
+ Merge Units
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite where the item will be updated and NOT the CodeSite of CodeUser.</param>
+ <param name="strCodeUnitList">The list of Unit Codes to be merged.</param>
+ <param name="udtUnit">Unit info.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUnit.Update(System.Int32,System.String,System.Byte)">
+ <summary>
+ Updates Status of the Units specified in the list (strCodeList).
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="strCodeList">The list of Unit Codes to be updated.</param>
+ <param name="bytStatus">The Status of the Unit.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUnit.Update(System.Int32,System.Int32,System.Boolean,System.Byte)">
+ <summary>
+ Updates Status of a Unit.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCode">The Code of the Unit to be updated.</param>
+ <param name="IsGlobal">The Global Status of the Unit.</param>
+ <param name="bytStatus">The Status of the Unit.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUnit.Remove">
+ <summary>
+ Purge Unit List.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUnit.Remove(System.Int32,System.Int32,System.Boolean)">
+ <summary>
+ Deletes a Unit.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCode">The Code of the Unit to be deleted.</param>
+ <param name="IsGlobal">The Global status of the Unit to be deleted.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUnit.Remove(System.Int32,System.Int32,System.String)">
+ <summary>
+ Deletes Units specified in the list strCodeList.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCodeSite">The CodeSite from were you are trying to delete, pass -1 if you want to delete using the user's role.</param>
+ <param name="strCodeList">The list of Unit Codes to be deleted.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="T:EgsData.clsUpload">
+ <summary>
+ Manages UploadConfig Table
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUpload.GetList">
+ <summary>
+ Get all UploadConfig Data.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUpload.GetList(System.Int32)">
+ <summary>
+ Get a UploadConfig by Code.
+ </summary>
+ <param name="lngCode">The Code of the Brand to be fetched.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUpload.Update(System.Int32@,EgsData.modGlobalDeclarations.structUpload)">
+ <summary>
+ Updates UploadConfig
+ </summary>
+ <param name="lngCode">The Code of the UploadConfig to be updated.</param>
+ <param name="udtUpload">One of the structUpload values.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUpload.Remove">
+ <summary>
+ Purge UploadConfig List.
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUpload.Remove(System.Int32,System.Int32,System.Int32,System.Boolean)">
+ <summary>
+ Deletes an UploadConfig.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="lngCode">The Code of the Brand to be deleted.</param>
+ <param name="IsGlobal">The Global status of the Brand to be deleted.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUpload.Remove(System.Int32,System.Int32,System.String)">
+ <summary>
+ Deletes Brands specified in the list strCodeList.
+ </summary>
+ <param name="lngCodeUser">The Code of the current user.</param>
+ <param name="strCodeList">The list of Brand Codes to be deleted.</param>
+ <param name="lngCodeSite">The CodeSite from were you are trying to delete, pass -1 if you want to delete using the user's role.</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="T:EgsData.clsUser">
+ <summary>
+ Manages User Table
+ </summary>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUser.GetListApproversOnly">
+ <summary>
+ Get list of approvers with their email information and language for email sending purpose
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUser.FetchUserProfile(System.String,System.String,System.String,System.Int32@)">
+ <summary>
+ Get user profile based on given username and password or CodeUser
+ </summary>
+ <param name="strUsername"></param>
+ <param name="strPassword"></param>
+ <param name="strUserSession"></param>
+ <param name="intCodeUser"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUser.SaveToList(System.Int32@,System.String,System.String,System.String,System.Byte,System.String,System.String,System.String,System.Boolean,System.Boolean,System.Boolean,System.Boolean,System.String,System.String,System.String,System.String,System.String,System.String,System.Int32,System.Int32,System.Int32,System.Int32,System.String,System.Int32,EgsData.modGlobalDeclarations.enumEgswTransactionMode,System.Int32,System.Boolean,System.Int32,System.String,System.String,System.Boolean,System.Int32,System.Boolean,System.Boolean)">
+ <summary>
+ Save User information to EgswUser Table
+ </summary>
+ <param name="intCodeUser">PK</param>
+ <param name="strFullname">Full name</param>
+ <param name="strUsername">Unique Usernmae</param>
+ <param name="strPassword">Password</param>
+ <param name="bytStatus"></param>
+ <param name="strEmail"></param>
+ <param name="strSMTPUID"></param>
+ <param name="strSMTPPWD"></param>
+ <param name="IsApprover"></param>
+ <param name="IsNotify"></param>
+ <param name="IsApproverOnly"></param>
+ <param name="IsFromRN"></param>
+ <param name="strName"></param>
+ <param name="strCompany"></param>
+ <param name="strAddress"></param>
+ <param name="strCity"></param>
+ <param name="strZip"></param>
+ <param name="strState"></param>
+ <param name="intCountryCode"></param>
+ <param name="intCodeSourceGallery"></param>
+ <param name="intEgsID"></param>
+ <param name="intCodeSite"></param>
+ <param name="strRolesCodeList"></param>
+ <param name="TranMode"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUser.DeleteFromList(System.Int32,System.String,EgsData.modGlobalDeclarations.enumEgswTransactionMode)">
+ <summary>
+ Delete User from the list
+ </summary>
+ <param name="intCode"></param>
+ <param name="strCodeList"></param>
+ <param name="TrandMode"></param>
+ <returns></returns>
+ <remarks>multiple delete is not yet working!</remarks>
+</member>
+<member name="M:EgsData.clsUser.GetList">
+ <summary>
+ Get List of all users
+ </summary>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUser.GetList(System.Int32,System.Int32)">
+ <summary>
+ Get User with Roles Selected and Not Selected
+ </summary>
+ <param name="intCodeUser"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUser.Login(System.String,System.String,System.String,System.Int32,System.Boolean)">
+ <summary>
+ Get User's profile, roles and accessible rights
+ </summary>
+ <param name="strUsername"></param>
+ <param name="strPassword"></param>
+ <param name="strUserSession"></param>
+ <param name="intCodeUser"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUser.GetListByProperty(System.Int32)">
+ <summary>
+ Get List of users belonging to a property
+ </summary>
+ <param name="intCodeProperty"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUser.GetListBySite(System.Int32,System.Int32)">
+ <summary>
+ Get list of users belonging to a site
+ </summary>
+ <param name="intCodeSite"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUser.GetUserRolesAndRights(System.Int32)">
+ <summary>
+ Fetch list of rights and roles of a user
+ </summary>
+ <param name="intCodeUser"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUser.FetchList(System.Int32,System.Int32,System.Int32,System.Int32)">
+ <summary>
+ Fetch list of Users
+ </summary>
+ <param name="intCodeUser"></param>
+ <param name="intCodeSite"></param>
+ <param name="intCodeProperty"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUser.UpdateUserDeactivate(System.String,EgsData.modGlobalDeclarations.enumEgswTransactionMode,System.Data.SqlClient.SqlTransaction)">
+ <summary>
+ Deactivate user 
+ </summary>
+ <param name="strUserName"></param>
+ <param name="TranMode"></param>
+ <param name="oTransaction"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUser.UpdateUser(System.Int32@,System.String,System.String,System.String,System.Byte,System.String,System.String,System.String,System.Boolean,System.Boolean,System.Boolean,System.Boolean,System.String,System.String,System.String,System.String,System.String,System.String,System.Int32,System.Int32,System.Int32,System.Int32,System.String,EgsData.modGlobalDeclarations.enumEgswTransactionMode,System.Int32,System.Int32,System.Boolean,System.Boolean,System.Int32,System.Boolean,System.Boolean)">
+ <summary>
+ Update User
+ </summary>
+ <param name="intCodeUser"></param>
+ <param name="strFullname"></param>
+ <param name="strUsername"></param>
+ <param name="strPassword"></param>
+ <param name="bytStatus"></param>
+ <param name="strEmail"></param>
+ <param name="strSMTPUID"></param>
+ <param name="strSMTPPWD"></param>
+ <param name="IsApprover"></param>
+ <param name="IsNotify"></param>
+ <param name="IsApproverOnly"></param>
+ <param name="IsFromRN"></param>
+ <param name="strName"></param>
+ <param name="strCompany"></param>
+ <param name="strAddress"></param>
+ <param name="strCity"></param>
+ <param name="strZip"></param>
+ <param name="strState"></param>
+ <param name="intCountryCode"></param>
+ <param name="intCodeSourceGallery"></param>
+ <param name="intEgsID"></param>
+ <param name="intCodeSite"></param>
+ <param name="strRolesCodeList"></param>
+ <param name="TranMode"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUser.UpdateUser(System.Int32,System.String)">
+ <summary>
+ Update User's password
+ </summary>
+ <param name="intCodeUser"></param>
+ <param name="strPassword"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUser.UpdateUser(System.Int32,System.Byte)">
+ <summary>
+ Update User's Status
+ </summary>
+ <param name="intCodeUser"></param>
+ <param name="bytStatus"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUser.DeleteFromList(System.Int32)">
+ <summary>
+ Delete a user
+ </summary>
+ <param name="intCodeUser"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.clsUser.CopyDefaultFromSite(System.Int32,System.Int32)">
+ <summary>
+ copy defautl of code site to codeuser
+ </summary>
+ <param name="intCodeSite">source code site</param>
+ <param name="intCodeUser">source codeuser</param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.modDateTime.CLocalDate(System.DateTime)">
+ <summary>
+ CLocalDate
+ Convert to Local Time (based on user's time zone)
+ </summary>
+ <param name="dtUTF"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.modFunctions.FillHash(System.String,System.String,System.Data.DataTable)">
+ <summary>
+ Fill 2-pair values from Datatable to Hash
+ </summary>
+ <param name="KeyField"></param>
+ <param name="ValueField"></param>
+ <param name="Data"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.modFunctions.ConvertTextToHash(System.String)">
+ <summary>
+ One way Encryption
+ </summary>
+ <param name="strTextToHash"></param>
+ <returns></returns>
+ <remarks>Used in Password</remarks>
+</member>
+<member name="M:EgsData.modFunctions.CStrDB(System.Object)">
+ <summary>
+ Returns string value. Null value is converted to Empty string.
+ </summary>
+ <param name="value"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.modFunctions.CDateDB(System.Object)">
+ <summary>
+ Returns string value. Null value is converted to Empty string.
+ </summary>
+ <param name="value"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.modFunctions.CIntDB(System.Object)">
+ <summary>
+ Returns Integer value of object. If Value is nothing, returns 0.
+ </summary>
+ <param name="value"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.modFunctions.CDblDB(System.Object)">
+ <summary>
+ Returns double value of object. If Value is nothing, returns 0.
+ </summary>
+ <param name="value"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.modFunctions.CBoolDB(System.Object)">
+ <summary>
+ Returns Boolean value. If value is NULL, returns FALSE.
+ </summary>
+ <param name="value"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.modFunctions.fct32To10(System.String)">
+ <summary>
+ Convert Base 32 to 10
+ </summary>
+ <param name="CurStr"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.modFunctions.ConvertKjtoKcal(System.Double)">
+ <summary>
+ Convert Energy KJ to Kcal 
+ </summary>
+ <param name="value"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.modFunctions.ParseString(System.String,System.Int32,System.Char)">
+ <summary>
+ Get part of a string
+ </summary>
+ <param name="value"></param>
+ <param name="index"></param>
+ <param name="delimiter"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.modFunctions.RemoveSymbols(System.String)">
+ <summary>
+ Remove Symbols
+ </summary>
+ <param name="sValue"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.modFunctions.IsValidEmail(System.String)">
+ <summary>
+ Returns TRUE if email is valid. Performs basic email validation.
+ </summary>
+ <param name="sEmail"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.modFunctions.FormatDataTable(System.Data.DataTable)">
+ <summary>
+ Fetch 3-column display of liste. Source datatable is taken from Search function (clsListe).
+ </summary>
+ <param name="dt"></param>
+ <returns></returns>
+ <remarks></remarks>
+</member>
+<member name="M:EgsData.modFunctions.CopyDirectoryContents(System.String,System.String)">
+ <summary>
+ Copy a directory's contents into another directory
+ </summary>
+ <param name="strSourceDirectoryPath">The source directory</param>
+ <param name="strDestinationDirectoryPath">The destination directory</param>
+ <remarks>AGL 2012.10.15 - CWM-1706 - added procedure to copy media files from source liste</remarks>
+</member>
+<member name="M:EgsData.modFunctions.GetStr(System.Object,System.String)">
+ <summary>
+ Gets a string.
+ </summary>
+ <param name="value">The raw string.</param>
+ <param name="def">The default value, returned when the raw string is <c>null</c>.</param>
+ <returns>The result.</returns>
+ <remarks>RBAJ 2012.07.04</remarks>
+</member>
+<member name="M:EgsData.modFunctions.GetInt(System.Object,System.Int32)">
+ <summary>
+ Gets an integer.
+ </summary>
+ <param name="value">The string value.</param>
+ <param name="def">The default value, returned when parsing fails.</param>
+ <returns>The result.</returns>
+ <remarks>RBAJ 2012.07.04</remarks>
+</member>
+<member name="M:EgsData.modFunctions.GetDbl(System.Object,System.Double)">
+ <summary>
+ Gets a double.
+ </summary>
+ <param name="value">The string value.</param>
+ <param name="def">The default value, returned when parsing fails.</param>
+ <returns>The result.</returns>
+ <remarks>RBAJ 2012.07.04</remarks>
+</member>
+<member name="M:EgsData.modFunctions.GetBool(System.Object,System.Boolean)">
+ <summary>
+ Gets a boolean.
+ </summary>
+ <param name="value">The string value.</param>
+ <param name="def">The default value, returned when parsing fails.</param>
+ <returns>The result.</returns>
+ <remarks>RBAJ 2012.07.04</remarks>
+</member>
+<member name="M:EgsData.modFunctions.PrintBool(System.Boolean)">
+ <summary>
+ Prints a boolean.
+ </summary>
+ <param name="value">The value.</param>
+ <returns>The string result.</returns>
+ <remarks>RBAJ 2012.07.04</remarks>
+</member>
+<member name="M:EgsData.modFunctions.PreserveStackTrace(System.Exception)">
+ <summary>
+ Preserve previous stack trace when re-throwing exceptions
+ </summary>
+ <param name="exception">Represent errors that occur during application execution.</param>
+ <remarks>RBAJ 2012.07.04</remarks>
+</member>
+</members>
+</doc>

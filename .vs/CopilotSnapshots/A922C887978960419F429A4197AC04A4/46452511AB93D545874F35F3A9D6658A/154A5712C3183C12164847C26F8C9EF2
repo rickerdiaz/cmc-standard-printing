@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>CalcmenuAPI</RootNamespace>
+    <AssemblyName>CalcmenuAPI.Models</AssemblyName>
+    <OptionStrict>Off</OptionStrict>
+    <OptionInfer>On</OptionInfer>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\Models\**\*.vb" LinkBase="Models" />
+  </ItemGroup>
+</Project>

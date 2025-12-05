@@ -1,0 +1,65 @@
+2024-04-22 11:01:32,703 [5] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2024-04-22 11:01:32,911 [5] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2024-04-22 11:01:32,913 [5] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2024-04-22 11:01:33,030 [7] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2024-04-22 11:01:33,031 [7] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2024-04-22 11:16:43,085 [5] INFO  EgsReport.xrReports - StrCode: 54221 | CodeUser: 1 | CodePrintList: 0 | strCodeParent:  | strCodeMain: 54221
+2024-04-22 11:16:43,085 [5] INFO  EgsReport.xrReports - strID: 3881396 | strFilter3: Code = 54221 AND CodeListeParent IS NULL AND CodeListeMain = 54221
+2024-04-22 11:16:47,338 [5] ERROR CalcmenuAPI.Global_asax - Object '/9af912b9_8bf1_402a_9d12_a63f22af1edd/xg8t7sduwcmbfwhr0titnvym_18.rem' has been disconnected or does not exist at the server.
+2024-04-22 11:16:47,339 [5] ERROR CalcmenuAPI.Global_asax -    at System.Web.Http.WebHost.HttpControllerHandler.EndProcessRequest(IAsyncResult result)
+   at System.Web.Http.WebHost.HttpControllerHandler.System.Web.IHttpAsyncHandler.EndProcessRequest(IAsyncResult result)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2024-04-22 11:17:00,454 [6] INFO  EgsReport.xrReports - StrCode: 54221 | CodeUser: 1 | CodePrintList: 0 | strCodeParent:  | strCodeMain: 54221
+2024-04-22 11:17:00,454 [6] INFO  EgsReport.xrReports - strID: 3881396 | strFilter3: Code = 54221 AND CodeListeParent IS NULL AND CodeListeMain = 54221
+2024-04-22 11:33:47,115 [6] ERROR CalcmenuAPI.Global_asax - Object '/9af912b9_8bf1_402a_9d12_a63f22af1edd/lmy6vz4kwjwhhwsco1au96p3_21.rem' has been disconnected or does not exist at the server.
+2024-04-22 11:33:47,116 [6] ERROR CalcmenuAPI.Global_asax -    at System.Web.Http.WebHost.HttpControllerHandler.EndProcessRequest(IAsyncResult result)
+   at System.Web.Http.WebHost.HttpControllerHandler.System.Web.IHttpAsyncHandler.EndProcessRequest(IAsyncResult result)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2024-04-22 16:17:38,961 [6] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2024-04-22 16:17:38,992 [26] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2024-04-22 16:17:38,992 [26] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2024-04-22 16:17:38,992 [6] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2024-04-22 16:17:38,992 [6] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2024-04-22 16:18:00,559 [5] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2024-04-22 16:18:00,714 [5] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2024-04-22 16:18:00,715 [5] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2024-04-22 16:18:00,801 [6] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2024-04-22 16:18:00,801 [6] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2024-04-22 16:24:59,955 [14] INFO  EgsReport.xrReports - StrCode: 54221 | CodeUser: 1 | CodePrintList: 0 | strCodeParent:  | strCodeMain: 54221
+2024-04-22 16:25:12,356 [14] INFO  EgsReport.xrReports - strID: 3881396 | strFilter3: Code = 54221 AND CodeListeParent IS NULL AND CodeListeMain = 54221
+2024-04-22 16:28:57,196 [5] INFO  EgsReport.xrReports - StrCode: 54221 | CodeUser: 1 | CodePrintList: 0 | strCodeParent:  | strCodeMain: 54221
+2024-04-22 16:28:57,197 [5] INFO  EgsReport.xrReports - strID: 3881396 | strFilter3: Code = 54221 AND CodeListeParent IS NULL AND CodeListeMain = 54221

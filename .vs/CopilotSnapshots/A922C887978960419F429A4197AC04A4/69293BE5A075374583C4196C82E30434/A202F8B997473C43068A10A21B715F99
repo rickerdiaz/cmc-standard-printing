@@ -1,0 +1,98 @@
+﻿Imports System
+Imports System.Web
+Imports System.Collections.Generic
+Imports System.Linq
+Imports AttributeRouting.Web.Http
+Imports System.Data.SqlClient
+Imports System.Web.Script.Serialization
+Imports log4net
+Imports System.Net
+Imports Newtonsoft.Json
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace CalcmenuAPI
+    Public Class BreadcrumbsController
+        Inherits ControllerBase
+
+        Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType)
+
+        <HttpPost> <POST("api/breadcrumbs")> _
+        Public Function UpdateBreadcrumbs(data As Models.Breadcrumbs) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim resultCode As Integer = 0
+            Dim _trans As SqlTransaction = Nothing
+
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + JsonConvert.SerializeObject(data, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[sp_EgswBreadcrumbsUpdate]"
+
+                                .Parameters.Clear()
+                                .Parameters.Add("@intCodeUser", SqlDbType.Int).Value = data.CodeUser
+                                .Parameters.Add("@intTypeItem", SqlDbType.Int).Value = data.ListeItemType
+                                .Parameters.Add("@intCodeItem", SqlDbType.NVarChar, 150).Value = data.CodeListe
+                                .Parameters.Add("@intTab", SqlDbType.NVarChar, 150).Value = data.Tab
+                                .Parameters.Add("@intSave", SqlDbType.NVarChar, 150).Value = data.Save
+
+                                cn.Open()
+                                _trans = cn.BeginTransaction ' RBAJ-2014.01.13
+                                .Transaction = _trans
+                                .ExecuteNonQuery()
+
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = 0
+                                response.Status = True
+                                _trans.Commit()
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                Try
+                                    _trans.Rollback()
+                                    If Not _trans Is Nothing Then
+                                        CType(_trans, IDisposable).Dispose()
+                                    End If
+                                Catch
+                                End Try
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.Status = False
+                                response.Message = "Save breadcrumbs failed"
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+
+                End Using
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                response.Code = 400
+                response.Message = "Missing or invalid parameters"
+                response.Parameters = New List(Of Models.param) From {New Models.param With {.name = "data", .value = "RecipeData"}}
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+            End Try
+            Return response
+        End Function
+
+    End Class
+End Namespace

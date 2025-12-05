@@ -1,0 +1,47 @@
+﻿namespace CalcmenuAPI.Models
+{
+    public class ResponseCallBack
+    {
+        public int Code { get; set; }
+        public bool Status { get; set; }
+        public string Message { get; set; } = string.Empty;
+        public object? ReturnValue { get; set; }
+    }
+
+    public class AliasData
+    {
+        public Alias Info { get; set; } = new Alias();
+    }
+
+    public class Alias
+    {
+        public int Code { get; set; }
+        public int IdMain { get; set; }
+        public int CodeTrans { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Alias { get; set; } = string.Empty;
+    }
+
+    public class GenericDeleteData
+    {
+        public int CodeUser { get; set; }
+        public int CodeSite { get; set; }
+        public bool ForceDelete { get; set; }
+        public List<GenericList> CodeList { get; set; } = new();
+    }
+
+    public class GenericList
+    {
+        public int Code { get; set; }
+        public int CodeDictionary { get; set; }
+        public string? Name { get; set; }
+        public string? Value { get; set; }
+    }
+
+    public class ConfigurationcSearch
+    {
+        public int CodeTrans { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public int CodeSite { get; set; }
+    }
+}

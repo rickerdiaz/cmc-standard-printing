@@ -1,0 +1,34 @@
+2025-07-16 13:34:03,764 [1] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2025-07-16 13:34:04,765 [8] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-07-16 13:34:06,187 [8] INFO  EgsReport.clsReport - CreateReport_Test
+2025-07-16 13:34:06,190 [8] INFO  EgsReport.clsReport - 1
+2025-07-16 13:34:06,475 [8] INFO  EgsReport.clsReport - 2
+2025-07-16 13:34:24,651 [8] INFO  EgsReport.xrReports - StrCode: 61726 | CodeUser: 1 | CodePrintList: 612752 | strCodeParent: lblID | strCodeMain: lblID
+2025-07-16 13:34:24,651 [8] INFO  EgsReport.xrReports - strID: lblID | strFilter3: Code = 61726
+2025-07-16 13:34:26,401 [8] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderPath: C:\Data\COOP\RecipeStandardPrint\Export_133971176461775841.pdf
+2025-07-16 13:34:26,402 [8] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderURL: http://localhost:6735//Export_133971176461775841.pdf
+2025-07-16 13:37:47,335 [9] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-07-16 13:37:47,535 [9] INFO  EgsReport.clsReport - CreateReport_Test
+2025-07-16 13:37:47,536 [9] INFO  EgsReport.clsReport - 1
+2025-07-16 13:37:47,737 [9] INFO  EgsReport.clsReport - 2
+2025-07-16 13:38:05,455 [9] INFO  EgsReport.xrReports - StrCode: 61726 | CodeUser: 1 | CodePrintList: 612752 | strCodeParent: lblID | strCodeMain: lblID
+2025-07-16 13:38:05,456 [9] INFO  EgsReport.xrReports - strID: lblID | strFilter3: Code = 61726
+2025-07-16 13:38:06,880 [9] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderPath: C:\Data\COOP\RecipeStandardPrint\Export_133971178675353844.pdf
+2025-07-16 13:38:06,881 [9] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderURL: http://localhost:6735//Export_133971178675353844.pdf
+2025-07-16 13:45:37,162 [9] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-07-16 13:45:38,423 [9] INFO  EgsReport.clsReport - CreateReport_Test
+2025-07-16 13:45:38,423 [9] INFO  EgsReport.clsReport - 1
+2025-07-16 13:45:38,623 [9] INFO  EgsReport.clsReport - 2
+2025-07-16 13:45:56,323 [9] INFO  EgsReport.xrReports - StrCode: 61726 | CodeUser: 1 | CodePrintList: 612752 | strCodeParent: lblID | strCodeMain: lblID
+2025-07-16 13:45:56,324 [9] INFO  EgsReport.xrReports - strID: lblID | strFilter3: Code = 61726
+2025-07-16 13:46:27,880 [9] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderPath: C:\Data\COOP\RecipeStandardPrint\Export_133971183384234565.pdf
+2025-07-16 13:46:27,881 [9] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderURL: http://localhost:6735//Export_133971183384234565.pdf
+2025-07-16 13:48:07,354 [11] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2025-07-16 13:48:07,988 [9] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-07-16 13:48:09,286 [9] INFO  EgsReport.clsReport - CreateReport_Test
+2025-07-16 13:48:09,287 [9] INFO  EgsReport.clsReport - 1
+2025-07-16 13:48:09,488 [9] INFO  EgsReport.clsReport - 2
+2025-07-16 13:48:26,155 [9] INFO  EgsReport.xrReports - StrCode: 61726 | CodeUser: 1 | CodePrintList: 612752 | strCodeParent: lblID | strCodeMain: lblID
+2025-07-16 13:48:26,156 [9] INFO  EgsReport.xrReports - strID: lblID | strFilter3: Code = 61726
+2025-07-16 13:48:27,627 [9] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderPath: C:\Data\COOP\RecipeStandardPrint\Export_133971184892733438.pdf
+2025-07-16 13:48:27,627 [9] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderURL: http://localhost:6735//Export_133971184892733438.pdf

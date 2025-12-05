@@ -1,0 +1,2186 @@
+﻿Imports VB = Microsoft.VisualBasic
+Imports System.Threading
+Imports System.Globalization
+Imports System.Data
+Imports Microsoft.Data.SqlClient
+Imports System.Drawing
+Imports System.Drawing.Drawing2D
+Imports EgsData
+Imports System
+Imports System.Net
+
+
+Public Class clsGlobal
+
+    Public Structure tRecipe
+        Public QuantityNet As Double
+        Public sUnit As String
+        Public sUnitFormat As String
+        Public UnitFactor As Double
+    End Structure
+
+    Public Structure tReportOptions
+        Public dblReportType As Double     '1-RecipeStandard; 2-RecipeModern; 3-RecipeTwoColumns; 4-RecipeLayout ; 5-MerchandiseDetail 
+        Public dtDetail As DataTable
+        Public dtKeywords As DataTable
+        Public dtAllergens As DataTable     'MCM 03.03.06
+        Public dtCodes As DataTable
+        Public strSubStyle As String
+        Public blnRecipe As Boolean
+        Public blnIncludeNutrients As Boolean
+        Public blnIncludeHACCP As Boolean
+        Public blnIncludeKeyword As Boolean
+        Public blnIncludeAllergens As Boolean   'MCM 03.03.06
+        Public blnAllergensAbbrev As Boolean
+        Public blnIncludeInfo As Boolean
+        Public blnPicturePathAccessible As Boolean
+        Public blnIncludeNumber As Boolean
+        Public blnIncludeCategory As Boolean
+        Public blnIncludeSource As Boolean
+        Public blnIncludeDate As Boolean
+        Public blnIncludeCostOfGoods As Boolean
+        Public blnIncludeRemark As Boolean
+        Public blnIncludeIngrNumber As Boolean
+        Public blnIncludeIngrPreparation As Boolean  'RDTC 23.05.2007
+        Public blnWithPicture As Boolean
+        Public blnIncludePreparation As Boolean
+        Public blnIncludeCookingTip As Boolean
+        Public blnIncludeNetQty As Boolean
+        Public blnIncludeGrossQty As Boolean
+        Public intTranslation As Integer
+        Public blnPicturesAll As Boolean
+        Public blnIncludePicture As Boolean
+        Public strFontName As String
+        Public sgFontSize As Single
+        Public strFontName2 As String
+        Public sgFontSize2 As Single
+        Public dblPageWidth As Double
+        Public dblPageHeight As Double
+        Public dblLeftMargin As Double
+        Public dblRightMargin As Double
+        Public dblTopMargin As Double
+        Public dblBottomMargin As Double
+        Public blLandscape As Boolean
+        Public intPageLanguage As Integer
+        Public blnShrinkToFit As Boolean
+        Public strSortBy As String
+        Public strGroupBy As String
+        Public blnRemoveTrailingZeros As Boolean
+        Public dblLineSpace As Double
+        Public strTextItemFormat As String '0_0_0_0 means no border
+        Public blnIncludeGDA As Boolean 'DLS 11.08.2007
+
+        Public strFooterAddress As String 'DLS 28.08.2007
+        Public strFooterLogoPath As String 'DLS 28.08.2007
+        Public blnPictureOneRight As Boolean 'DLS 28.08.2007
+
+        Public flagNoLines As Boolean 'DLS
+        Public strTitleColor As String 'DLS
+
+        Public strFontTitleName As String 'VRP 05.11.2007
+        Public sgFontTitleSize As Single 'VRP 05.11.2007
+        Public dtSteps As DataTable 'VRP 19.05.2008
+        Public dtProductLink As DataTable 'VRP 15.07.2008
+
+        Public blnIncludeDerivedKeyword As Boolean 'VRP 11.09.2008
+        Public intCodeTrans As Integer 'VRP 10.10.2008
+
+        'Menu Plan
+        Public dtMPConfig As DataTable 'VRP 30.10.2008
+        Public dtPlan As DataTable 'VRP 31.10.2008
+        Public dtMPIngr As DataTable 'VRP 30.10.2008
+        Public dtPlan2 As DataTable 'VRP 25.11.2008
+        '---
+
+        Public intYieldOption As Integer  'VRP 17.07.2009
+
+        Public bFoodcostOnly As Boolean 'JRN 21.05.2010
+        Public bIncludeGDAImage As Boolean 'JRN 07.07.2010
+        Public bIncludeNutrients As Boolean 'JRN 07.07.2010
+
+        '-- JBB 06.29.2012
+        Public blIncludeMetric As Boolean
+        Public blIncludeImperial As Boolean
+        Public dtListeNote As DataTable
+
+        '// DRR 07.05.2012
+        Public blnMode As Boolean
+
+        ' Additional report fields for Recipe Details
+        ' RDC 02.14.2013 
+        Public blnIncludeIngredientPreparation As Boolean   ' RDC 02.15.2013
+        Public blnIncludeIngredientComplement As Boolean
+        Public blnIncludeNotes As Boolean                   ' RDC 02.15.2013
+        Public blnIncludeSubtitle As Boolean                ' RDC 02.15.2013
+        Public blnIncludeTimeTypes As Boolean               ' RDC 02.15.2013
+        Public dtNotes As DataTable
+        Public dtSubtitle As DataTable
+        Public dtComplementPreparation As DataTable
+        Public dtTimeTypes As DataTable
+        Public blnIncludeBrand As Boolean                   ' RDC 02.22.2013
+        Public blnIncludePlacement As Boolean               ' RDC 02.22.2013
+        Public blnIncludePublication As Boolean             ' RDC 02.22.2013
+        Public dtPublications As DataTable                  ' RDC 02.22.2013
+        Public dtBrands As DataTable                        ' RDC 02.22.2013
+        Public blnIncludeProcSequenceNo As Boolean          ' RDC 02.25.2013
+        Public intDatalines As Integer                      ' RDC 02.27.2013
+
+        ' RDC 03.20.2013 for Manor picture loading
+        Public blnLoadPictureType As Integer
+
+        ' RDC 04.18.2013 - CWM-5350 Fix
+        Public blnIncludeMetricQtyGross As Boolean
+        Public blnIncludeMetricQtyNet As Boolean
+        Public blnIncludeImperialQtyGross As Boolean
+        Public blnIncludeImperialQtyNet As Boolean
+        Public blnIncludeAlternativeIngredient As Boolean
+        'Public blnIncludeHACCP As Boolean
+
+        ' RDC 04.30.2013 - CWM-5517 Fix
+        Public blnIncludeHighlightSection As Boolean
+
+        ' RDC 05.13.2013 - IsAllowMetricImperial
+        Public blnUseMetricImperial As Boolean
+
+        ' RDC 05.15.2013 - blnIncludeWastage
+        Public blnIncludeWastage As Boolean
+
+        'AGL 2013.06.17 - 5368
+        Public blnUseFractions As Boolean
+
+        ' RDC 07.09.2013 :  CWM-6986 Fix
+        Public blnIncludeDescription As Boolean
+        Public blnIncludeAddNotes As Boolean
+        Public blnIncludeCookbook As Boolean
+        Public blnIncludeKiosk As Boolean
+
+        ' RDC 07.10.2013
+        Public blnIncludeComment As Boolean
+        Public dtCookbook As DataTable
+        Public dtComment As DataTable
+        Public dtKiosk As DataTable
+        Public blnIncludeServeWith As Boolean
+
+        ' RDC 07.24.2013
+        Public blnIncludeRecipeStatus As Boolean
+
+        ' RDC 07.25.2013
+        Public intSelectedNutrientSet As Integer
+
+        ' RDC 08.08.2013
+        Public dtProfile As DataTable
+
+        Public intfoodLaw As Integer
+
+        'AGL 2015.01.22
+        Public intEnergyDisplay As Integer
+        'AGL 2014.11.17
+        Public blnIncludeComposition As Boolean
+
+        Public blnMigrosCustomPrint As Boolean
+    End Structure
+
+    Public Structure tNutrient
+        Public Value As Double
+        Public Name As String
+        Public Unit As String
+        Public Heading As String
+        Public Format As String
+        Public Number As String
+        Public GDA As Double 'DLS 17.08.2007
+        Public FormatKCAL As String 'DLS 17.08.2007
+        Public Position As Integer '// DRR 03.09.2012
+        Public DisplayPosition As Integer '-- JBB 07.02.2012
+    End Structure
+
+    Public Enum enumMPStyle
+        A4HWLogo = 1
+        A4HWOLogo = 2
+        A4CWLogo = 3
+        A4CWOLogo = 4
+
+        AngebotshinweisA4H = 5
+        EinlageblatterA5H = 6
+        EinlageblatterA6H = 7
+        KennzeichnungA4C = 8
+
+        AngebotshinweisA4H_auf = 9
+        EinlageblatterA5H_auf = 10
+        EinlageblatterA6H_auf = 11
+        KennzeichnungA4C_auf = 12
+    End Enum
+
+    Public Structure tOption
+        Public ShowStructure As Boolean
+        Public ShowGrid As Boolean
+        Public ShowSymbols As Boolean
+        Public ShowWallPaper As Boolean
+        Public ShowIngrPreparation As Boolean
+        Public ExpandSubRecipe As Boolean
+        Public DefaultCurrency As Long
+        Public PlaySounds As Boolean
+        Public ShowCurrencyList As Boolean
+        Public UnitType As Integer
+        Public FactorType As Integer
+        Public QtyType As Integer
+        Public ShowItemNo As Boolean
+        Public WebColor1 As String
+        Public WebColor2 As String
+        Public WebColor3 As String
+        Public WebColor4 As String
+        Public WebTitle As String
+        Public ShowBanner As Boolean
+        Public Banner As String
+        Public ShowLog As Boolean
+        Public AutoLogin As Boolean
+
+        Public ColorBackColor As Long
+        Public ColorBackColorAlternate As Long
+        Public ColorBackColorSel As Long
+        Public ColorForeColor As Long
+        Public ColorGridColor As Long
+        Public ColorBackColorBkg As Long
+        Public ColorEditableColumn As Long
+        Public GridLines As Integer
+        Public GridPicture As String
+        Public ColorHighlightText As Long
+
+
+        Public PrinterName As String
+        Public Tray As String
+        Public PaperSize As Integer
+        Public ListLeftMargin As Double
+        Public ListRightMargin As Double
+        Public ListTopMargin As Double
+        Public ListBottomMargin As Double
+        Public ListFont As String
+        Public ListFontSize As Double
+        Public ListLineSpacing As Double
+        Public CardLeftMargin As Double
+        Public CardRightMargin As Double
+        Public CardTopMargin As Double
+        Public CardBottomMargin As Double
+        Public CardFont1 As String
+        Public CardFontSize1 As Double
+        Public CardFont2 As String
+        Public CardFontSize2 As Double
+        Public MarginUnit As Integer
+
+        Public WebPicHeightS As Integer
+        Public WebPicHeightM As Integer
+        Public WebPicHeightL As Integer
+        Public WebPicWidthS As Integer
+        Public WebPicWidthM As Integer
+        Public WebPicWidthL As Integer
+        Public LocalPicWidth As Integer
+        Public LocalPicHeight As Integer
+        Public LocalOptimize As Boolean
+        Public WebOptimize As Boolean
+        Public LocalOptimization As Integer
+        Public WebOptimization As Integer
+        Public LocalMaxSize As Integer
+        Public WebMaxSize As Integer
+
+        Public LocalMaxPicSize As Boolean
+        Public LocalMaxFileSize As Boolean
+        Public WebMaxPicSizeS As Boolean
+        Public WebMaxPicSizeM As Boolean
+        Public WebMaxPicSizeL As Boolean
+        Public WebMaxFileSize As Boolean
+
+        '*****************************
+        'RDTC Feb 24 2003
+        Public DefaultItemLanguageCode As Integer
+        Public DefaultMerchandiseTaxCode As Long
+        Public DefaultRecipeTaxCode As Long
+        Public DefaultMenuTaxCode As Long
+        Public DefaultRecipeYieldQty As Double
+        Public DefaultRecipeYieldUnitCode As Long
+        Public DefaultMenuYieldQty As Double
+        Public DefaultRecipePercent As Integer
+        Public DefaultMenuPercent As Integer
+        Public DefaultRecipeCoeff As Double
+        Public DefaultMenuCoeff As Double
+
+        Public DictionaryEnglish As Integer
+        Public DictionaryGerman As Integer
+        Public DictionaryFrench As Integer
+        Public DictionaryItalian As Integer
+        Public DictionaryPortuguese As Integer
+        Public DictionarySpanish As Integer
+        Public DictionaryJapanese As Integer
+        Public DictionaryTurkish As Integer
+        Public DictionaryGreek As Integer
+        Public DictionaryThai As Integer
+        Public DictionaryHungarian As Integer
+        Public DictionaryPortuguesePortugal As Integer
+
+        Public RemoveTrailingZero As Boolean
+        Public ConvertToBestUnit As Boolean
+
+        Public RecipeAndMenuCalculationPerYield As Boolean
+        Public NutrientDB As Integer
+        Public RecalculatePrices As Boolean
+        Public StrictEncoding As Boolean
+        Public blnEnergyKJ As Boolean
+
+        Public ImportType As Integer
+        Public ImportShowItem As Boolean
+        Public ImportShowOption As Boolean
+        Public ImportCompareBy As Integer
+        Public ImportAddNew As Boolean
+        Public ImportUpdate As Boolean
+        Public ImportUpdateType As Integer
+        Public ImportDelPriceUnit As Boolean
+        Public ImportSuppNetwork As Long
+        Public ImportAutoLinkItems As Boolean
+        Public ImportNewSupplier As Boolean
+        Public ImportPackage As Boolean
+        Public SupplierNumberUnique As Boolean
+
+    End Structure
+
+    Public Structure tUnit
+        Public Code As Long
+        Public Name As String
+        Public NameDef As String
+        Public Factor As Double
+        Public Metric As Boolean
+        Public Solid As Boolean
+        Public AutoConversion As String
+        Public Type As Integer
+        Public Format As String
+        Public Index As Long
+        Public TypeMain As Long
+        Public MainUnit As Boolean
+        Public Active As Boolean
+        Public Added As Boolean
+    End Structure
+
+    ' RDC 11.11.2013 : Added for Export to Word Feature
+    Public Structure WordExportOptions
+        ' Basic Information
+        Public blnExpIncludeLanguage As Boolean
+        Public intExpSelectedLanguage As Integer
+        Public blnExpIncludeRecipeNo As Boolean
+        Public blnExpIncludeSubName As Boolean
+        Public blnExpIncludeItemDesc As Boolean
+        Public blnExpIncludeRemark As Boolean
+        Public blnExpIncludeYield1 As Boolean
+        Public blnExpIncludeYield2 As Boolean
+        Public blnExpSubRecipeWt As Boolean
+        Public blnExpIncludeRecipeTime As Boolean
+        Public blnExpIncludeGrossQty As Boolean
+        Public blnExpIncludeNetQty As Boolean
+        Public blnExpIncludeMetricNetQty As Boolean
+        Public blnExpIncludeMetricGrossQty As Boolean
+        Public blnExpIncludeImperialNetQty As Boolean
+        Public blnExpIncludeImperialGrossQty As Boolean
+        Public blnExpIncludeProcedure As Boolean
+        Public intExpSelectedProcedure As Integer
+        Public blnExpIncludeNotes As Boolean
+        Public blnExpIncludeAddNotes As Boolean
+        Public blnExpIncludeNutrientInfo As Boolean
+        Public intExpSelectedNutrientSet As Integer
+        Public intExpSelectedNutrientComputation As Integer
+
+        ' Advanced Information
+        Public blnExpAdvIncludeInfo As Boolean
+        Public blnExpAdvIncludeBrands As Boolean
+        Public blnExpAdvIncludeKeywords As Boolean
+        Public blnExpAdvIncludeCookbook As Boolean
+        Public blnExpAdvIncludePublication As Boolean
+        Public blnExpAdvIncludeComments As Boolean
+
+    End Structure
+
+    Public Shared G_ReportOptions As tReportOptions         'MCM 03.01.06 
+    Public Shared G_Nutrient(0 To 42) As tNutrient '15
+    Public Shared G_Unit(0 To 50) As tUnit
+
+    Public Shared G_Language As Integer
+    Public Shared G_strDateFormat As String = Thread.CurrentThread.CurrentCulture.DateTimeFormat.ShortDatePattern
+
+    Public Shared G_Options As tOption
+    Public Shared MySQLConn As SqlConnection
+
+    Public Shared G_bLoaded As Boolean = False
+    Public Shared G_strPriceFormat As String = "#,##0.00"
+    Public Shared G_strPhotoPath As String = "C:\Program Files\Egs\RecipeNet\Pictures\"
+    Public Shared G_strLogoPath As String = "C:\Program Files\Egs\RecipeNet\Pictures\" 'VRP 04.12.2007
+    Public Shared G_strLogoPath2 As String = "C:\Program Files\Egs\RecipeNet\Pictures\" 'VRP 04.12.2007
+
+    Public Shared G_DatabaseOpen As Boolean
+    Public Shared G_strConnection As String
+    Public Shared G_strServerName As String = "tfs2005"
+    Public Shared G_strDatabaseName As String = "KitEGSNetDevDB"
+    Public Shared MAXUNIT As Long
+
+
+    Public Const G_FormatTwoDecimal = "#,##0.00;-#,##0.00;0"
+    Public Const G_FormatOneDecimal As String = "#,##0.0;-#,##0.0;0"
+    Public Const G_FormatWhole = "#,##0;-#,##0;0"
+    Public Const ENERGYFACTOR As Double = 4.184
+
+    Public Const ID_Recipe = 8
+    Public Const ID_Text As Single = 4
+    Public Const ID_Merchandise As Single = 2
+    Public Const ID_Menu As Single = 16
+    Public Const ID_Dash As Single = 32
+
+    Public Shared G_strDisplayUnit As String
+    Public Shared G_dblFactor As Double
+
+    Private Shared l_strCnn As String
+
+    Public Shared G_dblMaxWidthPicture As Double
+    Public Shared G_dblMaxHeightPicture As Double
+    Public Shared G_intMaxRecipeDetailsWidth As Integer
+
+    Public Const INTCOLUMNSPACE As Integer = 5
+
+    Public Shared intAvailableWidth As Integer
+    Public Shared intAvailableHeight As Integer 'VRP 27.11.2007
+    Public Shared intCurrentX As Integer
+    Public Shared intCurrentY As Integer
+    Public Shared intTextHeight As Integer
+
+    Public Shared fntFont As Drawing.Font
+    Public Shared fntReportTitle As Drawing.Font
+    Public Shared fntRegular As Drawing.Font
+    Public Shared fntBold As Drawing.Font
+    Public Shared fntItalic As Drawing.Font
+    Public Shared fntRegular2 As Drawing.Font
+    Public Shared fntBold2 As Drawing.Font
+
+    Public Shared strLocation As String
+    Public Shared intTextWidth As Integer 'VRP 15.12.2008
+    Public Shared G_IsCalcmenuOnline As Boolean = False 'VRP 08.01.2009
+    Public Shared G_CLIENT As String 'VRP 09.01.2009
+
+    ' RDC 11.12.2013 : All values for export to word feature will be in this shared resource
+    Public Shared exportOptions As WordExportOptions
+
+
+    Public Shared Function fctPathAccessible(ByVal strPath As String) As Boolean
+
+        On Error GoTo Err_Folder
+        If Dir(strPath, FileAttribute.Directory) <> "" Then fctPathAccessible = True
+        Exit Function
+
+Err_Folder:
+
+    End Function
+
+    Public Shared Function fctOpenDatabase(ByVal strCn As String) As SqlConnection 'SQL - SQL Security
+        l_strCnn = strCn
+        G_DatabaseOpen = False
+        '        G_strConnection = "Data source=" & Server_Name & ";Initial Catalog=" & Database_Name & ";Integrated Security=True"
+        G_strConnection = strCn
+        MySQLConn = New SqlConnection(G_strConnection)
+        MySQLConn.Open()
+        G_DatabaseOpen = True
+        Return MySQLConn
+    End Function
+
+    Public Shared Sub fctCloseDatabase()
+        If MySQLConn.State = ConnectionState.Open Then
+            MySQLConn.Close()
+            G_DatabaseOpen = False
+        End If
+    End Sub
+
+    Public Shared Function fctConvertToFraction(ByVal dblValue As Double, Optional blnUseFractions As Boolean = True) As String
+
+        'AGL 2013.05.06 - use fractions
+        If blnUseFractions = False Then
+            Return dblValue
+        End If
+        '// DRR 07.10.2012 commented old codes below
+        'Dim lngEntier As Long
+        'Dim dblDecimal As Double
+        'Dim strValue As String
+        'Dim dblError As Double
+        'Dim dblErrorMin As Double
+        'Dim myV1(12) As Double
+        'Dim myF1(12) As String
+        'Dim myV2(6) As Double
+        'Dim myF2(6) As String
+        'Dim i As Integer
+        'Dim Imin As Integer
+
+        'On Error GoTo err_fctConvertToFraction
+
+        'myV1(0) = 0.05 : myV1(1) = 0.1 : myV1(2) = 0.125 : myV1(3) = 0.2
+        'myV1(4) = 0.25 : myV1(5) = 1 / 3 : myV1(6) = 0.4 : myV1(7) = 0.5
+        'myV1(8) = 0.6 : myV1(9) = 2 / 3 : myV1(10) = 0.75 : myV1(11) = 0.8
+        'myV1(12) = 1
+        'myF1(0) = "1/50" : myF1(1) = "1/10" : myF1(2) = "1/8" : myF1(3) = "1/5"
+        'myF1(4) = "1/4" : myF1(5) = "1/3" : myF1(6) = "2/5" : myF1(7) = "1/2"
+        'myF1(8) = "3/5" : myF1(9) = "2/3" : myF1(10) = "3/4" : myF1(11) = "4/5"
+        'myF1(12) = "1"
+        ''
+        'myV2(0) = 0.125 : myV2(1) = 0.25 : myV2(2) = 1 / 3 : myV2(3) = 0.5
+        'myV2(4) = 2 / 3 : myV2(5) = 0.75 : myV2(6) = 1
+        'myF2(0) = "" : myF2(1) = "1/4" : myF2(2) = "1/3" : myF2(3) = "1/2"
+        'myF2(4) = "2/3" : myF2(5) = "3/4" : myF2(6) = ""
+        ''
+        'lngEntier = CLng(dblValue)
+        'dblDecimal = dblValue - lngEntier
+        'strValue = CStr(lngEntier)
+
+        'If dblDecimal > 0.001 Then
+        '    If lngEntier > 0 Then
+        '        dblErrorMin = 1000
+        '        Imin = 20
+        '        For i = 0 To 6
+        '            dblError = Math.Abs(dblDecimal - myV2(i)) / dblDecimal
+        '            If dblError < dblErrorMin Then dblErrorMin = dblError : Imin = i
+        '        Next
+        '        If Imin = 6 Then lngEntier = lngEntier + 1
+        '        strValue = lngEntier & " " & myF2(Imin)
+        '    Else
+        '        dblErrorMin = 1000
+        '        Imin = 20
+        '        For i = 0 To 12
+        '            dblError = Math.Abs(dblDecimal - myV1(i)) / dblDecimal
+        '            If dblError < dblErrorMin Then dblErrorMin = dblError : Imin = i
+        '        Next
+        '        strValue = myF1(Imin)
+        '    End If
+        'End If
+
+        'fctConvertToFraction = Trim(strValue)
+        'Exit Function
+
+        Dim lngEntier As Long
+        Dim dblDecimal As Decimal
+        Dim strValue As String
+        Dim dblError As Decimal
+        Dim dblErrorMin As Decimal
+        Dim myV1(12) As Object
+        Dim myF1(12) As Object
+        Dim myV2(6) As Object
+        Dim myF2(6) As Object
+        Dim i As Integer
+        Dim Imin As Integer
+
+        On Error GoTo err_fctConvertToFraction
+
+        If dblValue = -1 Then
+            Return ""
+            Exit Function
+        End If
+
+        myV1(0) = 0.05 : myV1(1) = 0.1 : myV1(2) = 0.125 : myV1(3) = 0.2
+        myV1(4) = 0.25 : myV1(5) = 1 / 3 : myV1(6) = 0.4 : myV1(7) = 0.5
+        myV1(8) = 0.6 : myV1(9) = 2 / 3 : myV1(10) = 0.75 : myV1(11) = 0.8
+        myV1(12) = 1
+        myF1(0) = "1/50" : myF1(1) = "1/10" : myF1(2) = "1/8" : myF1(3) = "1/5"
+        myF1(4) = "1/4" : myF1(5) = "1/3" : myF1(6) = "2/5" : myF1(7) = "1/2"
+        myF1(8) = "3/5" : myF1(9) = "2/3" : myF1(10) = "3/4" : myF1(11) = "4/5"
+        myF1(12) = "1"
+        '
+        myV2(0) = 0.125 : myV2(1) = 0.25 : myV2(2) = 1 / 3 : myV2(3) = 0.5
+        myV2(4) = 2 / 3 : myV2(5) = 0.75 : myV2(6) = 1
+        myF2(0) = "" : myF2(1) = "1/4" : myF2(2) = "1/3" : myF2(3) = "1/2"
+        myF2(4) = "2/3" : myF2(5) = "3/4" : myF2(6) = ""
+        '
+        lngEntier = Int(dblValue)
+        dblDecimal = dblValue - lngEntier
+        strValue = lngEntier
+
+        If dblDecimal > 0.001 Then
+            If lngEntier > 0 Then
+                myF1(12) = "" '// DRR 08.09.2011
+                dblErrorMin = 1000
+                Imin = 20
+
+                'For i = 0 To 6
+                '    dblError = Math.Abs(dblDecimal - myV2(i)) / dblDecimal
+                '    If dblError < dblErrorMin Then dblErrorMin = dblError : Imin = i
+                'Next
+                'If Imin = 6 Then lngEntier = lngEntier + 1
+                'strValue = lngEntier & " " & myF2(Imin)
+
+                For i = 0 To 12
+                    dblError = Math.Abs(dblDecimal - myV1(i)) / dblDecimal
+                    If dblError < dblErrorMin Then dblErrorMin = dblError : Imin = i
+                Next
+                If Imin = 12 Then lngEntier = lngEntier + 1
+                strValue = lngEntier & " " & myF1(Imin)
+            Else
+                myF1(12) = "1" '// DRR 08.09.2011
+                dblErrorMin = 1000
+                Imin = 20
+
+                For i = 0 To 12
+                    dblError = Math.Abs(dblDecimal - myV1(i)) / dblDecimal
+                    If dblError < dblErrorMin Then dblErrorMin = dblError : Imin = i
+                Next
+                strValue = myF1(Imin)
+            End If
+        End If
+
+        Return Trim(strValue)
+err_fctConvertToFraction:
+        '  MsgBox(FTB(132577) & " " & FTB(135955), vbExclamation)   '"Error. Invalid numeric value."
+
+    End Function
+
+    Public Shared Function fctConvertToFraction2(ByVal dblValue As Double) As String
+        '// DRR 07.10.2012 commented old codes below
+        'Dim lngEntier As Long
+        'Dim dblDecimal As Double
+        'Dim strValue As String
+        'Dim dblError As Double
+        'Dim dblErrorMin As Double
+        'Dim myV1(12) As Double
+        'Dim myF1(12) As String
+        'Dim myV2(6) As Double
+        'Dim myF2(6) As String
+        'Dim i As Integer
+        'Dim Imin As Integer
+
+        'On Error GoTo err_fctConvertToFraction
+
+        'myV1(0) = 0.05 : myV1(1) = 0.1 : myV1(2) = 0.125 : myV1(3) = 0.2
+        'myV1(4) = 0.25 : myV1(5) = 1 / 3 : myV1(6) = 0.4 : myV1(7) = 0.5
+        'myV1(8) = 0.6 : myV1(9) = 2 / 3 : myV1(10) = 0.75 : myV1(11) = 0.8
+        'myV1(12) = 1
+        'myF1(0) = "1/50" : myF1(1) = "1/10" : myF1(2) = "1/8" : myF1(3) = "1/5"
+        'myF1(4) = "1/4" : myF1(5) = "1/3" : myF1(6) = "2/5" : myF1(7) = "1/2"
+        'myF1(8) = "3/5" : myF1(9) = "2/3" : myF1(10) = "3/4" : myF1(11) = "4/5"
+        'myF1(12) = "1"
+        ''
+        'myV2(0) = 0.125 : myV2(1) = 0.25 : myV2(2) = 1 / 3 : myV2(3) = 0.5
+        'myV2(4) = 2 / 3 : myV2(5) = 0.75 : myV2(6) = 1
+        'myF2(0) = "" : myF2(1) = "1/4" : myF2(2) = "1/3" : myF2(3) = "1/2"
+        'myF2(4) = "2/3" : myF2(5) = "3/4" : myF2(6) = ""
+        ''
+        'lngEntier = CLng(dblValue)
+        'dblDecimal = dblValue - lngEntier
+        'strValue = CStr(lngEntier)
+
+        'If dblDecimal > 0.001 Then
+        '    If lngEntier > 0 Then
+        '        dblErrorMin = 1000
+        '        Imin = 20
+        '        For i = 0 To 6
+        '            dblError = Math.Abs(dblDecimal - myV2(i)) / dblDecimal
+        '            If dblError < dblErrorMin Then dblErrorMin = dblError : Imin = i
+        '        Next
+        '        If Imin = 6 Then lngEntier = lngEntier + 1
+        '        strValue = lngEntier & " " & myF2(Imin)
+        '    Else
+        '        dblErrorMin = 1000
+        '        Imin = 20
+        '        For i = 0 To 12
+        '            dblError = Math.Abs(dblDecimal - myV1(i)) / dblDecimal
+        '            If dblError < dblErrorMin Then dblErrorMin = dblError : Imin = i
+        '        Next
+        '        strValue = myF1(Imin)
+        '    End If
+        'End If
+
+        'fctConvertToFraction = Trim(strValue)
+        'Exit Function
+
+        Dim lngEntier As Long
+        Dim dblDecimal As Decimal
+        Dim strValue As String
+        Dim dblError As Decimal
+        Dim dblErrorMin As Decimal
+        Dim myV1(12) As Object
+        Dim myF1(12) As Object
+        Dim myV2(6) As Object
+        Dim myF2(6) As Object
+        Dim i As Integer
+        Dim Imin As Integer
+
+        On Error GoTo err_fctConvertToFraction
+
+        If dblValue = -1 Then
+            Return ""
+            Exit Function
+        End If
+
+        myV1(0) = 0.05 : myV1(1) = 0.1 : myV1(2) = 0.125 : myV1(3) = 0.2
+        myV1(4) = 0.25 : myV1(5) = 1 / 3 : myV1(6) = 0.4 : myV1(7) = 0.5
+        myV1(8) = 0.6 : myV1(9) = 2 / 3 : myV1(10) = 0.75 : myV1(11) = 0.8
+        myV1(12) = 1
+        myF1(0) = "1/50" : myF1(1) = "1/10" : myF1(2) = "1/8" : myF1(3) = "1/5"
+        myF1(4) = "1/4" : myF1(5) = "1/3" : myF1(6) = "2/5" : myF1(7) = "1/2"
+        myF1(8) = "3/5" : myF1(9) = "2/3" : myF1(10) = "3/4" : myF1(11) = "4/5"
+        myF1(12) = "1"
+        '
+        myV2(0) = 0.125 : myV2(1) = 0.25 : myV2(2) = 1 / 3 : myV2(3) = 0.5
+        myV2(4) = 2 / 3 : myV2(5) = 0.75 : myV2(6) = 1
+        myF2(0) = "" : myF2(1) = "1/4" : myF2(2) = "1/3" : myF2(3) = "1/2"
+        myF2(4) = "2/3" : myF2(5) = "3/4" : myF2(6) = ""
+        '
+        lngEntier = Int(dblValue)
+        dblDecimal = dblValue - lngEntier
+        strValue = lngEntier
+
+        If dblDecimal > 0.001 Then
+            If lngEntier > 0 Then
+                myF1(12) = "" '// DRR 08.09.2011
+                dblErrorMin = 1000
+                Imin = 20
+
+                'For i = 0 To 6
+                '    dblError = Math.Abs(dblDecimal - myV2(i)) / dblDecimal
+                '    If dblError < dblErrorMin Then dblErrorMin = dblError : Imin = i
+                'Next
+                'If Imin = 6 Then lngEntier = lngEntier + 1
+                'strValue = lngEntier & " " & myF2(Imin)
+
+                For i = 0 To 12
+                    dblError = Math.Abs(dblDecimal - myV1(i)) / dblDecimal
+                    If dblError < dblErrorMin Then dblErrorMin = dblError : Imin = i
+                Next
+                If Imin = 12 Then lngEntier = lngEntier + 1
+                strValue = lngEntier & " " & myF1(Imin)
+            Else
+                myF1(12) = "1" '// DRR 08.09.2011
+                dblErrorMin = 1000
+                Imin = 20
+
+                For i = 0 To 12
+                    dblError = Math.Abs(dblDecimal - myV1(i)) / dblDecimal
+                    If dblError < dblErrorMin Then dblErrorMin = dblError : Imin = i
+                Next
+                strValue = myF1(Imin)
+            End If
+        End If
+
+        Return Trim(strValue)
+err_fctConvertToFraction:
+        '  MsgBox(FTB(132577) & " " & FTB(135955), vbExclamation)   '"Error. Invalid numeric value."
+
+    End Function
+
+    Public Shared Function fctGetMenuNutrientFactor(ByVal bln_For1Yield As Boolean, ByVal dblWeight As Double) As Double
+        Dim dblNutFactor As Double
+
+        dblNutFactor = -1
+
+        If bln_For1Yield Then
+            dblNutFactor = 1
+        Else
+            dblNutFactor = dblWeight / 100
+        End If
+
+        fctGetMenuNutrientFactor = dblNutFactor
+    End Function
+    Public Shared Function fctGetUnitDetails(ByVal udtUser As structUser) As Boolean
+        'Dim da As SqlDataAdapter
+        Dim ds As DataSet
+        Dim dv As New DataView
+        Dim drv As DataRowView
+        Dim i As Integer
+        ' Dim strSQL As String
+
+        fctGetUnitDetails = False
+
+        Dim cUnit As New clsUnit(udtUser, enumAppType.WebApp, l_strCnn, enumEgswFetchType.DataSet)
+        ds = cUnit.GetList(enumDataListType.NoType, udtUser.CodeTrans, 255)
+        ds.Tables(0).TableName = "Units"
+        dv = New DataView(ds.Tables(0))
+        dv.RowFilter = "yield=0"
+
+        'strSQL = "SELECT * FROM EgswUnit WHERE (Yield = 0) ORDER BY NameDef ASC"
+        'da = New SqlDataAdapter(strSQL, MySQLConn)
+        'ds = New DataSet
+        'da.Fill(ds, "Units")
+        'dv = ds.Tables("Units").DefaultView
+
+        i = 0
+        If dv.Count > 0 Then
+            For Each drv In dv
+                i = i + 1
+                If i + 1 > MAXUNIT Then
+                    MAXUNIT = MAXUNIT + 10
+                    ReDim Preserve G_Unit(0 To MAXUNIT)
+                End If
+
+                G_Unit(i).Code = CType(drv("Code"), Integer)
+                If Not IsDBNull(drv("NameDisplay")) Then
+                    G_Unit(i).Name = CType(drv("NameDisplay"), String)
+                End If
+                G_Unit(i).NameDef = CType(drv("NameDef"), String) & ""
+                G_Unit(i).Factor = CType(drv("Factor"), Double)
+                G_Unit(i).Metric = CType(drv("Metric"), Boolean)
+                If Not IsDBNull(drv("AutoConversion")) Then
+                    G_Unit(i).AutoConversion = " " & Trim(CType(drv("AutoConversion"), String)) & " "
+                End If
+                G_Unit(i).Type = CType(drv("Type"), Long)
+                G_Unit(i).TypeMain = CType(drv("TypeMain"), Long)
+                G_Unit(i).Format = CType(drv("Format"), String)
+                G_Unit(i).Added = CType(drv("Added"), Boolean)
+                If G_Unit(i).Type = G_Unit(i).TypeMain Then
+                    G_Unit(i).MainUnit = True
+                Else
+                    G_Unit(i).MainUnit = False
+                End If
+            Next
+        End If
+        i = i + 1
+        G_Unit(i).Code = -1
+        dv.Dispose()
+        ds.Dispose()
+        '  da.Dispose()
+        fctGetUnitDetails = True
+    End Function
+    '***********************************************************************
+    ' Get the nutrient details; Returns the number of Nutrients selected
+    ' by the user
+    '***********************************************************************
+    'Public Shared Function fctGetNutrientDetails() As Integer
+    '    Dim da As SqlDataAdapter
+    '    ''Dim ds As DataSet
+    '    ''Dim dv As DataView
+    '    ''Dim drv As DataRowView
+    '    Dim strSQL As String
+    '    Dim intCount As Integer
+    '    Dim i As Integer
+
+    '    If G_Nutrient(1).Name <> "" Then
+    '        For i = 1 To 15
+    '            If G_Nutrient(i).Name = "" Then
+    '                Exit For
+    '            End If
+    '        Next
+    '        Return (i - 1)
+    '        Exit Function
+    '    End If
+
+    '    Dim cConfig As New clsConfig(enumAppType.WebApp, l_strCnn)
+    '    Dim strKCKalFormat As String = cConfig.GetConfig(0, clsConfig.enumNumeros.NutrientEnergyKCALFormat, clsConfig.CodeGroup.global, "###0.0")
+
+    '    fctGetNutrientDetails = 0
+    '    Try
+    '        For i = 1 To 15
+    '            G_Nutrient(i).Format = "#,##0.0"
+    '            G_Nutrient(i).Heading = ""
+    '            G_Nutrient(i).Name = ""
+    '            G_Nutrient(i).Unit = ""
+    '            G_Nutrient(i).Number = ""
+    '            G_Nutrient(i).GDA = 0 'DLS Aug112007
+    '            If i = 1 Then
+    '                G_Nutrient(i).FormatKCAL = strKCKalFormat
+    '            Else
+    '                G_Nutrient(i).FormatKCAL = G_Nutrient(i).Format
+    '            End If
+
+    '        Next
+
+    '        intCount = 0
+    '        strSQL = "SELECT ISNULL(EgswNutrientDef.Name, '') as Name, " & vbCrLf & _
+    '                 "EgswNutrientDef.Position, ISNULL(Egsw_NUTR_DEF.Units, '') as Units, " & vbCrLf & _
+    '                 "EgswNutrientDef.format,ISNULL(EgswNutrientDef.GDA,0) as GDA, EgswNutrientDef.Nutr_No FROM EgswNutrientDef " & vbCrLf & _
+    '                 "INNER JOIN Egsw_NUTR_DEF on Egsw_NUTR_DEF.Nutr_No = EgswNutrientDef.Nutr_No " & vbCrLf & _
+    '                 "ORDER BY Position ASC"
+
+
+
+
+
+
+    '        da = New SqlDataAdapter(strSQL, MySQLConn)
+
+    '        Dim dtList As New DataTable
+    '        Dim itemRow As DataRow
+    '        With da
+    '            dtList.BeginLoadData()
+    '            .Fill(dtList)
+    '            dtList.EndLoadData()
+    '        End With
+
+    '        ''ds = New DataSet
+    '        ''da.Fill(ds, "Nutrient")
+    '        ''dv = ds.Tables("Nutrient").DefaultView
+
+
+
+    '        i = 1
+    '        For Each itemRow In dtList.Rows
+    '            If IsDBNull(itemRow("Name")) Then
+    '                G_Nutrient(i).Unit = CType(itemRow("units"), String)
+    '                G_Nutrient(i).Name = ""
+    '                G_Nutrient(i).Heading = "" & Chr(13) & Chr(10) & CType(itemRow("units"), String)
+    '                G_Nutrient(i).Format = CType(itemRow("format"), String)
+    '                G_Nutrient(i).Number = CType(itemRow("nutr_no"), String)
+    '                G_Nutrient(i).GDA = CType(itemRow("gda"), Double)
+    '            Else
+    '                G_Nutrient(i).Unit = CType(itemRow("units"), String)
+    '                G_Nutrient(i).Name = CType(itemRow("name"), String)
+    '                G_Nutrient(i).Heading = CType(itemRow("name"), String) & Chr(13) & Chr(10) & CType(itemRow("units"), String)
+    '                G_Nutrient(i).Format = CType(itemRow("format"), String)
+    '                G_Nutrient(i).Number = CType(itemRow("nutr_no"), String)
+    '                G_Nutrient(i).GDA = CType(itemRow("gda"), Double)
+    '            End If
+    '            i = i + 1
+    '            intCount = intCount + 1
+    '        Next
+    '        dtList.Dispose()
+    '        'dv.Dispose()
+    '        'ds.Dispose()
+    '        da.Dispose()
+    '        fctGetNutrientDetails = intCount
+
+    '    Catch ex As SqlException
+    '        MsgBox(ex.Message)
+    '        If MySQLConn.State = ConnectionState.Open Then
+
+    '        End If
+    '    End Try
+    'End Function
+
+    '--- VRP 07.01.2009
+    Public Shared Function fctGetNutrientDetails(ByVal intCodeTrans As Integer, ByVal intCodeSite As Integer, Optional intNutrientSet As Integer = 0, Optional strConnection As String = "") As Integer
+        fctGetNutrientDetails = 0
+        Dim intCount As Integer = 0
+
+        Try
+            Dim i As Integer
+            Dim cConfig As New clsConfig(enumAppType.WebApp, IIf(l_strCnn Is Nothing Or l_strCnn = "", strConnection, ""))
+            Dim strKCKalFormat As String = cConfig.GetConfig(0, clsConfig.enumNumeros.NutrientEnergyKCALFormat, clsConfig.CodeGroup.global, "###0.0")
+            For i = 1 To 42 '15
+                G_Nutrient(i).Format = "#,##0.0"
+                G_Nutrient(i).Heading = ""
+                G_Nutrient(i).Name = ""
+                G_Nutrient(i).Unit = ""
+                G_Nutrient(i).Number = ""
+                G_Nutrient(i).GDA = 0
+                G_Nutrient(i).Position = 0
+                G_Nutrient(i).DisplayPosition = 0
+                If i = 1 Then
+                    G_Nutrient(i).FormatKCAL = strKCKalFormat
+                Else
+                    G_Nutrient(i).FormatKCAL = G_Nutrient(i).Format
+                End If
+            Next
+
+            Dim strSQL As String = ""
+            ' RDC 07.25.2013 : Replaced Query 
+            'strSQL = "SELECT CASE WHEN ISNULL(NT.Name,'') <> '' THEN NT.name ELSE N.Name  END Name, " & vbCrLf & _
+            '         "N.Position, N.DisplayPosition, ISNULL(Nd.Units, '') AS Units, N.Format, ISNULL(N.GDA, 0) AS GDA, N.Nutr_No, N.CodeSite " & vbCrLf & _
+            '         "FROM EgswNutrientDef N " & vbCrLf & _
+            '         "INNER JOIN Egsw_NUTR_DEF Nd ON Nd.Nutr_No=N.Nutr_No " & vbCrLf & _
+            '         "LEFT OUTER JOIN EgswNutrientDefTrans Nt ON N.Nutr_No=Nt.CodeMain AND N.CodeSite=Nt.CodeSite AND Nt.CodeTrans=" & intCodeTrans & " " & vbCrLf & _
+            '         "WHERE N.CodeSite IN(0," & intCodeSite & ")  " & vbCrLf & _
+            '         "ORDER BY N.Position ASC "
+
+            ' RDC 07.25.2013 : Modified "WHERE N.CodeSite IN(0," & intCodeSite & ") And N.CodeSet = " & G_ReportOptions.intSelectedNutrientSet & vbCrLf & _
+            ' RDC 07.31.2013 : Removed
+            'strSQL = "SELECT CASE WHEN ISNULL(NT.Name,'') <> '' THEN NT.name ELSE N.Name  END Name, " & vbCrLf & _
+            '         "N.Position, N.DisplayPosition, ISNULL(Nd.Units, '') AS Units, N.Format, ISNULL(N.GDA, 0) AS GDA, N.Nutr_No, N.CodeSite " & vbCrLf & _
+            '         "FROM EgswNutrientDef N " & vbCrLf & _
+            '         "INNER JOIN Egsw_NUTR_DEF Nd ON Nd.Nutr_No=N.Nutr_No " & vbCrLf & _
+            '         "LEFT OUTER JOIN EgswNutrientDefTrans Nt ON N.Nutr_No=Nt.CodeMain AND N.CodeSite=Nt.CodeSite AND Nt.CodeTrans=" & intCodeTrans & " " & vbCrLf & _
+            '         "WHERE N.CodeSite IN(0," & intCodeSite & ") And N.CodeSet = " & G_ReportOptions.intSelectedNutrientSet & vbCrLf & _
+            '         "ORDER BY N.Position ASC "
+            ' ''-- JBB 07.02.2012
+            ''-- from  ORDER BY N.Position ASC to ORDER BY N.DisplayPosition ASC
+
+            'strSQL = "Select Case Len(IsNull(c.Name,'')) When 0 Then b.Name Else c.Name End As Name, " & vbCrLf & _
+            '                "b.Position, b.DisplayPosition, IsNull(d.Units,'') As Units, b.Format, IsNull(b.GDA,0) As GDA, " & vbCrLf & _
+            '                "b.Nutr_No, b.CodeSite " & vbCrLf & _
+            '         "From           EgswNutrientSet      As a " & vbCrLf & _
+            '             "Inner Join EgswNutrientDef      As b On a.Code = b.CodeSet And a.CodeSite = b.CodeSite And a.Code = " & intNutrientSet & " " & vbCrLf & _
+            '              "Left  Join (Select * From EgswNutrientDefTrans Where CodeSet = " & intNutrientSet & " And CodeTrans = " & intCodeTrans & " ) As c " & vbCrLf & _
+            '                                                  "On a.CodeSite = c.CodeSite And b.Nutr_No = c.CodeMain " & vbCrLf & _
+            '              "Inner Join Egsw_Nutr_Def       As d On b.Nutr_No = d.Nutr_No " & vbCrLf & _
+            '         "Order by b.Position ASC"
+
+            'AGL 2014.03.17 - added isnull for b.codeset
+            strSQL = "Select Case Len(IsNull(c.Name,'')) When 0 Then b.Name Else c.Name End As Name, " & vbCrLf & _
+                            "b.Position, b.DisplayPosition, IsNull(d.Units,'') As Units, b.Format, IsNull(b.GDA,0) As GDA, " & vbCrLf & _
+                            "b.Nutr_No, b.CodeSite " & vbCrLf & _
+                     "From           EgswNutrientSet      As a " & vbCrLf & _
+                         "Inner Join EgswNutrientDef      As b On a.Code = ISNULL(b.CodeSet, 0) And a.Code = " & intNutrientSet & " " & vbCrLf & _
+                          "Left  Join (Select * From EgswNutrientDefTrans Where CodeSet = " & intNutrientSet & " And CodeTrans = " & intCodeTrans & " ) As c " & vbCrLf & _
+                                                              "On b.Nutr_No = c.CodeMain " & vbCrLf & _
+                          "Inner Join Egsw_Nutr_Def       As d On b.Nutr_No = d.Nutr_No " & vbCrLf & _
+                     "Order by b.Position ASC"
+
+            Dim da As New SqlDataAdapter(strSQL, strConnection)
+            Dim dtList As New DataTable
+            With da
+                dtList.BeginLoadData()
+                .Fill(dtList)
+                dtList.EndLoadData()
+            End With
+            Dim dvList As New DataView(dtList)
+            'dvList.RowFilter = "CodeSite=" & CodeSiteCO(intCodeSite)
+            'If Not dvList.ToTable.Rows.Count > 0 Then
+            '    dvList = New DataView(dtList)
+            '    dvList.RowFilter = "CodeSite=" & 0
+            'End If
+
+            i = 1
+            For Each itemRow As DataRow In dvList.ToTable.Rows
+                If IsDBNull(itemRow("Name")) Then
+                    G_Nutrient(i).Unit = CType(itemRow("units"), String)
+                    G_Nutrient(i).Name = ""
+                    G_Nutrient(i).Heading = "" & Chr(13) & Chr(10) & CType(itemRow("units"), String)
+                    G_Nutrient(i).Format = CType(itemRow("format"), String)
+                    G_Nutrient(i).Number = CType(itemRow("nutr_no"), String)
+                    G_Nutrient(i).GDA = CType(itemRow("gda"), Double)
+                    G_Nutrient(i).Position = CType(itemRow("Position"), Integer)
+                    G_Nutrient(i).DisplayPosition = CType(itemRow("DisplayPosition"), Integer)
+                Else
+                    G_Nutrient(i).Unit = CType(itemRow("units"), String)
+                    G_Nutrient(i).Name = CType(itemRow("name"), String)
+                    G_Nutrient(i).Heading = CType(itemRow("name"), String) & Chr(13) & Chr(10) & CType(itemRow("units"), String)
+                    G_Nutrient(i).Format = CType(itemRow("format"), String)
+                    G_Nutrient(i).Number = CType(itemRow("nutr_no"), String)
+                    G_Nutrient(i).GDA = CType(itemRow("gda"), Double)
+                    G_Nutrient(i).Position = CType(itemRow("Position"), Integer)
+                    G_Nutrient(i).DisplayPosition = CType(itemRow("DisplayPosition"), Integer)
+                End If
+                i = i + 1
+                intCount = intCount + 1
+            Next
+            dtList.Dispose()
+            da.Dispose()
+            Return intCount
+        Catch ex As Exception
+            ''MsgBox(ex.Message)
+            If MySQLConn.State = ConnectionState.Open Then
+                MySQLConn.Close()
+                MySQLConn.Dispose()
+            End If
+        End Try
+    End Function
+
+    Private Shared Function CodeSiteCO(ByVal intCodeSite As Integer) As Integer 'VRP 08.01.2009 FOR NUTRIENT ONLY : RETURN CODESITE = 0 OR CODESITE
+        If G_IsCalcmenuOnline = True Then
+            Return intCodeSite
+        Else
+            Return 0
+        End If
+    End Function
+
+    '    Dim da As SqlDataAdapter
+    '    ''Dim ds As DataSet
+    '    ''Dim dv As DataView
+    '    ''Dim drv As DataRowView
+    '    Dim strSQL As String
+    '    Dim intCount As Integer
+    '    Dim i As Integer
+
+    '    If G_Nutrient(1).Name <> "" Then
+    '        For i = 1 To 15
+    '            If G_Nutrient(i).Name = "" Then
+    '                Exit For
+    '            End If
+    '        Next
+    '        Return (i - 1)
+    '        Exit Function
+    '    End If
+
+    '    Dim cConfig As New clsConfig(enumAppType.WebApp, l_strCnn)
+    '    Dim strKCKalFormat As String = cConfig.GetConfig(0, clsConfig.enumNumeros.NutrientEnergyKCALFormat, clsConfig.CodeGroup.global, "###0.0")
+
+    '    fctGetNutrientDetails = 0
+    '    Try
+    '        For i = 1 To 15
+    '            G_Nutrient(i).Format = "#,##0.0"
+    '            G_Nutrient(i).Heading = ""
+    '            G_Nutrient(i).Name = ""
+    '            G_Nutrient(i).Unit = ""
+    '            G_Nutrient(i).Number = ""
+    '            G_Nutrient(i).GDA = 0 'DLS Aug112007
+    '            If i = 1 Then
+    '                G_Nutrient(i).FormatKCAL = strKCKalFormat
+    '            Else
+    '                G_Nutrient(i).FormatKCAL = G_Nutrient(i).Format
+    '            End If
+
+    '        Next
+
+    '        intCount = 0
+    '        strSQL = "SELECT ISNULL(EgswNutrientDef.Name, '') as Name, " & vbCrLf & _
+    '                 "EgswNutrientDef.Position, ISNULL(Egsw_NUTR_DEF.Units, '') as Units, " & vbCrLf & _
+    '                 "EgswNutrientDef.format,ISNULL(EgswNutrientDef.GDA,0) as GDA, EgswNutrientDef.Nutr_No FROM EgswNutrientDef " & vbCrLf & _
+    '                 "INNER JOIN Egsw_NUTR_DEF on Egsw_NUTR_DEF.Nutr_No = EgswNutrientDef.Nutr_No " & vbCrLf & _
+    '                 "ORDER BY Position ASC"
+    '        da = New SqlDataAdapter(strSQL, MySQLConn)
+
+    '        Dim dtList As New DataTable
+    '        Dim itemRow As DataRow
+    '        With da
+    '            dtList.BeginLoadData()
+    '            .Fill(dtList)
+    '            dtList.EndLoadData()
+    '        End With
+
+    '        ''ds = New DataSet
+    '        ''da.Fill(ds, "Nutrient")
+    '        ''dv = ds.Tables("Nutrient").DefaultView
+
+
+
+    '        i = 1
+    '        For Each itemRow In dtList.Rows
+    '            If IsDBNull(itemRow("Name")) Then
+    '                G_Nutrient(i).Unit = CType(itemRow("units"), String)
+    '                G_Nutrient(i).Name = ""
+    '                G_Nutrient(i).Heading = "" & Chr(13) & Chr(10) & CType(itemRow("units"), String)
+    '                G_Nutrient(i).Format = CType(itemRow("format"), String)
+    '                G_Nutrient(i).Number = CType(itemRow("nutr_no"), String)
+    '                G_Nutrient(i).GDA = CType(itemRow("gda"), Double)
+    '            Else
+    '                G_Nutrient(i).Unit = CType(itemRow("units"), String)
+    '                G_Nutrient(i).Name = CType(itemRow("name"), String)
+    '                G_Nutrient(i).Heading = CType(itemRow("name"), String) & Chr(13) & Chr(10) & CType(itemRow("units"), String)
+    '                G_Nutrient(i).Format = CType(itemRow("format"), String)
+    '                G_Nutrient(i).Number = CType(itemRow("nutr_no"), String)
+    '                G_Nutrient(i).GDA = CType(itemRow("gda"), Double)
+    '            End If
+    '            i = i + 1
+    '            intCount = intCount + 1
+    '        Next
+    '        dtList.Dispose()
+    '        'dv.Dispose()
+    '        'ds.Dispose()
+    '        da.Dispose()
+    '        fctGetNutrientDetails = intCount
+
+    '    Catch ex As SqlException
+    '        MsgBox(ex.Message)
+    '        If MySQLConn.State = ConnectionState.Open Then
+
+    '        End If
+    '    End Try
+    'End Function
+
+    Public Shared Function GetNutrientFactor(ByVal lngRecipeCode As Long, Optional ByVal lngCodeSetPrice As Long = 1, Optional ByVal strConnection As String = "") As Double
+
+        Dim cmd As New SqlCommand
+
+        Dim lngYieldUnit As Long
+        Dim lngSrLevel As Long
+        Dim KiloCode As Long
+        Dim LiterCode As Long
+        Dim lngMainUnitCode As Long
+        Dim dblUnitfactor As Double
+        Dim dblSubUnitfactor As Double
+        Dim dr As SqlDataReader
+        Dim dblSrQty As Double
+        Dim dblYieldQty As Double
+        Dim intType As Integer
+        Dim dblComputedWeightKilo As Double
+        MySQLConn = New SqlConnection(strConnection)
+
+
+        Try
+            '
+            With cmd
+                .Connection = MySQLConn
+                .CommandText = "SELECT L.Code, L.Type, EgsWUnit.Code as YieldUnit,l.SrUnit as SubRecipeUnitCode,l.srlevel, " &
+                                "LiterCode = (select top 1 Code from EgsWUnit where type=100 order by code), " &
+                                "KiloCode = (select top 1 Code from EgsWUnit where type=200 order by code),  " &
+                                "SubRUnitMainCode = (select top 1 Code from EgsWUnit where type=SubUnit.type order by code), " &
+                                "SubRUnitFactor = SubUnit.Factor,l.SrQty ,L.Yield as YieldQty, dbo.fn_EgsWGETRecipeWeightActual(L.Code,@p_nCodeSetPrice) as ComputedWeightKilo  " &
+                                "FROM EgsWListe l  " &
+                                "LEFT OUTER JOIN EgsWUnit ON EgsWUnit.code = l.yieldUnit " &
+                                "LEFT OUTER JOIN EgsWUnit SubUnit ON SubUnit.Code = l.SrUnit " &
+                                "WHERE l.Code = @p_nCode "
+                .CommandType = CommandType.Text
+                .Parameters.Add("@p_nCode", SqlDbType.Int).Value = lngRecipeCode
+                .Parameters.Add("@p_nCodeSetPrice", SqlDbType.Int).Value = lngCodeSetPrice
+            End With
+            If MySQLConn.State = ConnectionState.Closed Then
+                MySQLConn.Open()
+            End If
+            dr = cmd.ExecuteReader
+            '
+            If dr.Read Then
+                lngYieldUnit = CLng(dr.Item("YieldUnit"))
+                lngSrLevel = CLng(dr.Item("srlevel"))
+                KiloCode = CLng(dr.Item("KiloCode"))
+                LiterCode = CLng(dr.Item("LiterCode"))
+                lngMainUnitCode = CLng(dr.Item("SubRUnitMainCode"))
+                dblSubUnitfactor = CDbl(dr.Item("SubRUnitFactor"))
+                dblSrQty = CDbl(dr.Item("SrQty"))
+                dblYieldQty = CDbl(dr.Item("YieldQty"))
+                intType = CInt(dr.Item("Type"))
+
+                'AGL 2013.03.16
+                If dr.Item("ComputedWeightKilo").ToString = "" Then
+                    dblComputedWeightKilo = 0
+                Else
+                    dblComputedWeightKilo = CDbl(dr.Item("ComputedWeightKilo").ToString)
+                End If
+
+            End If
+            'MySQLConn.Close()
+            cmd.Dispose()
+            dr.Close()
+            '
+            '---------- Get Unit Factor -------------------
+            dblUnitfactor = fctGetNutrientFactor(lngYieldUnit, dblSrQty, lngSrLevel, KiloCode, LiterCode, lngMainUnitCode, dblSubUnitfactor, intType)
+            If dblUnitfactor = -1 Then 'DLS
+                If dblYieldQty > 0 Then
+                    dblUnitfactor = dblComputedWeightKilo * 10 / dblYieldQty 'AGL 2014.01.08 
+                Else
+                    dblUnitfactor = dblComputedWeightKilo * 10
+                End If
+
+            End If
+            'If dblUnitfactor = 0 Then dblUnitfactor = 1 'DLS
+
+            Return dblUnitfactor
+        Catch ex As Exception
+            'Throw ex
+        End Try
+    End Function
+
+
+    'Derived from same function in fmRecipe
+    'I decided to have multiple non-nested ifs because it looks simpler
+    'Also, Yield Unit can be different from the Sub Recipe Unit.
+    'Priority is KG, regardless if it is Yield Unit or Subrecipe unit
+    'DLS SubRecipeUnit should also consider
+    Private Shared Function fctGetNutrientFactor(ByVal lngYieldUnit As Long, _
+        ByVal dblSrQty As Double, ByVal lngSrLevel As Long, ByVal KiloCode As Long, ByVal LiterCode As Long, _
+        ByVal lngMainUnitCode As Long, ByVal dblSubUnitfactor As Double, ByVal intType As Long) As Double
+        'DLS 12/6/2005
+        Dim dblNutFactor As Double
+        Dim blnFactorComputed As Boolean
+
+        'Dim dblSubUnitfactor As Double         
+        'Dim lngMainUnitCode As Double       
+
+        blnFactorComputed = False
+        dblNutFactor = -1
+
+        'If intType = 16 Then 'if menu 'Commented VRP 17.06.2008
+        '    dblNutFactor = dblSrQty * 10
+        '    Return dblNutFactor
+        'End If
+
+        'm_bShowNutrientPer100 = False
+        If lngYieldUnit = KiloCode Then
+            'yield unit is Kilo
+            dblNutFactor = 10
+            blnFactorComputed = True
+            'm_bShowNutrientPer100 = True
+        End If
+
+
+        If lngMainUnitCode = KiloCode And dblSrQty <> 0 Then ''And Not blnFactorComputed Then
+            'sub recipe unit is kilo
+            dblNutFactor = dblSrQty * 10 * dblSubUnitfactor
+            blnFactorComputed = True
+            'm_bShowNutrientPer100 = True
+        End If
+
+        If lngYieldUnit = LiterCode Then ''And Not blnFactorComputed Then
+            'yield unit is Liter
+            dblNutFactor = 10
+            blnFactorComputed = True
+            'm_bShowNutrientPer100 = True
+        End If
+
+        If lngMainUnitCode = LiterCode And dblSrQty <> 0 Then ''And Not blnFactorComputed Then
+            'sub recipe unit is liter
+            dblNutFactor = dblSrQty * 10 * dblSubUnitfactor
+            blnFactorComputed = True
+            'm_bShowNutrientPer100 = True
+        End If
+        '
+        Return dblNutFactor
+        '
+    End Function
+
+    Public Shared Function fctGetPictureName(ByVal strPicture As String, ByVal intNumber As Integer) As String
+        Dim j As Integer
+        Dim strTemp As String
+        Dim strNewPicture(0 To 4) As String
+
+        fctGetPictureName = ""
+
+        strTemp = strPicture
+
+        strNewPicture(0) = ""
+        strNewPicture(1) = ""
+        strNewPicture(2) = ""
+        strNewPicture(3) = ""
+        strNewPicture(4) = ""
+
+        If strTemp = "" Then Exit Function
+
+        If Mid(strTemp, Len(strTemp), 1) <> ";" Then strTemp = strTemp & ";"
+
+
+        j = InStr(1, strTemp, ";")
+
+        If j > 0 Then
+            strNewPicture(0) = Mid(strTemp, 1, j - 1)
+            strTemp = Mid(strTemp, j + 1, Len(strTemp))
+
+            j = InStr(1, strTemp, ";")
+            If j > 0 Then
+                strNewPicture(1) = Mid(strTemp, 1, j - 1)
+                strTemp = Mid(strTemp, j + 1, Len(strTemp))
+
+                j = InStr(1, strTemp, ";")
+                If j > 0 Then
+                    strNewPicture(2) = Mid(strTemp, 1, j - 1)
+                End If
+            End If
+        End If
+
+        fctGetPictureName = Trim(strNewPicture(intNumber))
+
+    End Function
+    'Public Shared Function fctFileExists(ByVal strFileName As String) As Boolean
+    '    fctFileExists = False
+
+    '    Try
+    '        fctFileExists = System.IO.File.Exists(strFileName)
+    '    Catch
+    '        Exit Function
+    '    End Try
+
+    'End Function
+    Public Shared Function fctFileExists(ByVal strFileName As String) As Boolean
+        fctFileExists = False
+
+        Try
+            System.Net.ServicePointManager.SecurityProtocol = CType(3072, System.Net.SecurityProtocolType)
+
+            Dim request As System.Net.HttpWebRequest = CType(System.Net.WebRequest.Create(strFileName), System.Net.HttpWebRequest)
+            request.Method = "HEAD"
+
+            Using response As System.Net.HttpWebResponse = CType(request.GetResponse(), System.Net.HttpWebResponse)
+                If response.StatusCode = System.Net.HttpStatusCode.OK Then
+                    fctFileExists = True
+                End If
+            End Using
+
+        Catch ex As Exception
+            Exit Function
+        End Try
+
+        Return fctFileExists
+    End Function
+
+    Public Shared Function UrlFileExists(ByVal url As String) As Boolean
+        Try
+            ' Enable TLS 1.2 for secure communication
+            ServicePointManager.SecurityProtocol = SecurityProtocolType.Tls12
+
+            Dim request As Net.HttpWebRequest = CType(Net.WebRequest.Create(url), Net.HttpWebRequest)
+            request.Method = "HEAD" ' Only fetch headers to check if the file exists
+            Using response As Net.HttpWebResponse = CType(request.GetResponse(), Net.HttpWebResponse)
+                Return response.StatusCode = Net.HttpStatusCode.OK
+            End Using
+        Catch ex As Exception
+            ' Optionally log the exception for debugging
+            ' LogError("Error checking URL existence: " & ex.Message)
+            Return False
+        End Try
+    End Function
+    Public Shared Function LoadImageFromUrl(ByVal imageUrl As String) As Image
+        Dim img As Image = Nothing
+
+        Try
+            ServicePointManager.SecurityProtocol = CType(3072, SecurityProtocolType) ' TLS 1.2
+
+            Dim webClient As New WebClient()
+            Dim imageBytes() As Byte = webClient.DownloadData(imageUrl)
+
+            Using ms As New IO.MemoryStream(imageBytes)
+                img = Image.FromStream(ms)
+            End Using
+
+        Catch ex As Exception
+            ' Handle any exceptions (e.g., logging)
+        End Try
+
+        Return img
+    End Function
+    Public Shared Function fctGetValue(ByVal strSQL2 As String, ByVal strField As String) As String
+        Dim cmd As SqlCommand
+        Dim dr As SqlDataReader
+        fctGetValue = ""
+        Try
+            cmd = New SqlCommand(strSQL2, MySQLConn)
+            dr = cmd.ExecuteReader()
+            If dr.Read Then
+                fctGetValue = CType(dr.Item(strField), String)
+            End If
+            cmd.Dispose()           'Close to be able to use Connection Again in Loadlist
+            dr.Close()              'Close to be able to use Connection Again in Loadlist
+
+        Catch err As SqlException
+            ''MsgBox(err.Message, MsgBoxStyle.Critical, "SQL Error")
+
+        Catch err As Exception
+            ''MsgBox(err.Message, MsgBoxStyle.Critical, "General Error")
+        End Try
+
+    End Function
+
+    Public Shared Function fctExecuteQuery(ByVal strStatement As String) As Long
+        Dim cmd As SqlCommand
+        Try
+            cmd = New SqlCommand(strStatement, MySQLConn)
+            cmd.ExecuteNonQuery()
+            cmd.Dispose()
+        Catch err As SqlException
+            ''MsgBox(err.Message, MsgBoxStyle.Critical, "SQL Error")
+
+        Catch err As Exception
+            ' ''MsgBox(err.Message, MsgBoxStyle.Critical, "General Error")
+        End Try
+    End Function
+    Public Shared Function fctTableExist(ByVal strTableName As String) As Boolean
+        Dim cmd As SqlCommand
+        Dim strSQL As String
+        Dim dr As SqlDataReader
+        Try
+            fctTableExist = False
+            strSQL = "SELECT * from sysobjects where Name = '" & strTableName & "'"
+            cmd = New SqlCommand(strSQL, MySQLConn)
+            dr = cmd.ExecuteReader()
+            If dr.Read Then
+                fctTableExist = True
+            End If
+            cmd.Dispose()
+            dr.Close()
+        Catch err As SqlException
+            fctTableExist = False
+
+        Catch err As Exception
+            fctTableExist = False
+        End Try
+    End Function
+    Public Shared Function fctSqlReady(ByVal strX As String) As String
+
+        strX = Replace(strX, "'", "''")
+        strX = Replace(strX, "%", "[%]")
+        fctSqlReady = strX
+
+    End Function
+
+    Public Shared Function fctGetMaxValue(ByVal strTableName As String, ByVal strFieldName As String) As String
+        Dim strsql As String = "SELECT " & strFieldName & _
+                                " FROM " & strTableName & _
+                                " WHERE (LEN(" & strFieldName & _
+                                ")=(SELECT MAX(LEN(" & strFieldName & _
+                                ")) FROM " & strTableName & "))"
+
+        'strSQL = "SELECT TOP (1) MAX(LEN(Number)) AS MaxText, Number " & _
+        '         "FROM(KitEgswRecipeList)" & _
+        '         "GROUP BY Number " & _
+        '         "ORDER BY MaxText DESC"
+
+        Dim cmd As SqlCommand
+        Dim dr As SqlDataReader
+        fctGetMaxValue = Nothing
+        Try
+            cmd = New SqlCommand(strsql, MySQLConn)
+            dr = cmd.ExecuteReader()
+            If dr.Read Then
+                fctGetMaxValue = CType(dr.Item(strFieldName), String)
+            End If
+            cmd.Dispose()           'Close to be able to use Connection Again in Loadlist
+            dr.Close()              'Close to be able to use Connection Again in Loadlist
+
+        Catch err As SqlException
+            ''MsgBox(err.Message, MsgBoxStyle.Critical, "SQL Error")
+
+        Catch err As Exception
+            ''MsgBox(err.Message, MsgBoxStyle.Critical, "General Error")
+        End Try
+
+    End Function
+
+    'RDTC Oct 24 2002
+    'Derived from same function in fmRecipe
+    'I decided to have multiple non-nested ifs because it looks simpler
+    'Also, Yield Unit can be different from the Sub Recipe Unit.
+    'Priority is KG, regardless if it is Yield Unit or Subrecipe unit
+    Public Shared Function fctGetRecipeNutrientFactor(ByVal bln_For1Yield As Boolean, ByVal lngYieldUnit As Long, ByVal lngSubRecipeUnit As Long, _
+    ByVal dblSrQty As Double, ByVal lngSrLevel As Long, ByVal KiloCode As Long, ByVal LiterCode As Long) As Double
+
+        Dim dblNutFactor As Double
+        Dim blnFactorComputed As Boolean
+        Dim i As Integer                    'RDTC Jan 14 2004
+        Dim dblUnitfactor As Double         'RDTC Jan 14 2004
+        Dim lngMainUnitCode As Double       'RDTC Jan 14 2004
+
+        blnFactorComputed = False
+        dblNutFactor = -1
+
+        '    If lngSrLevel < 1 Then Exit Function
+
+        For i = 1 To MAXUNIT
+            If lngSubRecipeUnit = G_Unit(i).Code Then
+                dblUnitfactor = G_Unit(i).Factor
+            End If
+        Next
+
+        lngMainUnitCode = fctGetUnitMainCode(lngSubRecipeUnit)
+
+        If bln_For1Yield Then
+            dblNutFactor = 1
+        Else
+            If lngYieldUnit = KiloCode Then
+                'yield unit is Kilo
+                dblNutFactor = 10
+                blnFactorComputed = True
+            End If
+
+            If lngMainUnitCode = KiloCode And dblSrQty <> 0 Then ''And Not blnFactorComputed Then
+                'sub recipe unit is kilo
+                dblNutFactor = dblSrQty * 10 * dblUnitfactor
+                blnFactorComputed = True
+            End If
+
+            If lngYieldUnit = LiterCode And Not blnFactorComputed Then
+                'yield unit is Liter
+                dblNutFactor = 10
+                blnFactorComputed = True
+            End If
+
+            If lngMainUnitCode = LiterCode And dblSrQty <> 0 And Not blnFactorComputed Then
+                'sub recipe unit is liter
+                dblNutFactor = dblSrQty * 10 * dblUnitfactor
+                blnFactorComputed = True
+            End If
+        End If
+
+        fctGetRecipeNutrientFactor = dblNutFactor
+    End Function
+    '*********************************************************************
+    ' Get Unit Code based on Unit Type
+    '*********************************************************************
+    Public Shared Function fctGetUnitCodeFromType(ByVal UnitType As Long) As Long
+        Dim i As Integer
+
+        fctGetUnitCodeFromType = 0
+
+        For i = 1 To MAXUNIT
+            If G_Unit(i).Code = -1 Then Exit For
+            If G_Unit(i).Type = UnitType Then
+                fctGetUnitCodeFromType = G_Unit(i).Code
+                Exit Function
+            End If
+        Next
+
+    End Function
+    Public Shared Function fctGetUnitMainCode(ByVal UnitCode As Long) As Long
+        Dim lngMainType As Long
+
+        fctGetUnitMainCode = 0
+
+        If UnitCode <> -1 Then
+            lngMainType = fctGetUnitMainType(UnitCode)
+            fctGetUnitMainCode = fctGetUnitCodeFromType(lngMainType)
+        End If
+    End Function
+    Public Shared Function fctGetUnitMainType(ByVal UnitCode As Long) As Long
+        Dim i As Integer
+
+        fctGetUnitMainType = 0
+
+        For i = 1 To MAXUNIT
+            If G_Unit(i).Code = -1 Then Exit For
+            If G_Unit(i).Code = UnitCode Then
+                fctGetUnitMainType = G_Unit(i).TypeMain
+                Exit Function
+            End If
+        Next
+
+    End Function
+
+    Public Shared Function fctStrNutrientValue(ByVal dblNutrient As Double, ByVal strFormat As String, _
+    ByVal intNutrientQty As Integer, ByVal dblNutrientFactor As Double, ByVal strNA As String) As String
+
+        Dim strX As String
+
+        strX = ""
+
+        If dblNutrient >= 0 Then
+            Select Case intNutrientQty
+                Case 0
+                    strX = Format(dblNutrient, strFormat)
+                Case 1
+                    If dblNutrientFactor <> -1 And dblNutrientFactor <> 0 Then
+                        strX = Format(dblNutrient / dblNutrientFactor, strFormat)
+                    Else
+                        strX = strNA
+                    End If
+                Case 2
+                    strX = Format(dblNutrient, strFormat)
+
+                    If dblNutrientFactor <> -1 And dblNutrientFactor <> 0 Then
+                        strX = strX & "/" & Format(dblNutrient / dblNutrientFactor, strFormat)
+                    Else
+                        strX = strX & "/" & strNA
+                    End If
+            End Select
+        End If
+
+        fctStrNutrientValue = strX
+        Exit Function
+
+Err_Format:
+        fctStrNutrientValue = strOriginal
+        'MsgBox(FTB(132577) & " " & Err.Number)
+        Resume Next
+    End Function
+    Public Shared Sub subGetPriceDisplay(ByVal dr As DataRowView, ByVal strUnitTypeMain As String, _
+    ByVal strMetricPriceDisplay As String, ByVal strMetricPrice As String, ByVal strMetric As String, _
+    ByVal strUnitPriceName As String, ByVal strUnitDisplayName As String, ByVal strFactor As String, _
+    ByVal dblFactor As Double, ByVal strDisplayUnit As String, ByVal lngDisplayUnit As Long, Optional ByVal intTranslation As Integer = 0)
+
+        Dim lngNewUnitType As Long
+        dblFactor = 1
+        If dr(strUnitTypeMain) = 100 Or dr(strUnitTypeMain) = 200 Then        'Kg or Liter
+            'if Ingredient unit is imperial, display price in imperial; if metric then display in metric
+            If Not IsDBNull(dr(strMetricPriceDisplay)) Then
+                If dr(strMetricPriceDisplay) = dr(strMetric) Then
+                    'the units of the price and that of the ingredient are the same
+                    'assign main unit as display unit first; this shouldnt be necessary but just in case not all stored procedures affecting the add/edit of RnListePrice is updated
+                    If Not IsDBNull(dr(strUnitPriceName)) Then G_strDisplayUnit = dr(strUnitPriceName)
+                    If Not IsDBNull(dr(strUnitDisplayName)) Then G_strDisplayUnit = dr(strUnitDisplayName)
+                    If Not IsDBNull(dr(strFactor)) Then G_dblFactor = dr(strFactor) 'Factor between big unit and display unit
+                Else
+                    'units not the same; use the type (imperial/metric) of the ingredient
+                    If dr(strUnitTypeMain) = 100 Then
+                        lngNewUnitType = IIf(dr(strMetric), 100, 110)
+                    Else
+                        lngNewUnitType = IIf(dr(strMetric), 200, 210)
+                    End If
+
+                    G_strDisplayUnit = fctGetUnitNameFromType(lngNewUnitType)
+                    G_dblFactor = fctGetUnitFactorFromType(lngNewUnitType)
+                    'lngDisplayUnit = fctGetUnitCodeFromType(lngNewUnitType)
+
+                End If
+            Else
+                If IsDBNull(dr(strMetricPrice)) And IsDBNull(dr(strMetric)) Then
+                    If Not IsDBNull(dr(strUnitPriceName)) Then G_strDisplayUnit = dr(strUnitPriceName)
+                    If Not IsDBNull(dr(strUnitDisplayName)) Then G_strDisplayUnit = dr(strUnitDisplayName)
+                    If Not IsDBNull(dr(strFactor)) Then G_dblFactor = dr(strFactor) 'Factor between big unit and display unit
+                Else
+                    If (dr(strMetricPrice) = dr(strMetric)) Then
+                        'the units of the price and that of the ingredient are the same
+                        'assign main unit as display unit first; this shouldnt be necessary but just in case not all stored procedures affecting the add/edit of RnListePrice is updated
+                        If Not IsDBNull(dr(strUnitPriceName)) Then G_strDisplayUnit = dr(strUnitPriceName)
+                        If Not IsDBNull(dr(strUnitDisplayName)) Then G_strDisplayUnit = dr(strUnitDisplayName)
+                        If Not IsDBNull(dr(strFactor)) Then G_dblFactor = dr(strFactor) 'Factor between big unit and display unit
+                    Else
+                        'units not the same; use the type (imperial/metric) of the ingredient
+                        G_strDisplayUnit = fctGetUnitNameFromType(dr(strUnitTypeMain))
+                        G_dblFactor = fctGetUnitFactorFromType(dr(strUnitTypeMain))
+                        'lngDisplayUnit = fctGetUnitCodeFromType(lngNewUnitType)
+                    End If
+                End If
+            End If
+        Else
+            'assign main unit as display unit first; this shouldnt be necessary but just in case not all stored procedures affecting the add/edit of RnListePrice is updated
+            If Not IsDBNull(dr(strUnitPriceName)) Then G_strDisplayUnit = dr(strUnitPriceName)
+            If Not IsDBNull(dr(strUnitDisplayName)) Then G_strDisplayUnit = dr(strUnitDisplayName)
+            If Not IsDBNull(dr(strFactor)) Then G_dblFactor = dr(strFactor) 'Factor between big unit and display unit
+        End If
+
+        lngDisplayUnit = fctRnGetUnitCode(G_strDisplayUnit)
+        'If intTranslation > 0 Then
+        '    strDisplayUnit = fctGetUnitTranslation(lngDisplayUnit, intTranslation, strDisplayUnit)
+        'End If
+    End Sub
+
+    Public Shared Sub subGetPriceDisplay(ByVal row As DataRow, ByVal strUnitTypeMain As String, _
+        ByVal strMetricPriceDisplay As String, ByVal strMetricPrice As String, ByVal strMetric As String, _
+        ByVal strUnitPriceName As String, ByVal strUnitDisplayName As String, ByVal strFactor As String, _
+        ByVal dblFactor As Double, ByVal strDisplayUnit As String, ByVal lngDisplayUnit As Long, Optional ByVal intTranslation As Integer = 0)
+
+        Dim lngNewUnitType As Long
+        dblFactor = 1
+
+        G_strDisplayUnit = ""
+        G_dblFactor = 1
+        lngDisplayUnit = 0
+
+        If IsDBNull(row(strUnitTypeMain)) And IsDBNull(row(strUnitTypeMain)) Then Exit Sub
+
+        If row(strUnitTypeMain) = 100 Or row(strUnitTypeMain) = 200 Then        'Kg or Liter
+            'if Ingredient unit is imperial, display price in imperial; if metric then display in metric
+            If Not IsDBNull(row(strMetricPriceDisplay)) Then
+                If row(strMetricPriceDisplay) = row(strMetric) Then
+                    'the units of the price and that of the ingredient are the same
+                    'assign main unit as display unit first; this shouldnt be necessary but just in case not all stored procedures affecting the add/edit of RnListePrice is updated
+                    If Not IsDBNull(row(strUnitPriceName)) Then G_strDisplayUnit = row(strUnitPriceName)
+                    If Not IsDBNull(row(strUnitDisplayName)) Then G_strDisplayUnit = row(strUnitDisplayName)
+                    If Not IsDBNull(row(strFactor)) Then G_dblFactor = row(strFactor) 'Factor between big unit and display unit
+                Else
+                    'units not the same; use the type (imperial/metric) of the ingredient
+                    If row(strUnitTypeMain) = 100 Then
+                        lngNewUnitType = IIf(row(strMetric), 100, 110)
+                    Else
+                        lngNewUnitType = IIf(row(strMetric), 200, 210)
+                    End If
+
+                    G_strDisplayUnit = fctGetUnitNameFromType(lngNewUnitType)
+                    G_dblFactor = fctGetUnitFactorFromType(lngNewUnitType)
+                    'lngDisplayUnit = fctGetUnitCodeFromType(lngNewUnitType)
+
+                End If
+            Else
+                If IsDBNull(row(strMetricPrice)) Or IsDBNull(row(strMetric)) Then
+                    If Not IsDBNull(row(strUnitPriceName)) Then G_strDisplayUnit = row(strUnitPriceName)
+                    If Not IsDBNull(row(strUnitDisplayName)) Then G_strDisplayUnit = row(strUnitDisplayName)
+                    If Not IsDBNull(row(strFactor)) Then G_dblFactor = row(strFactor) 'Factor between big unit and display unit
+                Else
+                    If (row(strMetricPrice) = row(strMetric)) Then
+                        'the units of the price and that of the ingredient are the same
+                        'assign main unit as display unit first; this shouldnt be necessary but just in case not all stored procedures affecting the add/edit of RnListePrice is updated
+                        If Not IsDBNull(row(strUnitPriceName)) Then G_strDisplayUnit = row(strUnitPriceName)
+                        If Not IsDBNull(row(strUnitDisplayName)) Then G_strDisplayUnit = row(strUnitDisplayName)
+                        If Not IsDBNull(row(strFactor)) Then G_dblFactor = row(strFactor) 'Factor between big unit and display unit
+                    Else
+                        'units not the same; use the type (imperial/metric) of the ingredient
+                        G_strDisplayUnit = fctGetUnitNameFromType(row(strUnitTypeMain))
+                        G_dblFactor = fctGetUnitFactorFromType(row(strUnitTypeMain))
+                        'lngDisplayUnit = fctGetUnitCodeFromType(lngNewUnitType)
+                    End If
+                End If
+            End If
+        Else
+            'assign main unit as display unit first; this shouldnt be necessary but just in case not all stored procedures affecting the add/edit of RnListePrice is updated
+            If Not IsDBNull(row(strUnitPriceName)) Then G_strDisplayUnit = row(strUnitPriceName)
+            If Not IsDBNull(row(strUnitDisplayName)) Then G_strDisplayUnit = row(strUnitDisplayName)
+            If Not IsDBNull(row(strFactor)) Then G_dblFactor = row(strFactor) 'Factor between big unit and display unit
+        End If
+
+        lngDisplayUnit = fctRnGetUnitCode(G_strDisplayUnit)
+        'If intTranslation > 0 Then
+        '    strDisplayUnit = fctGetUnitTranslation(lngDisplayUnit, intTranslation, strDisplayUnit)
+        'End If
+    End Sub
+
+    Public Shared Function fctGetUnitNameFromType(ByVal UnitType As Long) As String
+        Dim i As Integer
+
+        fctGetUnitNameFromType = "Kg"
+
+        For i = 1 To MAXUNIT
+            If G_Unit(i).Code = -1 Then Exit For
+            If G_Unit(i).Type = UnitType Then
+                fctGetUnitNameFromType = G_Unit(i).Name
+                Exit Function
+            End If
+        Next
+    End Function
+
+    Public Shared Function fctGetUnitFactorFromType(ByVal UnitType As Long) As Double
+        Dim i As Integer
+
+        fctGetUnitFactorFromType = 0
+
+        For i = 1 To MAXUNIT
+            If G_Unit(i).Code = -1 Then Exit For
+            If G_Unit(i).Type = UnitType Then
+                fctGetUnitFactorFromType = G_Unit(i).Factor
+                Exit Function
+            End If
+        Next
+    End Function
+
+    '*********************************************************************
+    ' Get UnitCode based on Unit Name
+    '*********************************************************************
+    Public Shared Function fctRnGetUnitCode(ByVal UnitName As String) As Long
+        Dim i As Integer
+
+        fctRnGetUnitCode = -1
+
+        If Trim(UnitName) = "" Then
+            For i = 1 To MAXUNIT
+                If G_Unit(i).Type = 0 Then
+                    fctRnGetUnitCode = G_Unit(i).Code
+                    Exit For
+                End If
+            Next
+        Else
+            UnitName = " " & Trim(UnitName) & " "
+            For i = 1 To MAXUNIT
+                If InStr(1, UCase(G_Unit(i).AutoConversion), UCase(UnitName)) Then
+                    fctRnGetUnitCode = G_Unit(i).Code
+                    Exit Function
+                End If
+            Next
+
+        End If
+    End Function
+
+    Public Shared Function fctMakeXRLabel(ByVal strText As String, ByVal fntFont As Drawing.Font, _
+                        ByVal intX As Integer, ByVal intY As Integer, _
+                        ByVal intSizeX As Integer, ByVal intSizeY As Integer, _
+                        ByVal DEAllignment As DevExpress.XtraPrinting.TextAlignment, _
+                        Optional ByVal bMultiline As Boolean = False, _
+                        Optional ByVal bBorders As DevExpress.XtraPrinting.BorderSide = DevExpress.XtraPrinting.BorderSide.None, _
+                        Optional ByVal bCanGrow As Boolean = False, _
+                        Optional ByVal bWidthBackColor As Boolean = False, _
+                        Optional ByVal intBorderWidth As Integer = 1, Optional ByVal strColor As String = "", _
+                        Optional ByVal bBackColorManor As Boolean = False, _
+                        Optional ByVal intBackColorOption As Integer = 0, _
+                        Optional ByVal bKeepTogether As Boolean = True, _
+                        Optional ByVal b254Dpi As Boolean = False, _
+                        Optional ByVal freColor As Integer = 0) As DevExpress.XtraReports.UI.XRLabel
+
+        'If Not strText Is Nothing Then strText = strText.Replace(vbCrLf & vbCrLf, vbCrLf)
+        Dim XRLabel As New DevExpress.XtraReports.UI.XRLabel
+        With XRLabel
+            .Font = fntFont
+            .Location = New System.Drawing.Point(intX, intY)
+
+            If b254Dpi Then
+                .Dpi = 254.0!
+            End If
+            If G_ReportOptions.flagNoLines And bBorders = DevExpress.XtraPrinting.BorderSide.Top Then 'DLS Sept142007
+                bBorders = DevExpress.XtraPrinting.BorderSide.None
+            End If
+
+            If bWidthBackColor Then
+                Select Case intBackColorOption
+                    Case 0
+                        If Not bBackColorManor Then
+                            .BackColor = Drawing.Color.LightGray
+                            .ParentStyleUsing.UseBackColor = False
+                            .Borders = DevExpress.XtraPrinting.BorderSide.Top
+                        Else 'VRP 21.11.2007
+                            .BackColor = Drawing.Color.Red
+                            .ParentStyleUsing.UseBackColor = False
+                            .Borders = DevExpress.XtraPrinting.BorderSide.None
+                        End If
+                    Case 1 'black
+                        .BackColor = Drawing.Color.Black
+                        .ParentStyleUsing.UseBackColor = False
+                    Case 2
+                        .BackColor = Drawing.Color.WhiteSmoke
+                        .ParentStyleUsing.UseBackColor = False
+                    Case 3
+                        .BackColor = Drawing.Color.LightGray
+                        .ParentStyleUsing.UseBackColor = False
+                End Select
+            End If
+
+            If strColor.ToLower = "red" Then 'DLS Sept142007
+                .ForeColor = Drawing.Color.Red
+            ElseIf strColor.ToLower = "white" Then 'VRP 05.06.2008
+                .ForeColor = Drawing.Color.White
+            ElseIf strColor.ToLower = "gray" Then
+                .ForeColor = Drawing.Color.Gray
+            End If
+
+            .Name = "XRLabel"
+            .Text = strText
+            .ParentStyleUsing.UseFont = False
+            .ParentStyleUsing.UseBorders = True
+            .CanGrow = False
+            .Size = New Drawing.Size(intSizeX, intSizeY)
+            .Borders = bBorders
+            .BorderWidth = intBorderWidth
+            If freColor = 1 Then
+                .ForeColor = Drawing.Color.Red
+            End If
+
+
+            If bCanGrow Then .CanGrow = True
+            .CanShrink = True
+
+            .TextAlignment = DEAllignment
+            .Multiline = bMultiline
+            .WordWrap = True
+            .KeepTogether = bKeepTogether
+        End With
+
+        Return XRLabel
+    End Function
+
+    Public Shared Function fctMakeXrLabel2(ByVal strText As String, ByVal fntFont As Drawing.Font, _
+                                           ByVal TextColor As Drawing.Color, ByVal BackColor As Drawing.Color, _
+                                           ByVal intX As Integer, ByVal intY As Integer, _
+                                           ByVal intSizeX As Integer, ByVal intSizeY As Integer, _
+                                           ByVal DEAllignment As DevExpress.XtraPrinting.TextAlignment, _
+                                           Optional ByVal blnCanGrow As Boolean = False, Optional ByVal blnMultiline As Boolean = False, _
+                                           Optional ByVal blnKeepTogether As Boolean = False) As DevExpress.XtraReports.UI.XRLabel 'VRP 04.07.2008
+
+
+
+        Dim XRLabel As New DevExpress.XtraReports.UI.XRLabel
+        With XRLabel
+            .Name = "XrLabel"
+            .Font = fntFont
+
+            .ForeColor = TextColor
+            .BackColor = BackColor
+
+            .Size = New Drawing.Size(intSizeX, intSizeY)
+            .Location = New System.Drawing.Point(intX, intY)
+            .Text = strText
+            .CanGrow = blnCanGrow
+            .TextAlignment = DEAllignment
+            .Multiline = blnMultiline
+            .WordWrap = True
+            .KeepTogether = blnKeepTogether
+
+        End With
+        Return XRLabel
+    End Function
+
+    Public Shared Function fctMakeXrLabel3(ByVal strText As String, ByVal fntFont As System.Drawing.Font, _
+                                           ByVal TextColor As System.Drawing.Color, ByVal BackColor As System.Drawing.Color, _
+                                           ByVal intX As Integer, ByVal intY As Integer, _
+                                           ByVal intSizeX As Integer, ByVal intSizeY As Integer, _
+                                           Optional ByVal DEAllignment As DevExpress.XtraPrinting.TextAlignment = DevExpress.XtraPrinting.TextAlignment.TopLeft, _
+                                           Optional ByVal blnCanGrow As Boolean = False, Optional ByVal blnMultiline As Boolean = False, _
+                                           Optional ByVal blnKeepTogether As Boolean = False) As DevExpress.XtraReports.UI.XRLabel 'VRP 04.07.2008
+        Dim XRLabel1 As New DevExpress.XtraReports.UI.XRLabel
+        With XRLabel1
+            .Dpi = 254.0!
+            .Name = "XrLabel1"
+            .Font = fntFont
+
+            .ForeColor = TextColor
+            .BackColor = BackColor
+
+            .Size = New System.Drawing.Size(intSizeX, intSizeY)
+            .Location = New System.Drawing.Point(intX, intY)
+            .Text = strText
+            .CanGrow = True
+            .CanShrink = False
+            .TextAlignment = DEAllignment
+            .Multiline = blnMultiline
+            .WordWrap = True
+            .KeepTogether = blnKeepTogether
+
+        End With
+
+
+
+        Return XRLabel1
+    End Function
+
+    Public Shared Function fctMakeTableCell(ByVal strText As String, ByVal fntFont As Drawing.Font, _
+                        ByVal intX As Integer, ByVal intY As Integer, _
+                        ByVal intSizeX As Integer, ByVal intSizeY As Integer, _
+                        Optional ByVal bBorders As DevExpress.XtraPrinting.BorderSide = DevExpress.XtraPrinting.BorderSide.None) As DevExpress.XtraReports.UI.XRTableCell
+        Dim xrTCell As New DevExpress.XtraReports.UI.XRTableCell
+        With xrTCell
+            .Font = fntFont
+            .Location = New System.Drawing.Point(intX, intY)
+            .Name = "XTCell"
+            .TextAlignment = DevExpress.XtraPrinting.TextAlignment.MiddleLeft
+            .ParentStyleUsing.UseFont = False
+            '.Borders = bBorders
+
+            '.ParentStyleUsing.UseBorders = False
+            .Size = New Drawing.Size(intSizeX, intSizeY)
+            .Text = strText
+        End With
+        Return xrTCell
+    End Function
+
+    Public Shared Function fctGetLongerSubstring(ByVal strText As String) As String
+        Dim strTemp(0 To 2) As String
+
+        strTemp(0) = strText
+        If InStr(1, strTemp(0), vbCrLf) Then
+            strTemp(1) = Mid(strTemp(0), 1, InStr(1, strTemp(0), vbCrLf))
+            strTemp(2) = Mid(strTemp(0), InStr(1, strTemp(0), vbCrLf) + 1, Len(strTemp(0)))
+            If Len(strTemp(1)) > Len(strTemp(2)) Then
+                strTemp(0) = strTemp(1)
+            Else
+                strTemp(0) = strTemp(2)
+            End If
+        End If
+
+        fctGetLongerSubstring = strTemp(0)
+    End Function
+
+
+    Public Shared Function fctConvertDate(ByVal strDate As String) As String
+        Try
+            Return Format(CDate(strDate), G_strDateFormat)
+        Catch ex As Exception
+            Return strDate
+        End Try
+    End Function
+
+    Public Shared Function fctFormatNumericQuantity(ByVal dblQty As Double, ByVal strFormat As String, _
+    ByVal blnRemoveTrailingZeros As Boolean, Optional ByVal intDisplayAsFraction As Integer = 0) As String
+        Dim strQty As String
+        Dim dblWhole As Double
+        Dim dblDecimal As Double
+        Dim strWhole As String = Nothing
+        Dim strDecimal As String
+        Dim strTemp As String
+        Dim lngWhole As Integer
+        Dim i As Integer
+        Dim strOriginal As String
+        'Dim dblWhole As Double
+
+        On Error GoTo Err_Format
+        strQty = Format(dblQty, strFormat)
+        strOriginal = strQty
+
+        If intDisplayAsFraction = 1 Then
+            strQty = fctConvertToFraction(dblQty) '// DRR 07.10.2012 removed comment
+        Else
+            If blnRemoveTrailingZeros Then
+                'lngWhole = CLng(Int(strQty))
+                dblWhole = CDbl(Int(strQty))
+
+                For i = 1 To Len(strQty)
+                    strTemp = Mid(strQty, 1, i)
+
+                    If IsNumeric(strTemp) Then
+                        'If CLng(strTemp) = lngWhole Then
+                        If CDbl(strTemp) = dblWhole Then
+                            strWhole = strTemp
+                            Exit For
+                        End If
+                    End If
+                Next
+
+                strDecimal = Replace(strQty, strWhole, "", 1, 1)
+                Do While VB.Right(strDecimal, 1) = "0"
+                    strDecimal = VB.Left(strDecimal, Len(strDecimal) - 1)
+                Loop
+
+                strQty = strWhole & strDecimal
+            End If
+
+            If VB.Right(strQty, 1) = "." Then strQty = VB.Left(strQty, Len(strQty) - 1)
+            If VB.Right(strQty, 1) = "," Then strQty = VB.Left(strQty, Len(strQty) - 1)
+            If VB.Right(strQty, 1) = "'" Then strQty = VB.Left(strQty, Len(strQty) - 1)
+
+        End If
+
+        fctFormatNumericQuantity = strQty
+        Exit Function
+
+Err_Format:
+        fctFormatNumericQuantity = strOriginal
+        'MsgBox(FTB(132577) & " " & Err.Number)
+        Resume Next
+    End Function
+    Public Shared Function fctReplacePluralWithSingularUnit(ByVal strUnit) As String
+        'RDTC May 31 2004
+        Dim strX As String
+
+        strX = strUnit
+        Select Case G_Language
+            Case 1
+            Case 2
+            Case 3
+            Case 4
+                strX = Replace(strUnit, "porzioni", "porzione")
+        End Select
+
+        fctReplacePluralWithSingularUnit = strX
+
+    End Function
+
+
+    Public Shared Function fctConvertCoeff(ByVal dblCoeff As Double, ByVal typecoeff As Integer) As Double
+        Dim coeff As Double
+
+        If dblCoeff = 0 Then
+            fctConvertCoeff = 0
+            Exit Function
+        End If
+
+        Select Case typecoeff
+            Case 1 'gross profit
+                coeff = (1 - (1 / dblCoeff)) * 100
+            Case 2 'food cost
+                coeff = (1 / dblCoeff) * 100
+            Case Else
+                coeff = dblCoeff
+        End Select
+        fctConvertCoeff = coeff
+    End Function
+
+
+    Public Shared Function fctNumber2Text(ByVal Number As String) As String
+        'Exemple:  ".......234" ->  "234"    ou .=Chr&(1)
+        fctNumber2Text = Trim(Replace(Number, Chr(1), ""))
+    End Function
+
+    Public Shared Function fctGetTranslatedText(ByVal row As DataRow, ByVal strField1 As String, ByVal strField2 As String, ByVal intTranslation As Integer) As String
+        Dim strX1 As String = ""
+        Dim strX2 As String = ""
+
+        If Not IsDBNull(row(strField1)) Then
+            strX1 = Trim(row(strField1).ToString)
+        End If
+
+        If intTranslation > 0 Then
+            'AGL 2013.11.04 - removed OnError
+            'On Error Resume Next
+            Try
+                If row.Table.Columns.Contains(strField2) Then
+                    If Not IsDBNull(row(strField2)) Then
+                        strX2 = Trim(row(strField2).ToString)
+                        If strX2 <> "" Then strX1 = strX2
+                    End If
+                End If
+            Catch ex As Exception
+
+            End Try
+
+
+
+
+
+        End If
+
+        fctGetTranslatedText = strX1
+
+    End Function
+    Public Shared Function fctFirstCap(ByVal strX As String) As String
+        strX = Trim(strX)
+        If Len(strX) > 0 Then strX = UCase(Left$(strX, 1)) & Mid$(strX, 2)
+        fctFirstCap = strX
+    End Function
+    'Function fctGetUnitTranslation(ByVal lngUnit As Long, ByVal intTranslation As Integer, _
+    'ByVal strUnit As String) As String
+
+    '    Dim rsX As New ADODB.Recordset
+    '    Dim strSQL As String
+
+    '    fctGetUnitTranslation = strUnit
+
+    '    strSQL = " Select Name from RnUnit Where Code = " & lngUnit & _
+    '             " and CodeTrans = " & intTranslation & " and sOwner = " & User.AccountCode
+
+    '    If fctSelectSQL(strSQL, rsX) Then
+    '        If Not (rsX.EOF And rsX.BOF) Then
+    '            fctGetUnitTranslation = Trim(rsX!Name)
+    '        End If
+    '    End If
+
+    '    On Error Resume Next
+    '    rsX.Close()
+    '    rsX = Nothing
+
+    'End Function
+    Public Shared Function GetName() As String
+        Dim cConfig As New clsConfig(enumAppType.WebApp, l_strCnn)
+        Return cConfig.GetConfig(clsConfig.CodeUser.[global], clsConfig.enumNumeros.UISiteName, clsConfig.CodeGroup.[global], "")
+    End Function
+
+End Class

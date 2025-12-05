@@ -1,0 +1,1252 @@
+﻿Imports System
+Imports System.Web
+Imports System.Collections.Generic
+Imports System.Linq
+Imports AttributeRouting.Web.Http
+Imports System.Data.SqlClient
+Imports System.Web.Script.Serialization
+Imports log4net
+Imports System.Threading
+Imports System.Drawing
+Imports System.IO
+Imports Newtonsoft.Json
+Imports System.Net
+Imports Microsoft.AspNetCore.Mvc
+
+
+Namespace CalcmenuAPI
+    Public Class SearchController
+        Inherits ControllerBase
+        Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType)
+
+        '  <HttpPost> _
+        '<[POST]("api/search/recipe")> _
+        '  Public Function SearchRecipe(data As Models.SearchRecipeData, Optional take As Integer = 10, Optional skip As Integer = 0) As Models.ResponseGenericSearch
+
+        '      ' Validation
+        '      If data Is Nothing Then
+        '          Throw (New ArgumentNullException("SEARCH data is empty"))
+        '      End If
+
+        '      Try
+        '          Dim keyword As New ArrayList
+        '          Dim nameFilter As Boolean = True
+        '          If Not data.keyword Is Nothing Then
+        '              If data.keyword.value.ToArray.Length > 0 Then
+        '                  For Each keys In data.keyword.value.ToArray()
+        '                      keyword.Add(keys.code)
+        '                  Next
+        '              End If
+        '          End If
+
+        '          Dim ds As New DataSet
+        '          Using cmd As New SqlCommand
+        '              With cmd
+        '                  Using cn As New SqlConnection(ConnectionString)
+        '                      Try
+
+        '                          .Connection = cn
+        '                          .CommandType = CommandType.StoredProcedure
+        '                          .CommandText = "[dbo].[API_SEARCH_RECIPE]"
+        '                          .Parameters.Add("@nvcName", SqlDbType.NVarChar).Value = data.name.value
+        '                          If keyword.Count > 0 Then
+        '                              .Parameters.Add("@nvcKeyword", SqlDbType.NVarChar).Value = String.Join(",", keyword.ToArray())
+        '                          End If
+        '                          .Parameters.Add("@nvcNumber", SqlDbType.NVarChar).Value = data.number.value
+        '                          .Parameters.Add("@tntNumberFilter", SqlDbType.Int).Value = data.number.modifier
+        '                          .Parameters.Add("@blnByName", SqlDbType.Bit).Value = data.name.fullText
+        '                          .Parameters.Add("@blIsAnd", SqlDbType.Bit).Value = data.name.required
+        '                          .Parameters.Add("@intCategory", SqlDbType.Int).Value = data.category.value
+        '                          .Parameters.Add("@intCodeUser", SqlDbType.Int).Value = data.codeuser
+        '                          .Parameters.Add("@intCodeSite", SqlDbType.Int).Value = data.codesite
+        '                          .Parameters.Add("@intCodeTrans", SqlDbType.Int).Value = data.codetrans
+        '                          .Parameters.Add("@intCodeSetPrice", SqlDbType.Int).Value = data.codesetprice
+        '                          cn.Open()
+        '                          Dim _da As New SqlDataAdapter(cmd)
+        '                          _da.Fill(ds)
+        '                      Finally
+        '                          If Not cn Is Nothing Then
+        '                              cn.Close()
+        '                              CType(cn, IDisposable).Dispose()
+        '                          End If
+        '                      End Try
+        '                  End Using
+        '              End With
+        '          End Using
+
+        '          Dim recipes As New List(Of Models.GenericSearch)
+        '          For Each r In ds.Tables(0).Rows
+        '              recipes.Add(New Models.GenericSearch With {
+        '                              .code = GetInt(r("Code")), _
+        '                              .Name = GetStr(r("Name")), _
+        '                              .subname = GetStr(r("SubName")), _
+        '                              .number = GetStr(r("Number")), _
+        '                              .primarybrand = GetStr(r("PrimaryBrand")), _
+        '                              .secondarybrand = GetStr(r("SecondaryBrand")), _
+        '                              .recipeStatus = GetStr(r("RecipeStatus")), _
+        '                              .image = GetBool(r("ImageDisplay")), _
+        '                              .dateCreated = GetDate(r("DateCreated")), _
+        '                              .CheckoutUser = GetInt(r("Checkoutuser"))})
+        '          Next
+
+
+        '          'RBAJ-2013.12.10 Fixed paging
+        '          Dim totalCount As Integer = recipes.Count
+        '          take = IIf(take > totalCount + 1, totalCount, take) ' Prevent overflow of take
+        '          take = IIf(take <= 0, 1, take) ' Prevent overflow of take
+        '          Dim totalPages As Integer = Math.Ceiling(totalCount / take)
+        '          skip = IIf(skip > totalPages, totalPages, skip) ' Prevent overflow of skip
+        '          skip = IIf(skip < 1, 0, skip) ' Prevent overflow of skip
+
+        '          Return New Models.ResponseGenericSearch(recipes.Skip(take * skip).Take(take).ToList, totalCount)
+
+        '      Catch ex As Exception
+        '          Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+        '          Throw New HttpResponseException(GenericErrorResponse(ex.ToString(), HttpStatusCode.InternalServerError, 500))
+        '      End Try
+
+        '  End Function
+
+        <HttpGet> _
+        <[GET]("api/search/recipe")> _
+        Public Function SearchRecipe(Optional codeuser As Integer = 0, Optional codesite As Integer = -1, Optional codetrans As Integer = 0, _
+                                     Optional codesetprice As Integer = -1, Optional codeset As Integer = 0, Optional namefilter As Integer = 0, _
+                                     Optional name As String = "", Optional treeview As Boolean = False, Optional codeliste As Long = -1, Optional getRecipeLink As Boolean = False) As Object
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+
+                                .Connection = cn
+                                .CommandTimeout = 500
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_SEARCH_RECIPE]"
+                                .Parameters.Add("@listview", SqlDbType.Int).Value = 2
+                                .Parameters.Add("@intType", SqlDbType.Int).Value = 8
+                                .Parameters.Add("@intCodeUser", SqlDbType.Int).Value = codeuser
+                                .Parameters.Add("@intCodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@intCodeTrans", SqlDbType.Int).Value = codetrans
+                                .Parameters.Add("@intCodeSetPrice", SqlDbType.Int).Value = codesetprice
+                                .Parameters.Add("@intCodeSet", SqlDbType.Int).Value = codeset
+                                .Parameters.Add("@codeliste", SqlDbType.Int).Value = codeliste
+                                .Parameters.Add("@intNameFilter", SqlDbType.Int).Value = namefilter
+                                .Parameters.Add("@nvcName", SqlDbType.NVarChar, 2000).Value = name
+                                .Parameters.Add("@getRecipeLinks", SqlDbType.Bit).Value = getRecipeLink
+
+
+
+                                cn.Open()
+                                Using dr As SqlDataReader = cmd.ExecuteReader()
+                                    dr.NextResult()
+                                    dr.NextResult()
+                                    If dr.HasRows Then
+                                        If treeview = False Then
+                                            Dim lists As New List(Of Models.GenericSearch)
+                                            While dr.Read
+                                                lists.Add(New Models.GenericSearch With {
+                                                                .code = GetInt(dr("Code")), _
+                                                                .Name = GetStr(dr("Name")), _
+                                                                .number = GetStr(dr("Number")), _
+                                                                .primarybrand = GetStr(dr("PrimaryBrand")), _
+                                                                .secondarybrand = GetStr(dr("SecondaryBrand")), _
+                                                                .recipeStatus = GetStr(dr("RecipeStatus")),
+                                                                .image = GetBool(dr("ImageDisplay")), _
+                                                                .picturename = GetStr(dr("PictureName")), _
+                                                                .nutrition = GetBool(dr("DisplayNutrition")), _
+                                                                .dateCreated = GetDate(dr("Dates")), _
+                                                                .category = GetStr(dr("Category")), _
+                                                                .owner = GetStr(dr("Owner")), _
+                                                                .yield = GetInt(dr("Yield")), _
+                                                                .yieldFormat = GetStr(dr("YieldFormat")), _
+                                                                .yieldName = GetStr(dr("YieldName")), _
+                                                                .source = GetStr(dr("Source")), _
+                                                                .unit = GetStr(dr("Yield")), _
+                                                                .status = GetStr(dr("Status")), _
+                                                                .calcPrice = GetDbl(dr("CalcPrice")), _
+                                                                .imposedPrice = GetDbl(dr("ImposedPrice")), _
+                                                                .CheckoutUser = GetInt(dr("Checkoutuser")), _
+                                                                .FoodCost = GetDbl(dr("FoodCost")), _
+                                                                .FoodCostPercent = GetDbl(dr("FoodCostPercent")), _
+                                                                .GrossMargin = GetDbl(dr("GrossMargin")), _
+                                                                .GrossMarginPercent = GetDbl(dr("GrossMarginPercent")), _
+                                                                .NetMargin = GetDbl(dr("NetMargin")), _
+                                                                .NetMarginPercent = GetDbl(dr("NetMarginPercent")), _
+                                                                .ImposedSellingPriceWOTax = GetDbl(dr("ImposedSellingPriceWOTax")), _
+                                                                .ImposedSellingPriceWTax = GetDbl(dr("ImposedSellingPriceWTax")), _
+                                                                .PIMFlag = GetInt(dr("PIMFlag")), _
+                                                                .DateTested = GetDate(dr("DateTested")), _
+                                                                .withTranslation = GetInt(dr("WithTranslation")), _
+                                                                .IsLocked = GetBool(dr("IsLocked"))
+                                                            })
+                                            End While
+
+
+                                            Return New Models.ResponseGenericSearch(lists.ToList, lists.Count)
+
+                                        Else
+                                            Dim recipes As New List(Of Models.GenericTree)
+                                            While dr.Read
+                                                recipes.Add(New Models.GenericTree With {
+                                                                .Code = GetInt(dr("Code")), _
+                                                                .Name = GetStr(dr("Name")), _
+                                                                .Number = GetStr(dr("Number")), _
+                                                                .ParentCode = GetInt(dr("ParentCode")), _
+                                                                .link = GetStr(dr("Link")), _
+                                                                .Flagged = GetBool(dr("Flag")), _
+                                                                .Note = GetStr(dr("Note"))})
+
+                                            End While
+
+
+                                            Dim recipelistdata As New List(Of Models.TreeNode)
+
+                                            Dim parents = recipes.Where(Function(obj) obj.ParentCode = Nothing).OrderBy(Function(obj) obj.Name).ToList()
+
+                                            For Each p In parents
+                                                If recipelistdata.Where(Function(obj) obj.key = p.Code).Count = 0 Then
+                                                    Dim parent As New Models.TreeNode
+                                                    parent.title = IIf(p.Number <> "", "[" & p.Number & "] - ", "") & p.Name
+                                                    parent.key = p.Code
+                                                    parent.icon = False
+                                                    parent.children = CreateChildren(recipes, p.Code)
+                                                    parent.selected = p.Flagged
+                                                    parent.parenttitle = p.ParentName
+                                                    parent.note = p.Note
+                                                    parent.link = p.link
+                                                    recipelistdata.Add(parent)
+                                                End If
+                                            Next
+
+                                            Return recipelistdata
+                                        End If
+                                    End If
+
+                                End Using
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse(ex.ToString(), HttpStatusCode.InternalServerError, 500))
+            End Try
+
+        End Function
+        <HttpPost> _
+        <[POST]("api/search/recipe")> _
+        Public Function SearchRecipeData(data As Models.Searchee) As Object
+            Try
+                Dim totalCount As Integer
+
+                Dim primarybrands As New ArrayList
+                Dim unwantedprimarybrands As New ArrayList
+                Dim secondarybrands As New ArrayList
+                Dim unwantedsecondarybrands As New ArrayList
+                Dim keywords As New ArrayList
+                Dim unwantedkeywords As New ArrayList
+                Dim allergens As New ArrayList
+                Dim unwantedallergens As New ArrayList
+                Dim kiosks As New ArrayList
+                Dim defformat As List(Of String) = New List(Of String)
+
+
+
+                If Not data.primarybrands Is Nothing Then
+                    If data.primarybrands.ToArray.Length > 0 Then
+                        For Each keys In data.primarybrands.ToArray()
+                            primarybrands.Add(keys.key)
+                        Next
+                    End If
+                End If
+                If Not data.unwantedprimarybrands Is Nothing Then
+                    If data.unwantedprimarybrands.ToArray.Length > 0 Then
+                        For Each keys In data.unwantedprimarybrands.ToArray()
+                            unwantedprimarybrands.Add(keys.key)
+                        Next
+                    End If
+                End If
+                If Not data.secondarybrands Is Nothing Then
+                    If data.secondarybrands.ToArray.Length > 0 Then
+                        For Each keys In data.secondarybrands.ToArray()
+                            secondarybrands.Add(keys.key)
+                        Next
+                    End If
+                End If
+                If Not data.unwantedsecondarybrands Is Nothing Then
+                    If data.unwantedsecondarybrands.ToArray.Length > 0 Then
+                        For Each keys In data.unwantedsecondarybrands.ToArray()
+                            unwantedsecondarybrands.Add(keys.key)
+                        Next
+                    End If
+                End If
+                If Not data.keywords Is Nothing Then
+                    If data.keywords.ToArray.Length > 0 Then
+                        For Each keys In data.keywords.ToArray()
+                            keywords.Add(keys.key)
+                        Next
+                    End If
+                End If
+                If Not data.unwantedkeywords Is Nothing Then
+                    If data.unwantedkeywords.ToArray.Length > 0 Then
+                        For Each keys In data.unwantedkeywords.ToArray()
+                            unwantedkeywords.Add(keys.key)
+                        Next
+                    End If
+                End If
+                If Not data.allergens Is Nothing Then
+                    If data.allergens.ToArray.Length > 0 Then
+                        For Each keys In data.allergens.ToArray()
+                            allergens.Add(keys.key)
+                        Next
+                    End If
+                End If
+                If Not data.unwantedallergens Is Nothing Then
+                    If data.unwantedallergens.ToArray.Length > 0 Then
+                        For Each keys In data.unwantedallergens.ToArray()
+                            unwantedallergens.Add(keys.key)
+                        Next
+                    End If
+                End If
+                If Not data.kiosks Is Nothing Then
+                    If data.kiosks.ToArray.Length > 0 Then
+                        For Each keys In data.kiosks.ToArray()
+                            kiosks.Add(keys.key)
+                        Next
+                    End If
+                End If
+                data.codetrans = data.language
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandTimeout = 500
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_SEARCH_RECIPE]"
+                                .Parameters.Add("@listview", SqlDbType.Int).Value = data.listview
+                                .Parameters.Add("@intType", SqlDbType.Int).Value = data.type
+                                .Parameters.Add("@intCodeUser", SqlDbType.Int).Value = data.codeuser
+                                .Parameters.Add("@intCodeSite", SqlDbType.Int).Value = data.codesite
+                                .Parameters.Add("@intCodeTrans", SqlDbType.Int).Value = data.codetrans
+                                .Parameters.Add("@intCodeSetPrice", SqlDbType.Int).Value = data.codesetprice
+                                .Parameters.Add("@intCodeSet", SqlDbType.Int).Value = data.codeset
+                                .Parameters.Add("@intNameFilter", SqlDbType.Int).Value = data.namefilter
+                                .Parameters.Add("@nvcName", SqlDbType.NVarChar, 2000).Value = data.name
+                                .Parameters.Add("@intNumberFilter", SqlDbType.Int).Value = data.numberfilter
+                                .Parameters.Add("@nvcNumber", SqlDbType.NVarChar, 2000).Value = data.number
+                                .Parameters.Add("@intPrimaryBrandsFilter", SqlDbType.Int).Value = data.primarybrandsfilter
+                                If primarybrands.Count > 0 Then
+                                    .Parameters.Add("@nvcPrimaryBrands", SqlDbType.NVarChar).Value = String.Join(",", primarybrands.ToArray())
+                                End If
+                                .Parameters.Add("@intUnwantedPrimaryBrandsFilter", SqlDbType.Int).Value = data.unwantedprimarybrandsfilter
+                                If unwantedprimarybrands.Count > 0 Then
+                                    .Parameters.Add("@nvcUnwantedPrimaryBrands", SqlDbType.NVarChar).Value = String.Join(",", unwantedprimarybrands.ToArray())
+                                End If
+                                .Parameters.Add("@intSecondaryBrandsFilter", SqlDbType.Int).Value = data.secondarybrandsfilter
+                                If secondarybrands.Count > 0 Then
+                                    .Parameters.Add("@nvcSecondaryBrands", SqlDbType.NVarChar).Value = String.Join(",", secondarybrands.ToArray())
+                                End If
+                                .Parameters.Add("@intUnwantedSecondaryBrandsFilter", SqlDbType.Int).Value = data.unwantedsecondarybrandsfilter
+                                If unwantedsecondarybrands.Count > 0 Then
+                                    .Parameters.Add("@nvcUnwantedSecondaryBrands", SqlDbType.NVarChar).Value = String.Join(",", unwantedsecondarybrands.ToArray())
+                                End If
+                                .Parameters.Add("@intKeywordsFilter", SqlDbType.Int).Value = data.keywordsfilter
+                                If keywords.Count > 0 Then
+                                    .Parameters.Add("@nvcKeywords", SqlDbType.NVarChar).Value = String.Join(",", keywords.ToArray())
+                                End If
+                                .Parameters.Add("@intUnwantedKeywordsFilter", SqlDbType.Int).Value = data.unwantedkeywordsfilter
+                                If unwantedkeywords.Count > 0 Then
+                                    .Parameters.Add("@nvcUnwantedKeywords", SqlDbType.NVarChar).Value = String.Join(",", unwantedkeywords.ToArray())
+                                End If
+                                .Parameters.Add("@intCategory", SqlDbType.Int).Value = data.category
+                                .Parameters.Add("@intRecipeStatus", SqlDbType.Int).Value = data.recipestatus
+                                .Parameters.Add("@intImage", SqlDbType.Int).Value = data.image
+                                .Parameters.Add("@intAllergensFilter", SqlDbType.Int).Value = data.allergensfilter
+                                If allergens.Count > 0 Then
+                                    .Parameters.Add("@nvcAllergens", SqlDbType.NVarChar).Value = String.Join(",", allergens.ToArray())
+                                End If
+                                .Parameters.Add("@intUnwantedAllergensFilter", SqlDbType.Int).Value = data.unwantedallergensfilter
+                                If unwantedallergens.Count > 0 Then
+                                    .Parameters.Add("@nvcUnwantedAllergens", SqlDbType.NVarChar).Value = String.Join(",", unwantedallergens.ToArray())
+                                End If
+                                .Parameters.Add("@bitWithoutAllergens", SqlDbType.Bit).Value = data.withoutallergens
+                                .Parameters.Add("@bitWithAtLeastOne", SqlDbType.Bit).Value = data.withatleastoneallergen
+                                .Parameters.Add("@intLanguage", SqlDbType.Int).Value = data.language
+                                .Parameters.Add("@bitVerified", SqlDbType.Bit).Value = data.verified
+                                .Parameters.Add("@intSource", SqlDbType.Int).Value = data.source
+                                .Parameters.Add("@intFilter", SqlDbType.Int).Value = data.selfilter
+                                .Parameters.Add("@intMarkItem", SqlDbType.Int).Value = data.markeditems
+                                .Parameters.Add("@intUsedAsIngredient", SqlDbType.Int).Value = data.usedasingredient
+                                .Parameters.Add("@intWantedIngredientsFilter", SqlDbType.NVarChar).Value = data.wantedmerchandisefilter
+                                .Parameters.Add("@nvcWantedIngredients", SqlDbType.NVarChar).Value = data.wantedmerchandise
+                                .Parameters.Add("@intUnwantedIngredientsFilter", SqlDbType.NVarChar).Value = data.unwantedmerchandisefilter
+                                .Parameters.Add("@nvcUnwantedIngredients", SqlDbType.NVarChar).Value = data.unwantedmerchandise
+                                .Parameters.Add("@intPriceType", SqlDbType.Int).Value = data.pricefilter
+                                .Parameters.Add("@intPriceOption", SqlDbType.Int).Value = data.priceoption
+                                'ECAM - 08.07.2015 To avoid conversion error when data.price1 and 2 are null
+                                If data.price1 <> "" Then
+                                    .Parameters.Add("@fltPrice1", SqlDbType.Float).Value = data.price1
+                                End If
+                                If data.price2 <> "" Then
+                                    .Parameters.Add("@fltPrice2", SqlDbType.Float).Value = data.price2
+                                End If
+                                .Parameters.Add("@intDateOption", SqlDbType.Int).Value = data.datefilter
+                                .Parameters.Add("@intPublication", SqlDbType.Int).Value = data.publication
+                                .Parameters.Add("@intPublicationDateOption", SqlDbType.Int).Value = data.publicationdatefilter 'AGL 2015.07.11 - changed to publicationdatefilter
+                                .Parameters.Add("@intKioskFilter", SqlDbType.Int).Value = data.kioskfilter
+                                .Parameters.Add("@skip", SqlDbType.Int).Value = data.skip
+                                .Parameters.Add("@rowsPerPage", SqlDbType.Int).Value = data.take
+                                If kiosks.Count > 0 Then
+                                    .Parameters.Add("@nvcKiosks", SqlDbType.NVarChar).Value = String.Join(",", kiosks.ToArray())
+                                End If
+
+                                '.Parameters.Add("@ListBehavior", SqlDbType.Int).Value = data.listBehavior   'RDTC 2015.11.10
+
+                                If Not (data.datefrom = DateTime.MinValue) Then .Parameters.Add("@dtsDate1", SqlDbType.DateTime).Value = GetDateOnly(data.datefrom)
+                                If Not (data.dateto = DateTime.MinValue) Then .Parameters.Add("@dtsDate2", SqlDbType.DateTime).Value = GetDateOnly(data.dateto)
+                                If Not (data.publicationdatefrom = DateTime.MinValue) Then .Parameters.Add("@dtsPublicationDate1", SqlDbType.DateTime).Value = GetDateOnly(data.publicationdatefrom)
+                                If Not (data.publicationdateto = DateTime.MinValue) Then .Parameters.Add("@dtsPublicationDate2", SqlDbType.DateTime).Value = GetDateOnly(data.publicationdateto)
+
+                                .Parameters.Add("@FullText", SqlDbType.Bit).Value = data.fulltext  'RDTC 2015.08.14
+                                .Parameters.Add("@InitialLoad", SqlDbType.Int).Value = data.initialLoad
+
+                                'NBG 2016.05.09 FILTER VITAMIX
+                                .Parameters.Add("@intTime", SqlDbType.Int).Value = data.time
+                                .Parameters.Add("@intTimesFilter", SqlDbType.Int).Value = data.timesfilter
+                                .Parameters.Add("@intDatesFilter", SqlDbType.Int).Value = data.datesfilter
+
+                                .Parameters.Add("@bitNotTranslated", SqlDbType.Bit).Value = data.nottranslated
+                                cn.Open()
+
+
+                                Using dr As SqlDataReader = cmd.ExecuteReader()
+                                    If dr.HasRows Then
+                                        While dr.Read
+                                            defformat.Add(GetStr(dr("format")).Trim)
+                                        End While
+                                        While defformat.Count < 34
+                                            defformat.Add("#,##0.0")
+                                        End While
+                                    End If
+
+                                    dr.NextResult()
+
+
+                                    If dr.HasRows Then
+                                        While dr.Read
+                                            totalCount = GetInt(dr("Total"))
+                                        End While
+                                    End If
+
+                                    dr.NextResult()
+                                    If dr.HasRows Then
+                                        If data.listview = ListeDisplayMode.List Then
+                                            Dim lists As New List(Of Models.GenericSearch)
+                                            While dr.Read
+                                                lists.Add(New Models.GenericSearch With {
+                                                    .code = GetInt(dr("Code")), _
+                                                    .Name = GetStr(dr("Name")), _
+                                                    .number = GetStr(dr("Number")), _
+                                                    .primarybrand = GetStr(dr("PrimaryBrand")), _
+                                                    .secondarybrand = GetStr(dr("SecondaryBrand")), _
+                                                    .recipeStatus = GetStr(dr("RecipeStatus")),
+                                                    .image = GetBool(dr("ImageDisplay")), _
+                                                    .picturename = GetStr(dr("PictureName")), _
+                                                    .nutrition = GetBool(dr("DisplayNutrition")), _
+                                                    .dateCreated = GetStr(dr("Dates")), _
+                                                    .category = GetStr(dr("Category")), _
+                                                    .owner = GetStr(dr("Owner")), _
+                                                    .yield = GetDbl(dr("Yield")), _
+                                                    .yieldFormat = GetStr(dr("YieldFormat")), _
+                                                    .priceFormat = GetStr(dr("PriceFormat")), _
+                                                    .yieldName = GetStr(dr("YieldName")), _
+                                                    .source = GetStr(dr("Source")), _
+                                                    .unit = GetStr(dr("YieldName")), _
+                                                    .status = GetStr(dr("Status")), _
+                                                    .calcPrice = GetDbl(dr("CalcPrice")), _
+                                                    .imposedPrice = GetDbl(dr("ImposedPrice")), _
+                                                    .Currency = GetStr(dr("Currency")), _
+                                                    .CheckoutUser = GetInt(dr("Checkoutuser")), _
+                                                    .FoodCost = GetDbl(dr("FoodCost")), _
+                                                    .FoodCostPercent = GetDbl(dr("FoodCostPercent")), _
+                                                    .GrossMargin = GetDbl(dr("GrossMargin")), _
+                                                    .GrossMarginPercent = GetDbl(dr("GrossMarginPercent")), _
+                                                    .NetMargin = GetDbl(dr("NetMargin")), _
+                                                    .NetMarginPercent = GetDbl(dr("NetMarginPercent")), _
+                                                    .ImposedSellingPriceWOTax = GetDbl(dr("ImposedSellingPriceWOTax")), _
+                                                    .ImposedSellingPriceWTax = GetDbl(dr("ImposedSellingPriceWTax")), _
+                                                    .PIMFlag = GetInt(dr("PIMFlag")), _
+                                                    .withTranslation = GetInt(dr("WithTranslation")), _
+                                                    .IsLocked = GetBool(dr("IsLocked"))
+                                                })
+                                            End While
+                                            Return New Models.ResponseGenericSearch(lists.ToList, totalCount)
+                                        ElseIf data.listview = ListeDisplayMode.Thumbnail Then
+                                            Dim lists As New List(Of Models.GenericSearch)
+                                            While dr.Read
+                                                lists.Add(New Models.GenericSearch With {
+                                                    .code = GetInt(dr("Code")), _
+                                                    .Name = GetStr(dr("Name")), _
+                                                    .number = GetStr(dr("Number")), _
+                                                    .picturename = GetStr(dr("PictureName")), _
+                                                    .IsLocked = GetBool(dr("IsLocked"))})
+                                            End While
+                                            Return New Models.ResponseGenericSearch(lists.ToList, totalCount)
+
+                                        ElseIf data.listview = ListeDisplayMode.AllergenView Then
+                                            Dim lists As New List(Of Models.GenericSearch)
+                                            While dr.Read
+                                                lists.Add(New Models.GenericSearch With {
+                                                    .code = GetInt(dr("Code")), _
+                                                    .Name = GetStr(dr("Name")), _
+                                                    .number = GetStr(dr("Number")), _
+                                                    .Contains = GetStr(dr("AllergenContain")), _
+                                                    .NonAllergens = GetStr(dr("AllergenNonAllergen")), _
+                                                    .CompleteAllergen = GetStr(dr("CompleteAllergen")), _
+                                                    .CheckoutUser = GetInt(dr("Checkoutuser")), _
+                                                    .IsLocked = GetBool(dr("IsLocked"))})
+                                            End While
+                                            Return New Models.ResponseGenericSearch(lists.ToList, totalCount)
+                                        ElseIf data.listview = ListeDisplayMode.NutrientView Then
+                                            Dim lists As New List(Of Models.NutrientList)
+                                            While dr.Read
+                                                lists.Add(New Models.NutrientList With {
+                                                    .code = GetInt(dr("Code")), _
+                                                    .Name = GetStr(dr("Name")), _
+                                                    .Number = GetStr(dr("Number")), _
+                                                    .N1_1 = Format(dr("N1_1"), defformat(0)), .N1_2 = Format(dr("N1_2"), defformat(0)), .N2 = Format(dr("N2"), defformat(1)), .N3 = Format(dr("N3"), defformat(2)), .N4 = Format(dr("N4"), defformat(3)), .N5 = Format(dr("N5"), defformat(4)), _
+                                                    .N6 = Format(dr("N6"), defformat(5)), .N7 = Format(dr("N7"), defformat(6)), .N8 = Format(dr("N8"), defformat(7)), .N9 = Format(dr("N9"), defformat(8)), .N10 = Format(dr("N10"), defformat(9)), _
+                                                    .N11 = Format(dr("N11"), defformat(10)), .N12 = Format(dr("N12"), defformat(11)), .N13 = Format(dr("N13"), defformat(12)), .N14 = Format(dr("N14"), defformat(13)), .N15 = Format(dr("N15"), defformat(14)), _
+                                                    .N16 = Format(dr("N16"), defformat(15)), .N17 = Format(dr("N17"), defformat(16)), .N18 = Format(dr("N18"), defformat(17)), .N19 = Format(dr("N19"), defformat(18)), .N20 = Format(dr("N20"), defformat(19)), _
+                                                    .N21 = Format(dr("N21"), defformat(20)), .N22 = Format(dr("N22"), defformat(21)), .N23 = Format(dr("N23"), defformat(22)), .N24 = Format(dr("N24"), defformat(23)), .N25 = Format(dr("N25"), defformat(24)), _
+                                                    .N26 = Format(dr("N26"), defformat(25)), .N27 = Format(dr("N27"), defformat(26)), .N28 = Format(dr("N28"), defformat(27)), .N29 = Format(dr("N29"), defformat(28)), .N30 = Format(dr("N30"), defformat(29)), _
+                                                    .N31 = Format(dr("N31"), defformat(30)), .N32 = Format(dr("N32"), defformat(31)), .N33 = Format(dr("N33"), defformat(32)), .N34 = Format(dr("N34"), defformat(33)), .CheckoutUser = GetInt(dr("Checkoutuser")), _
+                                                    .IsLocked = GetBool(dr("IsLocked"))})
+                                            End While
+
+                                            'While dr.Read
+                                            '    lists.Add(New Models.NutrientList With {
+                                            '        .Code = GetInt(dr("Code")), _
+                                            '        .Name = GetStr(dr("Name")), _
+                                            '        .Number = GetStr(dr("Number")), _
+                                            '        .N1_1 = GetStr(Format(dr("N1_1"), defformat(0))), .N1_2 = GetStr(Format(dr("N1_2"), defformat(0))), .N2 = GetStr(Format(dr("N2"), defformat(1))), .N3 = GetStr(Format(dr("N3"), defformat(2))), .N4 = GetStr(Format(dr("N4"), defformat(3))), .N5 = GetStr(Format(dr("N5"), defformat(4))), _
+                                            '        .N6 = GetStr(Format(dr("N6"), defformat(5))), .N7 = GetStr(Format(dr("N7"), defformat(6))), .N8 = GetStr(Format(dr("N8"), defformat(7))), .N9 = GetStr(Format(dr("N9"), defformat(8))), .N10 = GetStr(Format(dr("N10"), defformat(9))), _
+                                            '        .N11 = GetStr(Format(dr("N11"), defformat(10))), .N12 = GetStr(Format(dr("N12"), defformat(11))), .N13 = GetStr(Format(dr("N13"), defformat(12))), .N14 = GetStr(Format(dr("N14"), defformat(13))), .N15 = GetStr(Format(dr("N15"), defformat(14))), _
+                                            '        .N16 = GetStr(Format(dr("N16"), defformat(15))), .N17 = GetStr(Format(dr("N17"), defformat(16))), .N18 = GetStr(Format(dr("N18"), defformat(17))), .N19 = GetStr(Format(dr("N19"), defformat(18))), .N20 = GetStr(Format(dr("N20"), defformat(19))), _
+                                            '        .N21 = GetStr(Format(dr("N21"), defformat(20))), .N22 = GetStr(Format(dr("N22"), defformat(21))), .N23 = GetStr(Format(dr("N23"), defformat(22))), .N24 = GetStr(Format(dr("N24"), defformat(23))), .N25 = GetStr(Format(dr("N25"), defformat(24))), _
+                                            '        .N26 = GetStr(Format(dr("N26"), defformat(25))), .N27 = GetStr(Format(dr("N27"), defformat(26))), .N28 = GetStr(Format(dr("N28"), defformat(27))), .N29 = GetStr(Format(dr("N29"), defformat(28))), .N30 = GetStr(Format(dr("N30"), defformat(29))), _
+                                            '        .N31 = GetStr(Format(dr("N31"), defformat(30))), .N32 = GetStr(Format(dr("N32"), defformat(31))), .N33 = GetStr(Format(dr("N33"), defformat(32))), .N34 = GetStr(Format(dr("N34"), defformat(33))), .CheckoutUser = GetInt(dr("Checkoutuser"))})
+                                            'End While
+                                            Return New Models.ResponseGenericNutrients(lists.ToList, totalCount)
+                                        ElseIf data.listview = 6 Then
+
+                                            Dim dtCustomers As New DataTable("Customers")
+                                            'Load DataReader into the DataTable.
+                                            dtCustomers.Load(dr)
+
+                                            Return ToReturn(dtCustomers, totalCount)
+                                            'Dim lists As New List(Of Models.SetPrice)
+                                            'While dr.Read
+                                            '    lists.Add(New Models.SetPrice With {
+                                            '        .Code = GetInt(dr("Code")), _
+                                            '        .Name = GetStr(dr("Name")), _
+                                            '        .Number = GetStr(dr("Number")), _
+                                            '        .EUR = GetDbl(dr("EUR"), 0), _
+                                            '        .MED = GetDbl(dr("MED"), 0), _
+                                            '        .SAF = GetDbl(dr("SAF"), 0), _
+                                            '        .aas = GetDbl(dr("aas"), 0)
+                                            '    })
+                                            'End While
+
+                                            'Return New Models.ResponseGenericSetPrice(lists.ToList, totalCount)
+                                        End If
+
+                                    Else : Return False
+                                    End If
+
+                                End Using
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse(ex.ToString(), HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        Private Function ToReturn(data As DataTable, totalcount As Integer) As Object
+            'NBG 1.5.2016
+            Dim datas As New Models.ResponseGenericSetPrice.ReturnData
+            datas.data = data
+            datas.totalCount = totalcount
+            Return datas
+        End Function
+
+        Private Function GetDateOnly(ddate As DateTime) As String
+            'RDTC 2015.08.21
+            Dim dt As Date = Date.Parse(ddate)
+            Dim dateString = dt.ToShortDateString()
+
+            Return dateString
+        End Function
+
+        <HttpPost> _
+        <[POST]("api/search/merchandise")> _
+        Public Function SearchMerchandise(data As Models.Searchee) As Object
+            Try
+                Dim totalCount As Integer
+                Dim price1 As Double 'gyg 07.15.2015
+                Dim price2 As Double 'gyg 07.15.2015
+                Dim brands As New ArrayList
+                Dim keywords As New ArrayList
+                Dim unwantedkeywords As New ArrayList
+
+                Dim allergens As New ArrayList
+                Dim unwantedallergens As New ArrayList
+
+                Dim defformat As List(Of String) = New List(Of String)
+
+                price1 = Double.Parse(GetFloat(data.price1, data.codetrans)) 'gyg 07.15.2015
+                price2 = Double.Parse(GetFloat(data.price2, data.codetrans)) 'gyg 07.15.2015
+
+                If Not data.brands Is Nothing Then
+                    If data.brands.ToArray.Length > 0 Then
+                        For Each keys In data.brands.ToArray()
+                            brands.Add(keys.key)
+                        Next
+                    End If
+                End If
+                If Not data.keywords Is Nothing Then
+                    If data.keywords.ToArray.Length > 0 Then
+                        For Each keys In data.keywords.ToArray()
+                            keywords.Add(keys.key)
+                        Next
+                    End If
+                End If
+                If Not data.unwantedkeywords Is Nothing Then
+                    If data.unwantedkeywords.ToArray.Length > 0 Then
+                        For Each keys In data.unwantedkeywords.ToArray()
+                            unwantedkeywords.Add(keys.key)
+                        Next
+                    End If
+                End If
+                If Not data.allergens Is Nothing Then
+                    If data.allergens.ToArray.Length > 0 Then
+                        For Each keys In data.allergens.ToArray()
+                            allergens.Add(keys.key)
+                        Next
+                    End If
+                End If
+                If Not data.unwantedallergens Is Nothing Then
+                    If data.unwantedallergens.ToArray.Length > 0 Then
+                        For Each keys In data.unwantedallergens.ToArray()
+                            unwantedallergens.Add(keys.key)
+                        Next
+                    End If
+                End If
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandTimeout = 500
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_SEARCH_MERCHANDISE]"
+                                .Parameters.Add("@listview", SqlDbType.Int).Value = data.listview
+                                .Parameters.Add("@intType", SqlDbType.Int).Value = data.type
+                                .Parameters.Add("@intCodeUser", SqlDbType.Int).Value = data.codeuser
+                                .Parameters.Add("@intCodeSite", SqlDbType.Int).Value = data.codesite
+                                .Parameters.Add("@intCodeTrans", SqlDbType.Int).Value = data.language 'data.codetrans
+                                .Parameters.Add("@intCodeSetPrice", SqlDbType.Int).Value = data.codesetprice
+                                .Parameters.Add("@intCodeSet", SqlDbType.Int).Value = data.codeset
+                                .Parameters.Add("@intNameFilter", SqlDbType.Int).Value = data.namefilter
+                                .Parameters.Add("@nvcName", SqlDbType.NVarChar, 2000).Value = data.name
+                                .Parameters.Add("@intNumberFilter", SqlDbType.Int).Value = data.numberfilter
+                                .Parameters.Add("@nvcNumber", SqlDbType.NVarChar, 2000).Value = data.number
+
+
+                                .Parameters.Add("@intBrandsFilter", SqlDbType.Int).Value = 0 'data.brandsfilter; RDTC 2015.08.10; force to OR since a merchandise can only have 1 brand anyway
+                                'force
+
+                                If brands.Count > 0 Then
+                                    .Parameters.Add("@nvcBrands", SqlDbType.NVarChar).Value = String.Join(",", brands.ToArray())
+                                End If
+
+                                .Parameters.Add("@intSupplier", SqlDbType.Int).Value = data.supplier
+
+                                .Parameters.Add("@intKeywordsFilter", SqlDbType.Int).Value = data.keywordsfilter
+                                If keywords.Count > 0 Then
+                                    .Parameters.Add("@nvcKeywords", SqlDbType.NVarChar).Value = String.Join(",", keywords.ToArray())
+                                End If
+                                .Parameters.Add("@intUnwantedKeywordsFilter", SqlDbType.Int).Value = data.unwantedkeywordsfilter
+                                If unwantedkeywords.Count > 0 Then
+                                    .Parameters.Add("@nvcUnwantedKeywords", SqlDbType.NVarChar).Value = String.Join(",", unwantedkeywords.ToArray())
+                                End If
+
+                                .Parameters.Add("@intAllergensFilter", SqlDbType.Int).Value = data.allergensfilter
+                                If allergens.Count > 0 Then
+                                    .Parameters.Add("@nvcAllergens", SqlDbType.NVarChar).Value = String.Join(",", allergens.ToArray())
+                                End If
+                                .Parameters.Add("@intUnwantedAllergensFilter", SqlDbType.Int).Value = data.unwantedallergensfilter
+                                If unwantedallergens.Count > 0 Then
+                                    .Parameters.Add("@nvcUnwantedAllergens", SqlDbType.NVarChar).Value = String.Join(",", unwantedallergens.ToArray())
+                                End If
+                                .Parameters.Add("@bitWithoutAllergens", SqlDbType.Bit).Value = data.withoutallergens
+                                .Parameters.Add("@bitWithAtLeastOne", SqlDbType.Bit).Value = data.withatleastoneallergen
+                                .Parameters.Add("@intCategory", SqlDbType.Int).Value = data.category
+                                .Parameters.Add("@intLanguage", SqlDbType.Int).Value = data.language
+                                .Parameters.Add("@intFilter", SqlDbType.Int).Value = data.selfilter
+                                .Parameters.Add("@intMarkItem", SqlDbType.Int).Value = data.markeditems
+                                .Parameters.Add("@intUsedAsIngredient", SqlDbType.Int).Value = data.usedasingredient
+                                .Parameters.Add("@intPriceType", SqlDbType.Int).Value = data.pricefilter
+                                .Parameters.Add("@intPriceOption", SqlDbType.Int).Value = data.priceoption
+                                .Parameters.Add("@fltPrice1", SqlDbType.Float).Value = IIf(data.price1 = "", 0, data.price1) 'gyg 07.15.2015
+                                .Parameters.Add("@fltPrice2", SqlDbType.Float).Value = IIf(data.price2 = "", 0, data.price2)  'gyg 07.15.2015
+                                .Parameters.Add("@intDateOption", SqlDbType.Int).Value = data.datefilter
+                                .Parameters.Add("@skip", SqlDbType.Int).Value = data.skip
+                                .Parameters.Add("@rowsPerPage", SqlDbType.Int).Value = data.take
+
+                                If Not (data.datefrom = DateTime.MinValue) Then .Parameters.Add("@dtsDate1", SqlDbType.DateTime).Value = GetDateOnly(data.datefrom)
+                                If Not (data.dateto = DateTime.MinValue) Then .Parameters.Add("@dtsDate2", SqlDbType.DateTime).Value = GetDateOnly(data.dateto)
+
+                                .Parameters.Add("@FullText", SqlDbType.Bit).Value = data.fulltext   'RDTC 2015.08.14
+                                .Parameters.Add("@intStatus", SqlDbType.Int).Value = data.status
+                                '.Parameters.Add("@ListBehavior", SqlDbType.Int).Value = data.listBehavior   'RDTC 2015.11.10
+                                .Parameters.Add("@InitialLoad", SqlDbType.Int).Value = data.initialLoad
+                                .Parameters.Add("@intIssue", SqlDbType.Int).Value = data.issue
+                                .Parameters.Add("@bitNotTranslated", SqlDbType.Bit).Value = data.nottranslated
+
+                                cn.Open()
+
+                                Using dr As SqlDataReader = cmd.ExecuteReader()
+                                    If dr.HasRows Then
+                                        While dr.Read
+                                            defformat.Add(dr("format"))
+                                        End While
+                                        While defformat.Count < 34
+                                            defformat.Add("#,##0.0")
+                                        End While
+                                    End If
+
+                                    dr.NextResult()
+                                    If dr.HasRows Then
+                                        While dr.Read
+                                            totalCount = GetInt(dr("Total"))
+                                        End While
+                                    End If
+
+                                    dr.NextResult()
+                                    If dr.HasRows Then
+                                        If data.listview = 1 Or data.listview = 2 Then
+                                            Dim lists As New List(Of Models.GenericSearch)
+                                            While dr.Read
+                                                lists.Add(New Models.GenericSearch With {
+                                                                .code = GetInt(dr("Code")), _
+                                                                .Name = GetStr(dr("Name")), _
+                                                                .number = GetStr(dr("Number")), _
+                                                                .nutrition = DisplayNutr(GetInt(dr("Code")), data.codeset), _
+                                                                .price = GetStr(dr("Price")), _
+                                                                .category = GetStr(dr("Category")), _
+                                                                .brand = GetStr(dr("Brand")), _
+                                                                .supplier = GetStr(dr("Supplier")), _
+                                                                .tax = GetDbl(dr("Tax")), _
+                                                                .owner = GetStr(dr("Owner")), _
+                                                                .status = GetStr(dr("Status")), _
+                                                                .issue = GetStr(dr("PIMIssue")), _
+                                                                .dateCreated = GetStr(dr("Dates")), _
+                                                                .image = GetBool(dr("ImageDisplay")), _
+                                                                .picturename = GetStr(dr("PictureName")), _
+                                                                .unit = GetStr(dr("Unit")), _
+                                                                .Currency = GetStr(dr("Currency")), _
+                                                                .CheckoutUser = GetInt(dr("Checkoutuser")), _
+                                                                .withTranslation = GetInt(dr("WithTranslation")), _
+                                                                .pimstatus = GetInt(dr("PIMStatus")), _
+                                                                .IsLocked = GetBool(dr("IsLocked")), _
+                                                                .priceFormat = GetInt(dr("priceFormat"))
+                                                        })
+                                            End While
+
+                                            Return New Models.ResponseGenericSearch(lists.ToList, totalCount)
+                                        ElseIf data.listview = 5 Then
+                                            Dim lists As New List(Of Models.GenericSearch)
+                                            While dr.Read
+                                                lists.Add(New Models.GenericSearch With {
+                                                                .code = GetInt(dr("Code")), _
+                                                                .Name = GetStr(dr("Name")), _
+                                                                .number = GetStr(dr("Number")), _
+                                                                .Contains = GetStr(dr("AllergenContain")), _
+                                                                .NonAllergens = GetStr(dr("AllergenNonAllergen")), _
+                                                                .CompleteAllergen = GetStr(dr("CompleteAllergen")), _
+                                                                .issue = GetStr(dr("PIMIssue")), _
+                                                                .CheckoutUser = GetInt(dr("Checkoutuser")), _
+                                                                .pimstatus = GetStr(dr("PIMStatus")), _
+                                                                .IsLocked = GetBool(dr("IsLocked"))})
+                                            End While
+
+                                            Return New Models.ResponseGenericSearch(lists.ToList, totalCount)
+                                        ElseIf data.listview = 4 Then
+                                            Dim lists As New List(Of Models.NutrientList)
+                                            While dr.Read
+                                                Try
+                                                    lists.Add(New Models.NutrientList With {
+                                                                .code = GetInt(dr("Code")), _
+                                                                .Name = GetStr(dr("Name")), _
+                                                                .Number = GetStr(dr("Number")), _
+                                                                .N1_1 = GetStr(Format(dr("N1_1"), defformat(0))), .N1_2 = GetStr(Format(dr("N1_2"), defformat(0))), .N2 = GetStr(Format(dr("N2"), defformat(1))), .N3 = GetStr(Format(dr("N3"), defformat(2))), .N4 = GetStr(Format(dr("N4"), defformat(3))), .N5 = GetStr(Format(dr("N5"), defformat(4))), _
+                                                                .N6 = GetStr(Format(dr("N6"), defformat(5))), .N7 = GetStr(Format(dr("N7"), defformat(6))), .N8 = GetStr(Format(dr("N8"), defformat(7))), .N9 = GetStr(Format(dr("N9"), defformat(8))), .N10 = GetStr(Format(dr("N10"), defformat(9))), _
+                                                                .N11 = GetStr(Format(dr("N11"), defformat(10))), .N12 = GetStr(Format(dr("N12"), defformat(11))), .N13 = GetStr(Format(dr("N13"), defformat(12))), .N14 = GetStr(Format(dr("N14"), defformat(13))), .N15 = GetStr(Format(dr("N15"), defformat(14))), _
+                                                                .N16 = GetStr(Format(dr("N16"), defformat(15))), .N17 = GetStr(Format(dr("N17"), defformat(16))), .N18 = GetStr(Format(dr("N18"), defformat(17))), .N19 = GetStr(Format(dr("N19"), defformat(18))), .N20 = GetStr(Format(dr("N20"), defformat(19))), _
+                                                                .N21 = GetStr(Format(dr("N21"), defformat(20))), .N22 = GetStr(Format(dr("N22"), defformat(21))), .N23 = GetStr(Format(dr("N23"), defformat(22))), .N24 = GetStr(Format(dr("N24"), defformat(23))), .N25 = GetStr(Format(dr("N25"), defformat(24))), _
+                                                                .N26 = GetStr(Format(dr("N26"), defformat(25))), .N27 = GetStr(Format(dr("N27"), defformat(26))), .N28 = GetStr(Format(dr("N28"), defformat(27))), .N29 = GetStr(Format(dr("N29"), defformat(28))), .N30 = GetStr(Format(dr("N30"), defformat(29))), _
+                                                                .N31 = GetStr(Format(dr("N31"), defformat(30))), .N32 = GetStr(Format(dr("N32"), defformat(31))), .N33 = GetStr(Format(dr("N33"), defformat(32))), .N34 = GetStr(Format(dr("N34"), defformat(33))), .CheckoutUser = GetInt(dr("Checkoutuser")), _
+                                                                .pimstatus = GetInt(dr("PIMStatus")), _
+                                                                .IsLocked = GetBool(dr("IsLocked"))})
+                                                Catch ex As Exception
+                                                    Dim strX As String
+                                                    strX = ex.Message
+                                                End Try
+
+                                            End While
+
+                                            Return New Models.ResponseGenericNutrients(lists.ToList, totalCount)
+
+                                        Else
+                                            Return False
+                                        End If
+                                    End If
+                                End Using
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse(ex.ToString(), HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpPost> _
+      <[POST]("api/search/menu")> _
+        Public Function SearchMenuData(data As Models.Searchee) As Object
+            Try
+                Dim totalCount As Integer
+
+                Dim keywords As New ArrayList
+                Dim unwantedkeywords As New ArrayList
+                Dim allergens As New ArrayList
+                Dim unwantedallergens As New ArrayList
+
+                If Not data.keywords Is Nothing Then
+                    If data.keywords.ToArray.Length > 0 Then
+                        For Each keys In data.keywords.ToArray()
+                            keywords.Add(keys.key)
+                        Next
+                    End If
+                End If
+                If Not data.unwantedkeywords Is Nothing Then
+                    If data.unwantedkeywords.ToArray.Length > 0 Then
+                        For Each keys In data.unwantedkeywords.ToArray()
+                            unwantedkeywords.Add(keys.key)
+                        Next
+                    End If
+                End If
+
+                If Not data.allergens Is Nothing Then
+                    If data.allergens.ToArray.Length > 0 Then
+                        For Each keys In data.allergens.ToArray()
+                            allergens.Add(keys.key)
+                        Next
+                    End If
+                End If
+                If Not data.unwantedallergens Is Nothing Then
+                    If data.unwantedallergens.ToArray.Length > 0 Then
+                        For Each keys In data.unwantedallergens.ToArray()
+                            unwantedallergens.Add(keys.key)
+                        Next
+                    End If
+                End If
+                'RDTC 2015.09.03
+                If Not IsNumeric(data.price1) Then
+                    data.price1 = "0"
+                End If
+                'RDTC 2015.09.03
+                If Not IsNumeric(data.price2) Then
+                    data.price2 = "0"
+                End If
+
+                If data.language <> 0 Then
+                    data.codetrans = data.language
+                End If
+
+
+
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_SEARCH_MENU]"
+                                .Parameters.Add("@listview", SqlDbType.Int).Value = data.listview
+                                .Parameters.Add("@intType", SqlDbType.Int).Value = data.type
+                                .Parameters.Add("@intCodeUser", SqlDbType.Int).Value = data.codeuser
+                                .Parameters.Add("@intCodeSite", SqlDbType.Int).Value = data.codesite
+                                .Parameters.Add("@intCodeTrans", SqlDbType.Int).Value = data.codetrans
+                                .Parameters.Add("@intCodeSetPrice", SqlDbType.Int).Value = data.codesetprice
+                                .Parameters.Add("@intCodeSet", SqlDbType.Int).Value = data.codeset
+                                .Parameters.Add("@intNameFilter", SqlDbType.Int).Value = data.namefilter
+                                .Parameters.Add("@nvcName", SqlDbType.NVarChar, 2000).Value = data.name
+                                .Parameters.Add("@intNumberFilter", SqlDbType.Int).Value = data.numberfilter
+                                .Parameters.Add("@nvcNumber", SqlDbType.NVarChar, 2000).Value = data.number
+                                .Parameters.Add("@intPrimaryBrandsFilter", SqlDbType.Int).Value = data.primarybrandsfilter
+                                'If primarybrands.Count > 0 Then
+                                '    .Parameters.Add("@nvcPrimaryBrands", SqlDbType.NVarChar).Value = String.Join(",", primarybrands.ToArray())
+                                'End If
+                                '.Parameters.Add("@intUnwantedPrimaryBrandsFilter", SqlDbType.Int).Value = data.unwantedprimarybrandsfilter
+                                'If unwantedprimarybrands.Count > 0 Then
+                                '    .Parameters.Add("@nvcUnwantedPrimaryBrands", SqlDbType.NVarChar).Value = String.Join(",", unwantedprimarybrands.ToArray())
+                                'End If
+                                '.Parameters.Add("@intSecondaryBrandsFilter", SqlDbType.Int).Value = data.secondarybrandsfilter
+                                'If secondarybrands.Count > 0 Then
+                                '    .Parameters.Add("@nvcSecondaryBrands", SqlDbType.NVarChar).Value = String.Join(",", secondarybrands.ToArray())
+                                'End If
+                                '.Parameters.Add("@intUnwantedSecondaryBrandsFilter", SqlDbType.Int).Value = data.unwantedsecondarybrandsfilter
+                                'If unwantedsecondarybrands.Count > 0 Then
+                                '    .Parameters.Add("@nvcUnwantedSecondaryBrands", SqlDbType.NVarChar).Value = String.Join(",", unwantedsecondarybrands.ToArray())
+                                'End If
+                                .Parameters.Add("@intKeywordsFilter", SqlDbType.Int).Value = data.keywordsfilter
+                                If keywords.Count > 0 Then
+                                    .Parameters.Add("@nvcKeywords", SqlDbType.NVarChar).Value = String.Join(",", keywords.ToArray())
+                                End If
+                                .Parameters.Add("@intUnwantedKeywordsFilter", SqlDbType.Int).Value = data.unwantedkeywordsfilter
+                                If unwantedkeywords.Count > 0 Then
+                                    .Parameters.Add("@nvcUnwantedKeywords", SqlDbType.NVarChar).Value = String.Join(",", unwantedkeywords.ToArray())
+                                End If
+                                .Parameters.Add("@intCategory", SqlDbType.Int).Value = data.category
+                                .Parameters.Add("@intRecipeStatus", SqlDbType.Int).Value = data.recipestatus
+                                .Parameters.Add("@intImage", SqlDbType.Int).Value = data.image
+                                .Parameters.Add("@intAllergensFilter", SqlDbType.Int).Value = data.allergensfilter
+                                If allergens.Count > 0 Then
+                                    .Parameters.Add("@nvcAllergens", SqlDbType.NVarChar).Value = String.Join(",", allergens.ToArray())
+                                End If
+                                .Parameters.Add("@intUnwantedAllergensFilter", SqlDbType.Int).Value = data.unwantedallergensfilter
+                                If unwantedallergens.Count > 0 Then
+                                    .Parameters.Add("@nvcUnwantedAllergens", SqlDbType.NVarChar).Value = String.Join(",", unwantedallergens.ToArray())
+                                End If
+                                .Parameters.Add("@bitWithoutAllergens", SqlDbType.Bit).Value = data.withoutallergens
+                                .Parameters.Add("@bitWithAtLeastOne", SqlDbType.Bit).Value = data.withatleastoneallergen
+                                .Parameters.Add("@intLanguage", SqlDbType.Int).Value = data.language
+                                .Parameters.Add("@bitVerified", SqlDbType.Bit).Value = data.verified
+                                .Parameters.Add("@intSource", SqlDbType.Int).Value = data.source
+                                .Parameters.Add("@intFilter", SqlDbType.Int).Value = data.selfilter
+                                .Parameters.Add("@intMarkItem", SqlDbType.Int).Value = data.markeditems
+                                .Parameters.Add("@intUsedAsIngredient", SqlDbType.Int).Value = data.usedasingredient
+                                .Parameters.Add("@intWantedIngredientsFilter", SqlDbType.NVarChar).Value = data.wantedmerchandisefilter
+                                .Parameters.Add("@nvcWantedIngredients", SqlDbType.NVarChar).Value = data.wantedmerchandise
+                                .Parameters.Add("@intUnwantedIngredientsFilter", SqlDbType.NVarChar).Value = data.unwantedmerchandisefilter
+                                .Parameters.Add("@nvcUnwantedIngredients", SqlDbType.NVarChar).Value = data.unwantedmerchandise
+                                .Parameters.Add("@intPriceType", SqlDbType.Int).Value = data.pricefilter
+                                .Parameters.Add("@intPriceOption", SqlDbType.Int).Value = data.priceoption
+                                .Parameters.Add("@fltPrice1", SqlDbType.Float).Value = CDbl(data.price1)
+                                .Parameters.Add("@fltPrice2", SqlDbType.Float).Value = CDbl(data.price2)
+                                .Parameters.Add("@intDateOption", SqlDbType.Int).Value = data.datefilter
+                                .Parameters.Add("@intPublication", SqlDbType.Int).Value = data.publication
+                                .Parameters.Add("@intPublicationDateOption", SqlDbType.Int).Value = data.publicationfilter
+                                .Parameters.Add("@intKioskFilter", SqlDbType.Int).Value = data.kioskfilter
+                                .Parameters.Add("@skip", SqlDbType.Int).Value = data.skip
+                                .Parameters.Add("@rowsPerPage", SqlDbType.Int).Value = data.take
+                                'If kiosks.Count > 0 Then
+                                '    .Parameters.Add("@nvcKiosks", SqlDbType.NVarChar).Value = String.Join(",", kiosks.ToArray())
+                                'End If
+                                If Not (data.datefrom = DateTime.MinValue) Then .Parameters.Add("@dtsDate1", SqlDbType.DateTime).Value = GetDateOnly(data.datefrom)
+                                If Not (data.dateto = DateTime.MinValue) Then .Parameters.Add("@dtsDate2", SqlDbType.DateTime).Value = GetDateOnly(data.dateto)
+                                'If Not (data.datefrom = DateTime.MinValue) Then .Parameters.Add("@dtsDate1", SqlDbType.DateTime).Value = data.datefrom
+                                'If Not (data.dateto = DateTime.MinValue) Then .Parameters.Add("@dtsDate2", SqlDbType.DateTime).Value = data.dateto
+                                If Not (data.publicationdatefrom = DateTime.MinValue) Then .Parameters.Add("@dtsPublicationDate1", SqlDbType.DateTime).Value = data.publicationdatefrom
+                                If Not (data.publicationdateto = DateTime.MinValue) Then .Parameters.Add("@dtsPublicationDate2", SqlDbType.DateTime).Value = data.publicationdateto
+
+
+                                .Parameters.Add("@FullText", SqlDbType.Bit).Value = data.fulltext   'RDTC 2015.08.14
+                                '.Parameters.Add("@ListBehavior", SqlDbType.Int).Value = data.listBehavior   'RDTC 2015.11.10
+                                .Parameters.Add("@InitialLoad", SqlDbType.Int).Value = data.initialLoad
+                                .Parameters.Add("@bitNotTranslated", SqlDbType.Bit).Value = data.nottranslated
+
+                                cn.Open()
+
+                                Using dr As SqlDataReader = cmd.ExecuteReader()
+
+                                    If dr.HasRows Then
+                                        While dr.Read
+                                            totalCount = GetInt(dr("Total"))
+                                        End While
+                                    End If
+
+                                    dr.NextResult()
+                                    If dr.HasRows Then
+                                        If data.listview = 2 Then
+                                            Dim lists As New List(Of Models.GenericSearch)
+                                            While dr.Read
+                                                lists.Add(New Models.GenericSearch With {
+                                                    .code = GetInt(dr("Code")), _
+                                                    .Name = GetStr(dr("Name")), _
+                                                    .number = GetStr(dr("Number")), _
+                                                    .primarybrand = GetStr(dr("PrimaryBrand")), _
+                                                    .secondarybrand = GetStr(dr("SecondaryBrand")), _
+                                                    .recipeStatus = GetStr(dr("RecipeStatus")),
+                                                    .image = GetBool(dr("ImageDisplay")), _
+                                                    .picturename = GetStr(dr("PictureName")), _
+                                                    .nutrition = GetBool(dr("DisplayNutrition")), _
+                                                    .dateCreated = GetStr(dr("Dates")), _
+                                                    .category = GetStr(dr("Category")), _
+                                                    .owner = GetStr(dr("Owner")), _
+                                                    .yield = GetDbl(dr("Yield")), _
+                                                    .yieldFormat = GetStr(dr("YieldFormat")), _
+                                                    .priceFormat = GetStr(dr("PriceFormat")), _
+                                                    .yieldName = GetStr(dr("YieldName")), _
+                                                    .source = GetStr(dr("Source")), _
+                                                    .unit = GetStr(dr("Unit")), _
+                                                    .status = GetStr(dr("Status")), _
+                                                    .calcPrice = GetDbl(dr("CalcPrice")), _
+                                                    .imposedPrice = GetDbl(dr("ImposedPrice")), _
+                                                    .Currency = GetStr(dr("Currency")), _
+                                                    .CheckoutUser = GetInt(dr("Checkoutuser")), _
+                                                    .withTranslation = GetInt(dr("WithTranslation")), _
+                                                    .IsLocked = GetBool(dr("IsLocked"))
+                                                 })
+                                            End While
+                                            Return New Models.ResponseGenericSearch(lists.ToList, totalCount)
+                                        ElseIf data.listview = 1 Then
+                                            Dim lists As New List(Of Models.GenericSearch)
+                                            While dr.Read
+                                                lists.Add(New Models.GenericSearch With {
+                                                    .code = GetInt(dr("Code")), _
+                                                    .Name = GetStr(dr("Name")), _
+                                                    .number = GetStr(dr("Number")), _
+                                                    .picturename = GetStr(dr("PictureName")), _
+                                                    .IsLocked = GetBool(dr("IsLocked"))})
+                                            End While
+                                            Return New Models.ResponseGenericSearch(lists.ToList, totalCount)
+                                        ElseIf data.listview = 5 Then
+                                            Dim lists As New List(Of Models.GenericSearch)
+                                            While dr.Read
+                                                lists.Add(New Models.GenericSearch With {
+                                                    .code = GetInt(dr("Code")), _
+                                                    .Name = GetStr(dr("Name")), _
+                                                    .number = GetStr(dr("Number")), _
+                                                    .Contains = GetStr(dr("AllergenContain")), _
+                                                    .NonAllergens = GetStr(dr("AllergenNonAllergen")), _
+                                                    .CompleteAllergen = GetStr(dr("CompleteAllergen")), _
+                                                    .CheckoutUser = GetInt(dr("Checkoutuser")), _
+                                                    .IsLocked = GetBool(dr("IsLocked"))})
+                                            End While
+                                            Return New Models.ResponseGenericSearch(lists.ToList, totalCount)
+                                        ElseIf data.listview = 4 Then
+                                            Dim lists As New List(Of Models.NutrientList)
+                                            While dr.Read
+                                                lists.Add(New Models.NutrientList With {
+                                                    .code = GetInt(dr("Code")), _
+                                                    .Name = GetStr(dr("Name")), _
+                                                    .Number = GetStr(dr("Number")), _
+                                                    .N1_1 = GetStr(Format(dr("N1_1"), "#,##0.0")), .N1_2 = GetStr(Format(dr("N1_2"), "#,##0.0")), .N2 = GetStr(Format(dr("N2"), "#,##0.0")), .N3 = GetStr(Format(dr("N3"), "#,##0.0")), .N4 = GetStr(Format(dr("N4"), "#,##0.0")), .N5 = GetStr(Format(dr("N5"), "#,##0.0")), _
+                                                    .N6 = GetStr(Format(dr("N6"), "#,##0.0")), .N7 = GetStr(Format(dr("N7"), "#,##0.0")), .N8 = GetStr(Format(dr("N8"), "#,##0.0")), .N9 = GetStr(Format(dr("N9"), "#,##0.0")), .N10 = GetStr(Format(dr("N10"), "#,##0.0")), _
+                                                    .N11 = GetStr(Format(dr("N11"), "#,##0.0")), .N12 = GetStr(Format(dr("N12"), "#,##0.0")), .N13 = GetStr(Format(dr("N13"), "#,##0.0")), .N14 = GetStr(Format(dr("N14"), "#,##0.0")), .N15 = GetStr(Format(dr("N15"), "#,##0.0")), _
+                                                    .N16 = GetStr(Format(dr("N16"), "#,##0.0")), .N17 = GetStr(Format(dr("N17"), "#,##0.0")), .N18 = GetStr(Format(dr("N18"), "#,##0.0")), .N19 = GetStr(Format(dr("N19"), "#,##0.0")), .N20 = GetStr(Format(dr("N20"), "#,##0.0")), _
+                                                    .N21 = GetStr(Format(dr("N21"), "#,##0.0")), .N22 = GetStr(Format(dr("N22"), "#,##0.0")), .N23 = GetStr(Format(dr("N23"), "#,##0.0")), .N24 = GetStr(Format(dr("N24"), "#,##0.0")), .N25 = GetStr(Format(dr("N25"), "#,##0.0")), _
+                                                    .N26 = GetStr(Format(dr("N26"), "#,##0.0")), .N27 = GetStr(Format(dr("N27"), "#,##0.0")), .N28 = GetStr(Format(dr("N28"), "#,##0.0")), .N29 = GetStr(Format(dr("N29"), "#,##0.0")), .N30 = GetStr(Format(dr("N30"), "#,##0.0")), _
+                                                    .N31 = GetStr(Format(dr("N31"), "#,##0.0")), .N32 = GetStr(Format(dr("N32"), "#,##0.0")), .N33 = GetStr(Format(dr("N33"), "#,##0.0")), .N34 = GetStr(Format(dr("N34"), "#,##0.0")), .CheckoutUser = GetInt(dr("Checkoutuser")), _
+                                                    .IsLocked = GetBool(dr("IsLocked"))})
+                                            End While
+
+                                            Return New Models.ResponseGenericNutrients(lists.ToList, totalCount)
+                                        End If
+                                    Else : Return False
+                                    End If
+
+                                End Using
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse(ex.ToString(), HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpPost> _
+        <[POST]("api/search/menuplan")> _
+        Public Function SearchMenuPlanData(data As Models.Searchee) As Object
+            Try
+                Dim totalCount As Integer
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_SEARCH_MENUPLAN]"
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = data.codetrans
+                                .Parameters.Add("@CodeUser", SqlDbType.Int).Value = data.codeuser
+                                .Parameters.Add("@NameFilter", SqlDbType.Int).Value = data.namefilter
+                                .Parameters.Add("@Name", SqlDbType.NVarChar, 2000).Value = data.name
+                                .Parameters.Add("@NumberFilter", SqlDbType.Int).Value = data.numberfilter
+                                .Parameters.Add("@Number", SqlDbType.NVarChar, 2000).Value = data.number
+                                .Parameters.Add("@CodeCategory", SqlDbType.Int).Value = data.category
+                                .Parameters.Add("@CodeSeason", SqlDbType.Int).Value = data.season
+                                .Parameters.Add("@CodeService", SqlDbType.Int).Value = data.serviceType
+                                .Parameters.Add("@skip", SqlDbType.Int).Value = data.skip
+                                .Parameters.Add("@rowsPerPage", SqlDbType.Int).Value = data.take
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.codesite   'MKAM 2016.11.10
+
+                                cn.Open()
+
+                                Using dr As SqlDataReader = cmd.ExecuteReader()
+
+                                    If dr.HasRows Then
+                                        While dr.Read
+                                            totalCount = GetInt(dr("Total"))
+                                        End While
+                                    End If
+
+                                    dr.NextResult()
+                                    If dr.HasRows Then
+                                        Dim lists As New List(Of Models.MenuplanSearch)
+                                        While dr.Read
+                                            lists.Add(New Models.MenuplanSearch With {
+                                                .code = GetInt(dr("Code")),
+                                                .Name = GetStr(dr("Name")),
+                                                .number = GetStr(dr("Number")),
+                                                .restaurant = GetStr(dr("Restaurant")),
+                                                .codeRestaurant = GetStr(dr("CodeRestaurant")),
+                                                .cyclePlan = GetBool(dr("CyclePlan")),
+                                                .startDate = GetDate(dr("StartDate")),
+                                                .duration = GetInt(dr("Duration")),
+                                                .recurrence = GetInt(dr("Recurrence")),
+                                                .category = GetStr(dr("Category")),
+                                                .season = GetStr(dr("Season")),
+                                                .serviceType = GetStr(dr("ServiceType"))
+                                            })
+                                        End While
+                                        Return New Models.ResponseMenuPlanSearch(lists.ToList, totalCount)
+                                    Else : Return False
+                                    End If
+
+                                End Using
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse(ex.ToString(), HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        Private Function CreateChildren(_recipe As List(Of Models.GenericTree),
+                                        _code As Integer) As List(Of Models.TreeNode)
+
+            Dim children As New List(Of Models.TreeNode)
+
+            If _recipe IsNot Nothing Then
+                Dim kids = _recipe.Where(Function(obj) obj.Code <> _code And obj.ParentCode = _code And _code > 0).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each k In kids
+                    Dim child As New Models.TreeNode
+                    child.title = k.Name
+                    child.key = k.Code
+                    child.icon = False
+                    child.children = CreateChildren(_recipe, k.Code)
+                    children.Add(child)
+                    child.selected = k.Flagged
+                    child.parenttitle = k.ParentName
+                    child.note = k.Note
+                    child.link = k.link
+                Next
+            End If
+
+            Return children
+
+        End Function
+        Private Function GetFloat(_num As String, _codetrans As Integer)
+            Dim dec_point As String = "."
+            Dim thousands_sep As String = ","
+            Dim parts() As String
+
+            If (_codetrans = 3) Then
+                dec_point = ","
+                thousands_sep = "."
+            End If
+            If _num = "" Then
+                Return 0
+            End If
+            parts = Split(_num, dec_point) 'split
+
+            parts(0) = parts(0).replace(thousands_sep, "")
+            _num = String.Join(".", parts)
+            Return _num
+        End Function
+
+        Private Function DisplayNutr(CodeListe As Integer, CodeNutrientSET As Integer) As Boolean
+            Using cmd As New SqlCommand
+                With cmd
+                    Using cn As New SqlConnection(ConnectionString)
+                        Try
+                            .Connection = cn
+                            .CommandType = CommandType.StoredProcedure
+                            .CommandText = "[dbo].[API_GETNUTRIENTVAL]"
+                            .Parameters.Add("@intCodeListe", SqlDbType.Int).Value = CodeListe
+                            .Parameters.Add("@intCodeSet", SqlDbType.Int).Value = CodeNutrientSET
+                            cn.Open()
+                            Return .ExecuteScalar()
+                        Catch ex As Exception
+                            Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                            Throw New HttpResponseException(GenericErrorResponse(ex.ToString(), HttpStatusCode.InternalServerError, 500))
+
+                            Return False
+                        End Try
+
+                    End Using
+                End With
+            End Using
+        End Function
+
+    End Class
+
+End Namespace

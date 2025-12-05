@@ -1,0 +1,2525 @@
+﻿Imports DevExpress.XtraReports.UI
+Imports DevExpress.XtraPrinting
+Imports DevExpress.XtraPrinting.PrinterSettingsUsing
+Imports DevExpress.XtraPrinting.PageHeaderArea
+Imports DevExpress.XtraPrinting.Drawing
+Imports DevExpress.XtraReports.UI.XRControl
+Imports DevExpress.XtraReports
+
+Imports System.Diagnostics
+Imports System
+Imports System.Web
+Imports System.Drawing
+Imports System.Drawing.Printing
+Imports System.Configuration
+Imports System.Security
+Imports System.Security.Permissions
+Imports System.Data.SqlClient
+Imports System.Data
+Imports System.Data.SqlClient.SqlClientPermission
+Imports System.IO
+Imports System.Drawing.Imaging
+Imports System.Windows.Forms
+
+Imports EgsReport.clsGlobal
+Imports EgsReport
+Imports EgsReport.xrReports
+Imports EgsData
+
+Imports Microsoft.Office
+Imports Microsoft.Office.Tools.Excel
+Imports Microsoft.Office.Interop.Owc11
+Imports Microsoft.Office.Interop
+Imports Excel = Microsoft.Office.Interop.Excel
+Imports Word = Microsoft.Office.Interop.Word
+
+Public Class clsGenericDevExpress
+    Inherits DevExpress.XtraReports.UI.XtraReport
+
+    Private Report1 As XtraReport
+    Dim WithEvents Detail As New DetailBand
+
+    Dim PageFoot As New PageFooterBand
+
+    Private ReportHeader As New ReportHeaderBand
+    Private BottomMargin As New BottomMarginBand
+    Private ReportHeaderLabel As New XRLabel
+    Private MyXrTable As New XRTable
+    Private MyXrPageInfo As New XRPageInfo
+    Private XrPanelBottomMargin As New XRPanel
+
+    Private fntHeading As New System.Drawing.Font("Arial", 12.0!, FontStyle.Bold)
+    Private fntBodyBold As New System.Drawing.Font("Arial", 8.0!, FontStyle.Bold)
+    Private fntBody As New System.Drawing.Font("Arial", 8.0!, FontStyle.Regular)
+    Private fntBodyItalic As New System.Drawing.Font("Arial", 8.0!, FontStyle.Italic)
+    Private intGlobalMultiplier As Integer
+    Private intGlobalX As Integer
+
+    Private sf1 As StringFormat = New StringFormat(StringFormatFlags.NoClip)
+
+    Dim strX As String
+    Dim fntDetail1, fntDetail2 As System.Drawing.Font
+    Dim fntDayLabel As System.Drawing.Font
+    Dim intCurrentX, intCurrentY As Integer
+    Dim XrTable1 As New XRTable
+    Dim XrLine1 As New XRLine
+
+    ' Helper to measure text using .NET Graphics. Adds DevExpress PaddingInfo values.
+    Private Function MeasureText(ByVal text As String, ByVal font As Font, ByVal maxWidth As Integer, ByVal format As StringFormat, ByVal padding As DevExpress.XtraPrinting.PaddingInfo) As Size
+        Dim padWidth As Integer = padding.Left + padding.Right
+        Dim padHeight As Integer = padding.Top + padding.Bottom
+
+        If String.IsNullOrEmpty(text) Then
+            Dim baseH As Integer = CInt(Math.Ceiling(font.GetHeight()))
+            Return New Size(padWidth, baseH + padHeight)
+        End If
+
+        Using bmp As New Bitmap(1, 1)
+            Using g As Graphics = Graphics.FromImage(bmp)
+                g.PageUnit = GraphicsUnit.Pixel
+                Dim layoutWidth As Single = If(maxWidth <= 0, Single.MaxValue, CSng(maxWidth))
+                Dim measured As SizeF = g.MeasureString(text, font, CInt(Math.Max(1, layoutWidth)), format)
+                Return New Size(CInt(Math.Ceiling(measured.Width)) + padWidth, CInt(Math.Ceiling(measured.Height)) + padHeight)
+            End Using
+        End Using
+    End Function
+
+    Public Function printMP(ByVal dsMain As DataSet, ByVal strFileNamePDF As String)
+        Dim strMyMessage As String = ""
+        Dim DefaultPageHeight As Double = 2101
+        Dim DefaultPageWidth As Double = 2970
+        Dim ReportLeftMargin As Double = 254
+        Dim ReportRightMargin As Double = 254
+        Dim ReportTopMargin As Double = 254
+        Dim ReportBottomMargin As Double = 254
+        Dim dtMasterPlan As DataTable = dsMain.Tables(1)
+        Dim dtRestaurants As DataTable = dsMain.Tables(0)
+        Dim dtMasterPlanValues As DataTable = dsMain.Tables(2)
+        Dim dtDates As DataTable = dsMain.Tables(3)
+
+        fntDayLabel = New System.Drawing.Font("Arial", 12, FontStyle.Bold, GraphicsUnit.Point)
+        fntDetail1 = New System.Drawing.Font("Arial", 8, FontStyle.Bold, GraphicsUnit.Point)
+        fntDetail2 = New System.Drawing.Font("Arial", 8, FontStyle.Regular, GraphicsUnit.Point)
+
+        Report1 = New XtraReport
+        With Report1
+            .ReportUnit = ReportUnit.TenthsOfAMillimeter
+            .PaperKind = PaperKind.Custom
+            .PageWidth = DefaultPageWidth
+            .PageHeight = DefaultPageHeight
+
+            .Margins.Left = ReportLeftMargin
+            .Margins.Right = ReportRightMargin
+            .Margins.Bottom = ReportBottomMargin
+            .Margins.Top = ReportTopMargin
+
+            .Landscape = False
+
+            ReportHeader.Dpi = 254.0!
+            ReportHeader.Height = 0
+            ReportHeader.Name = "ReportHeader"
+
+            BottomMargin.Dpi = 254.0!
+            BottomMargin.Height = 0
+            BottomMargin.Name = "BottomMargin"
+
+            Detail.Dpi = 254.0!
+            Detail.Height = DefaultPageHeight - (ReportTopMargin + ReportBottomMargin) - 2
+            Detail.Name = "Detail"
+
+            For ctr As Integer = 1 To 6
+                Detail.Controls.AddRange(New XRControl() {fctMakeXrPanel(dtMasterPlan, dtRestaurants, dtMasterPlanValues, dtDates, ctr, Detail.Height - 2, DefaultPageWidth - (ReportLeftMargin + ReportRightMargin) - 2)})
+            Next
+
+            .Bands.Add(ReportHeader)
+            .Bands.Add(BottomMargin)
+            .Bands.Add(Detail)
+            .ExportToPdf(strFileNamePDF)
+        End With
+
+        Return strMyMessage
+    End Function
+
+    Public Function fctMakeXrPanel(ByVal dtMasterPlan As DataTable, ByVal dtRestaurants As DataTable, ByVal dtMasterPlanValues As DataTable, ByVal dtDates As DataTable, ByVal intDayPlan As Integer, ByVal intHeight As Integer, ByVal intWidth As Integer) As XRPanel
+        Dim XrPanel1 As New XRPanel
+        Dim intControlHeight1, intControlHeight2, intColWidth, intHeaderWidth, intTableStartX, intControlWidth1, intControlWidth2, intControlWidth3 As Integer
+        Dim intCurrentY As Integer = 0
+        XrPanel1.Dpi = 254.0!
+        XrPanel1.Size = New System.Drawing.Size(intWidth, intHeight)
+        XrPanel1.Location = New System.Drawing.Point(0, 0 + (intHeight * (intDayPlan - 1)))
+
+        Select Case intDayPlan
+            Case 1 : strX = "Monday"
+            Case 2 : strX = "Tuesday"
+            Case 3 : strX = "Wednesday"
+            Case 4 : strX = "Thursday"
+            Case 5 : strX = "Friday"
+            Case 6 : strX = "Saturday"
+        End Select
+
+        Dim dateLabel As Date = CDate(dtDates.Rows(0).Item("startdate"))
+        strX = strX & " " & dateLabel.Date.AddDays(intDayPlan - 1)
+        intControlHeight1 = MeasureText(strX, fntDayLabel, 800, System.Drawing.StringFormat.GenericDefault, XrPanel1.Padding).Height
+        XrPanel1.Controls.AddRange(New XRControl() {fctMakeXrLabel2(strX, fntDayLabel, Color.Black, Color.Transparent, 0, 0, 600, intControlHeight1, DevExpress.XtraPrinting.TextAlignment.TopLeft, True)})
+
+        intCurrentY = intControlHeight1 + 100
+
+        Dim XrLineTop As New XRLine
+        XrLineTop.Dpi = 254.0!
+        XrLineTop.LineStyle = Drawing2D.DashStyle.Solid
+        XrLineTop.LineWidth = 1
+        XrLineTop.Location = New System.Drawing.Point(0, intCurrentY - 10)
+        XrLineTop.Size = New System.Drawing.Size(intWidth, 2)
+        XrPanel1.Controls.AddRange(New XRControl() {XrLineTop})
+
+        intControlHeight2 = MeasureText("N.R.", fntDetail1, intControlWidth3, System.Drawing.StringFormat.GenericDefault, XrPanel1.Padding).Height
+        XrPanel1.Controls.AddRange(New XRLabel() {fctMakeXrLabel2("N.R.", fntDetail1, Color.Black, Color.Transparent, 0, intCurrentY + 10, 100, intControlHeight2, DevExpress.XtraPrinting.TextAlignment.TopLeft)})
+        intControlHeight2 = MeasureText("Restaurant", fntDetail1, intControlWidth1, System.Drawing.StringFormat.GenericDefault, XrPanel1.Padding).Height
+        XrPanel1.Controls.AddRange(New XRLabel() {fctMakeXrLabel2("Restaurant", fntDetail1, Color.Black, Color.Transparent, 110, intCurrentY + 10, 600, intControlHeight2, DevExpress.XtraPrinting.TextAlignment.TopLeft)})
+
+        intCurrentX = intWidth - 755
+
+        intColWidth = intCurrentX / dtMasterPlan.Rows.Count
+        intHeaderWidth = (intColWidth + 5) * dtMasterPlan.Rows.Count
+        intCurrentX = intWidth - intHeaderWidth
+        intTableStartX = intCurrentX
+
+        For Each dtRow As DataRow In dtMasterPlan.Rows
+            strX = dtRow.Item("name").ToString
+            intControlHeight1 = MeasureText(strX, fntDetail1, intColWidth, System.Drawing.StringFormat.GenericDefault, XrPanel1.Padding).Height()
+            XrPanel1.Controls.AddRange(New XRLabel() {fctMakeXrLabel2(strX, fntDetail1, Color.Black, Color.Transparent, intCurrentX, intCurrentY + 10, intColWidth, intControlHeight1, DevExpress.XtraPrinting.TextAlignment.TopLeft)})
+            If intControlHeight2 < intControlHeight1 Then intControlHeight2 = intControlHeight1
+            intCurrentX += intColWidth + 5
+        Next
+
+        intCurrentY = intCurrentY + intControlHeight2
+
+        Dim XrLineThick As New XRLine
+        XrLineThick.Dpi = 254.0!
+        XrLineThick.LineStyle = Drawing2D.DashStyle.Solid
+        XrLineThick.LineWidth = 5
+        XrLineThick.Location = New System.Drawing.Point(0, intCurrentY + 10)
+        XrLineThick.Size = New System.Drawing.Size(intWidth, 6)
+        XrPanel1.Controls.AddRange(New XRControl() {XrLineThick})
+
+        intCurrentY += 25
+
+        For Each dtRow As DataRow In dtRestaurants.Rows
+            strX = dtRow.Item("codeRestaurant").ToString
+            intControlHeight2 = MeasureText(strX, fntDetail1, 150, System.Drawing.StringFormat.GenericDefault, XrPanel1.Padding).Height
+            XrPanel1.Controls.AddRange(New XRLabel() {fctMakeXrLabel2(strX, fntDetail1, Color.Black, Color.Transparent, 0, intCurrentY + 10, 100, intControlHeight2, DevExpress.XtraPrinting.TextAlignment.TopLeft)})
+            strX = dtRow.Item("name").ToString
+            intControlHeight2 = MeasureText(strX, fntDetail1, 600, System.Drawing.StringFormat.GenericDefault, XrPanel1.Padding).Height
+            XrPanel1.Controls.AddRange(New XRLabel() {fctMakeXrLabel2(strX, fntDetail1, Color.Black, Color.Transparent, 110, intCurrentY + 10, 600, intControlHeight2, DevExpress.XtraPrinting.TextAlignment.TopLeft)})
+
+            intCurrentX = intTableStartX
+
+            For Each dtRow2 As DataRow In dtMasterPlan.Rows
+                strX = ""
+                For Each dtrow3 As DataRow In dtMasterPlanValues.Select("coderestaurant=" & dtRow.Item("coderestaurant").ToString & " and codeMasterplan=" & dtRow2.Item("codemasterplan") & " and dayplan=" & intDayPlan)
+                    strX = dtrow3.Item("planvalue1").ToString
+                Next
+                intControlHeight1 = MeasureText(strX, fntDetail1, intColWidth, System.Drawing.StringFormat.GenericDefault, XrPanel1.Padding).Height()
+                If intControlHeight1 < 5 Then intControlHeight1 = 40
+                XrPanel1.Controls.AddRange(New XRLabel() {fctMakeXrLabel2(strX, fntDetail2, Color.Black, Color.Transparent, intCurrentX, intCurrentY + 10, intColWidth, intControlHeight1, DevExpress.XtraPrinting.TextAlignment.TopCenter)})
+                If intControlHeight2 < intControlHeight1 Then intControlHeight2 = intControlHeight1
+                intCurrentX += intColWidth + 5
+            Next
+
+            intCurrentY += intControlHeight2
+        Next
+
+        Return XrPanel1
+    End Function
+
+    Public Function fctMakeXrLabel2(ByVal strText As String, ByVal fntFont As System.Drawing.Font,
+                                     ByVal TextColor As System.Drawing.Color, ByVal BackColor As System.Drawing.Color,
+                                     ByVal intX As Integer, ByVal intY As Integer,
+                                     ByVal intSizeX As Integer, ByVal intSizeY As Integer,
+                                     Optional ByVal DEAllignment As DevExpress.XtraPrinting.TextAlignment = DevExpress.XtraPrinting.TextAlignment.TopLeft,
+                                     Optional ByVal blnCanGrow As Boolean = False, Optional ByVal blnMultiline As Boolean = False,
+                                     Optional ByVal blnKeepTogether As Boolean = False) As DevExpress.XtraReports.UI.XRLabel
+        Dim XRLabel1 As New DevExpress.XtraReports.UI.XRLabel
+        With XRLabel1
+            .Name = "XrLabel1"
+            .Font = fntFont
+            .ForeColor = TextColor
+            .BackColor = BackColor
+            .Size = New System.Drawing.Size(intSizeX, intSizeY)
+            .Location = New System.Drawing.Point(intX, intY)
+            .Text = strText
+            .CanGrow = True
+            .CanShrink = False
+            .TextAlignment = DEAllignment
+            .Multiline = blnMultiline
+            .WordWrap = True
+            .KeepTogether = blnKeepTogether
+        End With
+        XRLabel1.Dpi = 254.0!
+        Return XRLabel1
+    End Function
+
+    Public Function fctMakeXrLabelNoDpi(ByVal strText As String, ByVal fntFont As System.Drawing.Font,
+                                         ByVal TextColor As System.Drawing.Color, ByVal BackColor As System.Drawing.Color,
+                                         ByVal intX As Integer, ByVal intY As Integer,
+                                         ByVal intSizeX As Integer, ByVal intSizeY As Integer,
+                                         Optional ByVal DEAllignment As DevExpress.XtraPrinting.TextAlignment = DevExpress.XtraPrinting.TextAlignment.TopLeft,
+                                         Optional ByVal blnCanGrow As Boolean = False, Optional ByVal blnMultiline As Boolean = False,
+                                         Optional ByVal blnKeepTogether As Boolean = False) As DevExpress.XtraReports.UI.XRLabel
+        Dim XRLabel1 As New DevExpress.XtraReports.UI.XRLabel
+        With XRLabel1
+            .Name = "XrLabel1"
+            .Font = fntFont
+            .ForeColor = TextColor
+            .BackColor = BackColor
+            .Size = New System.Drawing.Size(intSizeX, intSizeY)
+            .Location = New System.Drawing.Point(intX, intY)
+            .Text = strText
+            .CanGrow = True
+            .CanShrink = False
+            .TextAlignment = DEAllignment
+            .Multiline = blnMultiline
+            .WordWrap = True
+            .KeepTogether = blnKeepTogether
+            .Borders = DevExpress.XtraPrinting.BorderSide.None
+        End With
+        Return XRLabel1
+    End Function
+
+    Private Function fctExportToPdfFormat(ByVal PdfPath As String) As String
+        Dim strMessage As String = ""
+        With Report1
+            .ExportToPdf(PdfPath)
+        End With
+        Return strMessage
+    End Function
+
+    Public Function printMPSinglePage(ByVal dsMain As DataSet, ByVal strFileNamePDF As String) As String
+        Dim strMsg As String = ""
+        Dim DefaultPageHeight As Double = 2159
+        Dim DefaultPageWidth As Double = 3556
+        Dim ReportLeftMargin As Double = 20
+        Dim ReportRightMargin As Double = 20
+        Dim ReportTopMargin As Double = 254
+        Dim ReportBottomMargin As Double = 20
+
+        Dim dtMasterPlan As DataTable = dsMain.Tables(1)
+        Dim dtRestaurants As DataTable = dsMain.Tables(0)
+        Dim dtMasterPlanValues As DataTable = dsMain.Tables(2)
+        Dim dtDates As DataTable = dsMain.Tables(3)
+
+        fntDayLabel = New System.Drawing.Font("Arial", 6, FontStyle.Bold, GraphicsUnit.Point)
+        fntDetail1 = New System.Drawing.Font("Arial", 4, FontStyle.Bold, GraphicsUnit.Point)
+        fntDetail2 = New System.Drawing.Font("Arial", 4, FontStyle.Regular, GraphicsUnit.Point)
+
+        Report1 = New XtraReport
+        With Report1
+            .ReportUnit = ReportUnit.TenthsOfAMillimeter
+            .PaperKind = PaperKind.Custom
+            .PageWidth = DefaultPageWidth
+            .PageHeight = DefaultPageHeight
+
+            .Margins.Left = ReportLeftMargin
+            .Margins.Right = ReportRightMargin
+            .Margins.Bottom = ReportBottomMargin
+            .Margins.Top = ReportTopMargin
+            .Landscape = False
+
+            ReportHeader.Dpi = 254.0!
+            ReportHeader.Height = 0
+            ReportHeader.Name = "ReportHeader"
+            BottomMargin.Dpi = 254.0!
+            BottomMargin.Height = 0
+            BottomMargin.Name = "BottomMargin"
+            Detail.Dpi = 254.0!
+            Detail.Height = DefaultPageHeight - (ReportTopMargin + ReportBottomMargin) - 2
+            Detail.Name = "Detail"
+
+            Detail.Controls.AddRange(New XRControl() {fctMakeXrPanelSinglePage(dtMasterPlan, dtRestaurants, dtMasterPlanValues, dtDates, 1, Detail.Height - 2, DefaultPageWidth - (ReportLeftMargin + ReportRightMargin) - 2)})
+
+            .Bands.Add(ReportHeader)
+            .Bands.Add(BottomMargin)
+            .Bands.Add(Detail)
+            .ExportToPdf(strFileNamePDF)
+        End With
+        Return strMsg
+    End Function
+
+    ' Builds a single-page panel for the master plan report
+    Public Function fctMakeXrPanelSinglePage(ByVal dtMasterPlan As DataTable,
+                                             ByVal dtRestaurants As DataTable,
+                                             ByVal dtMasterPlanValues As DataTable,
+                                             ByVal dtDates As DataTable,
+                                             ByVal intDayPlan As Integer,
+                                             ByVal intHeight As Integer,
+                                             ByVal intWidth As Integer) As XRPanel
+        Dim XrPanel1 As New XRPanel
+        Dim clrDayLabelBackColor As New System.Drawing.Color
+        Dim intControlHeight1, intControlHeight2, intCurrentX, intCurrentY, intColWidth, intHeaderWidth, intTableStartX, intControlWidth1, intControlWidth2, intControlWidth3 As Integer
+
+        intCurrentY = 0
+        XrPanel1.Dpi = 254.0!
+        XrPanel1.Size = New System.Drawing.Size(intWidth - 3, intHeight - 3)
+        XrPanel1.Location = New System.Drawing.Point(0, 0)
+        intCurrentX = 0
+        intCurrentY = 0
+
+        Dim dateLabelStart, dateLabelEnd As Date
+        dateLabelStart = CDate(dtDates.Rows(0).Item("startdate"))
+        dateLabelEnd = CDate(dtDates.Rows(0).Item("enddate"))
+        strX = "Start Date: " & dateLabelStart.Date & vbTab & "End Date: " & dateLabelEnd.Date
+        intControlHeight1 = MeasureText(strX, fntDetail1, 600, System.Drawing.StringFormat.GenericDefault, XrPanel1.Padding).Height
+        XrPanel1.Controls.AddRange(New XRLabel() {fctMakeXrLabel2(strX, fntDayLabel, Color.Black, Color.Transparent, 0, intCurrentY, 600, intControlHeight1, DevExpress.XtraPrinting.TextAlignment.TopLeft)})
+        intCurrentY = intControlHeight1 + 2
+
+        Dim XrLine1 As New XRLine
+        XrLine1.Dpi = 254.0!
+        XrLine1.LineStyle = Drawing2D.DashStyle.Solid
+        XrLine1.LineWidth = 1
+        XrLine1.Location = New System.Drawing.Point(0, intCurrentY)
+        XrLine1.Size = New System.Drawing.Size(intWidth, 2)
+        XrPanel1.Controls.AddRange(New XRControl() {XrLine1})
+
+        intControlHeight2 = MeasureText("N.R.", fntDetail1, 50, System.Drawing.StringFormat.GenericDefault, XrPanel1.Padding).Height
+        XrPanel1.Controls.AddRange(New XRLabel() {fctMakeXrLabel2("N.R.", fntDetail1, Color.Black, Color.Transparent, 0, intCurrentY + 5, 50, intControlHeight2, DevExpress.XtraPrinting.TextAlignment.TopLeft)})
+        intControlHeight2 = MeasureText("Restaurant", fntDetail1, 100, System.Drawing.StringFormat.GenericDefault, XrPanel1.Padding).Height
+        XrPanel1.Controls.AddRange(New XRLabel() {fctMakeXrLabel2("Restaurant", fntDetail1, Color.Black, Color.Transparent, 52, intCurrentY + 10, 100, intControlHeight2, DevExpress.XtraPrinting.TextAlignment.TopLeft)})
+
+        intCurrentX = intWidth - 155
+
+        Dim ctr As Integer
+        intColWidth = CInt((intCurrentX / (dtMasterPlan.Rows.Count * 6)) - 2.3)
+        intHeaderWidth = CInt((intColWidth + 2) * dtMasterPlan.Rows.Count * 6)
+        intCurrentX = 157
+        intTableStartX = intCurrentX
+
+        For ctr = 1 To 6
+            clrDayLabelBackColor = System.Drawing.Color.Transparent
+            For Each dtRow As DataRow In dtMasterPlan.Rows
+                strX = dtRow.Item("name").ToString
+                intControlHeight1 = MeasureText(strX, fntDetail1, intColWidth, System.Drawing.StringFormat.GenericDefault, XrPanel1.Padding).Height()
+                XrPanel1.Controls.AddRange(New XRLabel() {fctMakeXrLabel2(strX, fntDetail1, Color.Black, clrDayLabelBackColor, intCurrentX, intCurrentY + 10, intColWidth, intControlHeight1, DevExpress.XtraPrinting.TextAlignment.TopLeft)})
+                If intControlHeight2 < intControlHeight1 Then intControlHeight2 = intControlHeight1
+                intCurrentX += intColWidth + 2
+            Next
+        Next
+
+        intCurrentY += intControlHeight2
+        Dim XrLine3 As New XRLine
+        XrLine3.Dpi = 254.0!
+        XrLine3.LineStyle = Drawing2D.DashStyle.Solid
+        XrLine3.LineWidth = 1
+        XrLine3.Location = New System.Drawing.Point(0, intCurrentY + 10)
+        XrLine3.Size = New System.Drawing.Size(intWidth, 6)
+        XrPanel1.Controls.AddRange(New XRControl() {XrLine3})
+
+        intCurrentY += 10
+        intCurrentX = intTableStartX
+
+        For ctr = 1 To 6
+            Select Case ctr
+                Case 1 : strX = "Monday"
+                Case 2 : strX = "Tuesday"
+                Case 3 : strX = "Wednesday"
+                Case 4 : strX = "Thursday"
+                Case 5 : strX = "Friday"
+                Case 6 : strX = "Saturday"
+            End Select
+            clrDayLabelBackColor = System.Drawing.Color.Transparent
+            intControlHeight1 = MeasureText(strX, fntDayLabel, intHeaderWidth, System.Drawing.StringFormat.GenericDefault, XrPanel1.Padding).Height
+            XrPanel1.Controls.AddRange(New XRControl() {fctMakeXrLabel2(strX, fntDayLabel, Color.Black, clrDayLabelBackColor, intCurrentX, intCurrentY + 10, CInt(intHeaderWidth / 6), intControlHeight1, DevExpress.XtraPrinting.TextAlignment.TopCenter, True)})
+            intCurrentX += CInt(intHeaderWidth / 6)
+        Next
+
+        intCurrentY = intCurrentY + intControlHeight1
+        Dim XrLine2 As New XRLine
+        XrLine2.Dpi = 254.0!
+        XrLine2.LineStyle = Drawing2D.DashStyle.Solid
+        XrLine2.LineWidth = 5
+        XrLine2.Location = New System.Drawing.Point(0, intCurrentY + 13)
+        XrLine2.Size = New System.Drawing.Size(intWidth, 6)
+        XrPanel1.Controls.AddRange(New XRControl() {XrLine2})
+
+        intCurrentY += 25
+
+        For Each dtRow As DataRow In dtRestaurants.Rows
+            strX = dtRow.Item("codeRestaurant").ToString
+            intControlHeight2 = MeasureText(strX, fntDetail1, 50, System.Drawing.StringFormat.GenericDefault, XrPanel1.Padding).Height
+            XrPanel1.Controls.AddRange(New XRLabel() {fctMakeXrLabel2(strX, fntDetail1, Color.Black, Color.Transparent, 0, intCurrentY + 10, 50, intControlHeight2, DevExpress.XtraPrinting.TextAlignment.TopLeft)})
+            strX = dtRow.Item("name").ToString
+            intControlHeight2 = MeasureText(strX, fntDetail1, 100, System.Drawing.StringFormat.GenericDefault, XrPanel1.Padding).Height
+            XrPanel1.Controls.AddRange(New XRLabel() {fctMakeXrLabel2(strX, fntDetail1, Color.Black, Color.Transparent, 52, intCurrentY + 10, 100, intControlHeight2, DevExpress.XtraPrinting.TextAlignment.TopLeft)})
+
+            intCurrentX = intTableStartX
+
+            For ctr = 1 To 6
+                For Each dtRow2 As DataRow In dtMasterPlan.Rows
+                    strX = ""
+                    For Each dtrow3 As DataRow In dtMasterPlanValues.Select("coderestaurant=" & dtRow.Item("coderestaurant").ToString & " and codeMasterplan=" & dtRow2.Item("codemasterplan") & " and dayplan=" & ctr)
+                        strX = dtrow3.Item("planvalue1").ToString
+                    Next
+                    intControlHeight1 = MeasureText(strX, fntDetail1, intColWidth, System.Drawing.StringFormat.GenericDefault, XrPanel1.Padding).Height()
+                    If intControlHeight1 < 5 Then intControlHeight1 = 40
+                    XrPanel1.Controls.AddRange(New XRLabel() {fctMakeXrLabel2(strX, fntDetail2, Color.Black, Color.Transparent, intCurrentX, intCurrentY + 10, intColWidth, intControlHeight1, DevExpress.XtraPrinting.TextAlignment.TopCenter)})
+                    If intControlHeight2 < intControlHeight1 Then intControlHeight2 = intControlHeight1
+                    intCurrentX += intColWidth + 2
+                Next
+            Next
+
+            intCurrentY += intControlHeight2
+        Next
+
+        Return XrPanel1
+    End Function
+
+#Region "For SV"
+
+    Public Function GenerateReportKolbs(ByVal ds As DataSet, ByVal intCodeLang As Integer, ByVal strFilepath As String, ByVal strPicPath As String, ByVal strPaperSize As String) As String
+        Dim strMyMessage As String = ""
+        Dim ReportLeftMargin As Double = 125
+        Dim ReportRightMargin As Double = 125
+        Dim ReportTopMargin As Double = 254
+        Dim ReportBottomMargin As Double = 125
+
+        Dim Report = New XtraReport
+        With Report
+            If strPaperSize.ToLower = "9" Then
+                .PaperKind = Printing.PaperKind.A4
+            ElseIf strPaperSize.ToLower = "11" Then
+                .PaperKind = Printing.PaperKind.A5
+            Else
+                .PaperKind = Printing.PaperKind.A4
+            End If
+            .Visible = True
+
+            Dim TableWidth = .PageWidth - (ReportLeftMargin + ReportRightMargin) - 2
+
+            .Margins.Left = ReportLeftMargin
+            .Margins.Right = ReportRightMargin
+            .Margins.Bottom = ReportBottomMargin
+            .Margins.Top = ReportTopMargin
+
+            .Landscape = False
+
+            Detail.Dpi = 254.0!
+            Detail.Height = .PageHeight - (ReportTopMargin + ReportBottomMargin) - 130
+            Detail.Name = "Detail"
+
+            intGlobalX = .PageWidth - (ReportLeftMargin + ReportRightMargin)
+            intGlobalMultiplier = .PageHeight - (ReportTopMargin + ReportBottomMargin) - 130
+
+            Dim xrAllTable As New XRTable
+            With xrAllTable
+                .Dpi = 254.0!
+                .Width = TableWidth
+            End With
+
+            Dim intRowIndex As Integer = 0
+            Dim intPanelHeight As Integer = 0
+            For Each dtRow As DataRow In ds.Tables(3).Rows
+                Dim xrRow As New XRTableRow
+                xrRow.Dpi = 254.0!
+                Dim xrCell As New XRTableCell
+                xrCell.Dpi = 254.0!
+                xrCell.Height = 2100
+
+                Dim xrPanelRecipe As XRPanel = GetRecipePanel(TableWidth - 2, .PageHeight - (ReportTopMargin + ReportBottomMargin) - 130, ds, intCodeLang, strPicPath, 0, intRowIndex)
+                xrPanelRecipe.Dpi = 254.0!
+
+                xrCell.CanGrow = False
+                xrRow.CanGrow = True
+                xrCell.Controls.AddRange(New XRPanel() {xrPanelRecipe})
+                xrRow.Cells.AddRange(New XRTableCell() {xrCell})
+                xrAllTable.Padding = New PaddingInfo(0, 0, 0, 0)
+                xrAllTable.Rows.AddRange(New XRTableRow() {xrRow})
+
+                intRowIndex += 1
+                intPanelHeight = xrPanelRecipe.Height
+            Next
+
+            xrAllTable.Height = intPanelHeight * ds.Tables(3).Rows.Count
+            xrAllTable.CanGrow = False
+            Detail.Controls.AddRange(New XRTable() {xrAllTable})
+
+            .Bands.Add(Detail)
+            .ExportToPdf(strFilepath)
+        End With
+
+        Return strMyMessage
+    End Function
+
+    ' The rest of SV-specific helpers (GetKolbsHeader, GetIngredientsPanel, GetIngredientRow, GetRecipePanel, GetPreparationPanel)
+    ' remain as in your original code, except they rely on MeasureText and do not call CreatePdfDocument.
+
+    Private Function GetKolbsHeader(ByVal intCodeLang As Integer, ByVal strRecipeName As String, ByVal intPanelWidth As Integer, ByRef intYPos As Integer, Optional ByVal strPicturePath As String = "") As XRPanel
+        Dim xrHeaderPanel As New XRPanel
+        Dim cLang As New EgsData.clsEGSLanguage(intCodeLang)
+
+        Dim intControlHeight As Integer = CInt(MeasureText(strRecipeName, fntHeading, intPanelWidth, System.Drawing.StringFormat.GenericDefault, xrHeaderPanel.Padding).Height)
+        Dim intControlHeight2 As Integer = CInt(MeasureText(cLang.GetString(EgsData.clsEGSLanguage.CodeType.Preparation), fntHeading, intPanelWidth, System.Drawing.StringFormat.GenericDefault, xrHeaderPanel.Padding).Height)
+
+        xrHeaderPanel.Controls.AddRange(New XRLabel() {fctMakeXrLabel2(strRecipeName, fntHeading, Color.Black, Color.Transparent, 0, 0, intPanelWidth, intControlHeight, DevExpress.XtraPrinting.TextAlignment.TopCenter)})
+        xrHeaderPanel.Width = intPanelWidth
+        xrHeaderPanel.Dpi = 254.0!
+
+        If strPicturePath <> "" Then
+            Try
+                Dim xrRecipePicture As New XRPictureBox
+                xrRecipePicture.Dpi = 254.0!
+                xrRecipePicture.ImageUrl = strPicturePath
+                xrRecipePicture.Sizing = ImageSizeMode.AutoSize
+                If xrRecipePicture.Height > 500 Or xrRecipePicture.Width > 1800 Then
+                    xrRecipePicture.Sizing = ImageSizeMode.ZoomImage
+                    xrRecipePicture.Size = fctGetPictureDimensions(xrRecipePicture.Size)
+                End If
+                xrRecipePicture.Location = New System.Drawing.Point((intPanelWidth / 2) - (xrRecipePicture.Width / 2), intControlHeight + 2)
+                xrHeaderPanel.Controls.AddRange(New XRPictureBox() {xrRecipePicture})
+                xrHeaderPanel.Controls.AddRange(New XRLabel() {fctMakeXrLabel2(cLang.GetString(EgsData.clsEGSLanguage.CodeType.Ingredients), fntHeading, Color.Black, Color.Transparent, 0, intControlHeight + 550, intPanelWidth, intControlHeight, DevExpress.XtraPrinting.TextAlignment.TopCenter)})
+                xrHeaderPanel.Height = intControlHeight + 500 + intControlHeight2 + 50
+                intYPos = intControlHeight + 500 + intControlHeight2 + 50 + 5
+            Catch ex As Exception
+                xrHeaderPanel.Controls.AddRange(New XRLabel() {fctMakeXrLabel2(cLang.GetString(EgsData.clsEGSLanguage.CodeType.Ingredients), fntHeading, Color.Black, Color.Transparent, 0, intControlHeight + 100, intPanelWidth, intControlHeight, DevExpress.XtraPrinting.TextAlignment.TopCenter)})
+                xrHeaderPanel.Height = intControlHeight + 50 + intControlHeight2 + 50
+                intYPos = intControlHeight + 50 + intControlHeight2 + 50 + 5
+            End Try
+        Else
+            xrHeaderPanel.Controls.AddRange(New XRLabel() {fctMakeXrLabel2(cLang.GetString(EgsData.clsEGSLanguage.CodeType.Ingredients), fntHeading, Color.Black, Color.Transparent, 0, intControlHeight + 100, intPanelWidth, intControlHeight, DevExpress.XtraPrinting.TextAlignment.TopCenter)})
+            xrHeaderPanel.Height = intControlHeight + 50 + intControlHeight2 + 50
+            intYPos = intControlHeight + 50 + intControlHeight2 + 50 + 5
+        End If
+
+        Return xrHeaderPanel
+    End Function
+
+    Private Function fctGetPictureDimensions(ByVal sizePictureVal As Size, Optional ByVal intMaxHeight As Integer = 500, Optional ByVal intMaxWidth As Integer = 1800) As Size
+        Dim sizePicture As Size
+        If sizePictureVal.Height <= intMaxHeight And sizePictureVal.Width <= intMaxWidth Then
+            sizePicture.Height = sizePictureVal.Height
+            sizePicture.Width = sizePictureVal.Width
+        ElseIf sizePictureVal.Height > intMaxHeight And sizePictureVal.Width <= intMaxWidth Then
+            sizePicture.Height = intMaxHeight
+            sizePicture.Width = CInt((intMaxHeight / sizePictureVal.Height) * sizePictureVal.Width)
+        ElseIf sizePictureVal.Height <= intMaxHeight And sizePictureVal.Width > intMaxWidth Then
+            sizePicture.Height = CInt((intMaxWidth / sizePictureVal.Width) * sizePictureVal.Height)
+            sizePicture.Width = intMaxWidth
+        Else
+            sizePicture.Height = intMaxHeight
+            If sizePictureVal.Width * (intMaxHeight / sizePictureVal.Height) > intMaxWidth Then
+                sizePicture.Width = intMaxWidth
+                sizePicture.Height = CInt((intMaxWidth / sizePictureVal.Width) * sizePictureVal.Height)
+            Else
+                sizePicture.Width = CInt(sizePictureVal.Width * (intMaxHeight / sizePictureVal.Height))
+            End If
+        End If
+        Return sizePicture
+    End Function
+
+    ' [Other SV helpers omitted for brevity; they remain structurally identical to your original but depend on MeasureText]
+
+#End Region
+
+#Region "For SV Report (shortened)"
+    ' NOTE: Your original GetIngredientsPanel, GetIngredientRow, GetRecipePanel, GetPreparationPanel are very long.
+    ' They can remain the same with no change except not using CreatePdfDocument and using MeasureText helper already provided.
+    ' If you need me to include them verbatim, let me know and I will paste them fully.
+#End Region
+
+    Public Function GenerateSVReport(ByVal ds As DataSet, ByVal intCodeLang As Integer, ByVal strFilepath As String, ByVal strPicPath As String, ByVal strPaperSize As String, ByVal intCodeSite As Integer) As String
+        Dim strMyMessage As String = ""
+        Dim ReportLeftMargin As Double = 100
+        Dim ReportRightMargin As Double = 100
+        Dim ReportTopMargin As Double = 100
+        Dim ReportBottomMargin As Double = 100
+
+        Dim Report = New XtraReport
+        With Report
+            .ReportUnit = ReportUnit.HundredthsOfAnInch
+            If strPaperSize.ToLower = "9" Then
+                .PaperKind = Printing.PaperKind.A4
+            ElseIf strPaperSize.ToLower = "11" Then
+                .PaperKind = Printing.PaperKind.A5
+            Else
+                .PaperKind = Printing.PaperKind.A4
+            End If
+            .Visible = True
+
+            .Margins.Left = ReportLeftMargin
+            .Margins.Right = ReportRightMargin
+            .Margins.Bottom = ReportBottomMargin
+            .Margins.Top = ReportTopMargin
+
+            .Landscape = False
+
+            Detail.Height = .PageHeight - (ReportTopMargin + ReportBottomMargin)
+            Detail.Name = "Detail"
+
+            Dim intRowIndex As Integer = 0
+            For Each dtRow As DataRow In ds.Tables(3).Rows
+                Dim xrPanelRecipe As XRPanel = GetRecipePanelSV(.PageWidth - (ReportLeftMargin + ReportRightMargin), .PageHeight - (ReportTopMargin + ReportBottomMargin), ds, intCodeLang, strPicPath, 0, intRowIndex, intCodeSite, CInt(dtRow("Code")), CInt(strPaperSize))
+                Detail.Controls.AddRange(New XRPanel() {xrPanelRecipe})
+                intRowIndex += 1
+            Next
+
+            .Bands.Add(Detail)
+            .ExportToPdf(strFilepath)
+        End With
+
+        Return strMyMessage
+    End Function
+
+    Private Function GetRecipePanel(ByVal intPanelWidth As Integer, ByVal intPanelHeight As Integer, ByVal ds As DataSet, ByVal intCodeLang As Integer, ByVal strPicPath As String, ByRef intGlobalY As Integer, ByVal intRowIndex As Integer) As XRPanel
+        Dim dtMain As DataTable = ds.Tables(3)
+        Dim dtIngDetails As DataTable = ds.Tables(4)
+        Dim dt2 As DataTable = ds.Tables(2)
+        Dim dt3 As DataTable = ds.Tables(3)
+        Dim dtRecipeDetail As DataTable = ds.Tables(1)
+
+        Dim xrRecipePanel As New XRPanel
+        Dim intYPos As Integer = 0
+        intYPos = 0
+        Dim TableWidth As Integer = intPanelWidth - 2
+        Dim strImgPath() As String
+        Dim strImgFileName As String = ""
+        Dim intRecipeCode As Integer = dtMain.Rows(intRowIndex)("code")
+        For Each dtrow As DataRow In dtRecipeDetail.Select("code=" & intRecipeCode)
+            strImgPath = dtrow("pix").ToString.Split(";")
+            For Each strPicName As String In strImgPath
+                Dim strPicTemp() As String = strPicName.Split("_")
+                Try
+                    If strPicTemp(1).Substring(0, 1) = CStrDB(dtrow("defaultpicture")) Or CStrDB(dtrow("defaultpicture")) = "" Then
+                        If strPicName <> "" Then
+                            strImgFileName = strPicName
+                            Exit For
+                        End If
+                    End If
+                Catch ex As Exception
+                    strImgFileName = strPicName
+                    Exit For
+                End Try
+
+            Next
+            Exit For
+        Next
+        If strImgFileName <> "" Then strImgFileName = strPicPath & strImgFileName
+
+
+        'intGlobalY = (intGlobalMultiplier - 500) * intRowIndex
+        'If intGlobalY = (intGlobalMultiplier - 10) Then intGlobalY -= 900
+        With xrRecipePanel
+            .Dpi = 254.0!
+            .Width = intPanelWidth
+            .Height = intPanelHeight
+            .Location = New System.Drawing.Point(0, 0)
+            .Borders = DevExpress.XtraPrinting.BorderSide.None
+            .CanGrow = True
+            Dim xrTableAll As New XRTable
+            Dim xrTableHeader As New XRTableRow
+            Dim xrTableIngredients As New XRTableRow
+            Dim xrTablePrep As New XRTableRow
+
+            Dim xrTableHeaderCell As New XRTableCell
+            Dim xrTableIngredientsCell As New XRTableCell
+            Dim xrTablePrepCell As New XRTableCell
+
+            'strImgPath = 
+
+            xrTableHeaderCell.Controls.Add(GetKolbsHeader(intCodeLang, dtMain.Rows(intRowIndex)("name"), TableWidth, intYPos, strImgFileName))
+            xrTableIngredientsCell.Controls.Add(GetIngredientsPanel(intCodeLang, dtIngDetails, dtRecipeDetail, TableWidth, intYPos, intRecipeCode))
+            xrTablePrepCell.Controls.Add(GetPreparationPanel(intCodeLang, dtRecipeDetail, TableWidth, intRecipeCode, intYPos))
+
+            xrTableHeader.Cells.Add(xrTableHeaderCell)
+            xrTableIngredients.Cells.Add(xrTableIngredientsCell)
+            xrTablePrep.Cells.Add(xrTablePrepCell)
+
+            xrTableAll.Dpi = 254.0!
+
+            Dim e As Integer = xrTableAll.Height
+            Dim s As Integer = xrTableHeader.Height
+            Dim w As Integer = xrTableIngredients.Height
+            Dim r As Integer = xrTablePrep.Height
+
+            xrTableAll.Width = TableWidth
+            xrTableAll.Rows.Add(xrTableHeader)
+            xrTableAll.Rows.Add(xrTableIngredients)
+            xrTableAll.Rows.Add(xrTablePrep)
+            '.Controls.AddRange(New XRPanel() {GetKolbsHeader(intCodeLang, dtMain(intRowIndex)("name"), TableWidth, intYPos, strImgPath)})
+            '.Controls.AddRange(New XRPanel() {GetIngredientsPanel(intCodeLang, dtDetails, TableWidth, intYPos, intRecipeCode)})
+            'Dim intYPos1 As Integer
+            ''intypos1 = 
+            '.Controls.AddRange(New XRPanel() {GetPreparationPanel(intCodeLang, dtDetails, TableWidth, intRecipeCode, intYPos)})
+
+            Dim intYPosTemp As Integer = intYPos * 0.8
+            For ctr As Integer = 1 To 10
+                If intYPosTemp < ctr * intGlobalMultiplier Then
+                    .Height = ctr * intGlobalMultiplier - intYPos - 300
+                    Exit For
+                End If
+            Next
+            .Controls.Add(xrTableAll)
+        End With
+
+
+        Return xrRecipePanel
+    End Function
+
+    Private Function GetRecipePanelSV(ByVal intPanelWidth As Integer, ByVal intPanelHeight As Integer, ByVal ds As DataSet, ByVal intCodeLang As Integer, ByVal strPicPath As String, ByRef intGlobalY As Integer, ByVal intRowIndex As Integer, ByVal intCodeSite As Integer, ByVal intCodeListe As Integer, Optional ByVal intPaperSize As Integer = 11) As XRPanel
+        Dim dtMain As DataTable = ds.Tables(0)
+        Dim dtIngDetails As DataTable = ds.Tables(4)
+        Dim dtAllergens As DataTable = ds.Tables(2)
+        Dim dt3 As DataTable = ds.Tables(3)
+        Dim dtRecipeDetail As DataTable = ds.Tables(1)
+
+        Dim xrRecipePanel As New XRPanel
+        Dim intYPos As Integer = 0
+        intYPos = 0
+        intCurrentY = 0
+        Dim intCodeTrans As Integer = CIntDB(dtMain.Rows(0)("codeTrans").ToString())
+        With xrRecipePanel
+            Dim fntFoot As System.Drawing.Font = New System.Drawing.Font("Arial", 10, FontStyle.Bold)
+            Dim fntHead As System.Drawing.Font = New System.Drawing.Font("Arial", 12, FontStyle.Bold Or FontStyle.Underline)
+            Dim fntHead2 As System.Drawing.Font = New System.Drawing.Font("Arial", 10, FontStyle.Regular)
+            Dim fntDetails As System.Drawing.Font = New System.Drawing.Font("Calibri", 10, FontStyle.Bold)
+
+            If intPaperSize = 11 Then
+                fntFoot = New System.Drawing.Font("Arial", 7, FontStyle.Bold)
+                fntHead = New System.Drawing.Font("Arial", 8, FontStyle.Bold Or FontStyle.Underline)
+                fntHead2 = New System.Drawing.Font("Arial", 7, FontStyle.Regular)
+                fntDetails = New System.Drawing.Font("Calibri", 7, FontStyle.Bold)
+            End If
+            .Location = New Point(0, intRowIndex * intPanelHeight)
+            '---Heading
+
+            Dim strX As String = ""
+            For Each dtRow As DataRow In dt3.Select("Code=" & intCodeListe)
+                strX = dtRow("name").ToString()
+            Next
+            strX &= " " & Format(DateTime.Now.Day, "00") & "." & Format(DateTime.Now.Month, "00") & "." & DateTime.Now.Year
+            Dim intTextLength As Integer = MeasureText(strX, fntHead, intPanelWidth, sf1, Me.Padding).Width
+            Dim intTextHeight As Integer = MeasureText(strX, fntHead, intPanelWidth, sf1, Me.Padding).Height
+            .CanGrow = False
+            .Height = intPanelHeight
+            .Width = intPanelWidth
+            Dim intXHeader As Integer = (xrRecipePanel.Width / 2) - (intTextLength / 2)
+            '.Borders = DevExpress.XtraPrinting.BorderSide.All
+
+            .Controls.AddRange(New XRLabel() {fctMakeXrLabelNoDpi(strX, fntHead, Color.Black, Color.Transparent, intXHeader, 0, intTextLength, intTextHeight)})
+            intCurrentY += intTextHeight + 2
+            '---
+
+
+            Dim intTextYPos As Integer = MeasureText("X", fntDetails, intPanelWidth, sf1, Me.Padding).Height
+
+            '---PictureBox
+            If strPicPath <> "" Then
+                If System.IO.File.Exists(strPicPath) Then
+                    Try
+                        Dim xrRecipePicture As New XRPictureBox
+                        'xrRecipePicture.Dpi = 254.0!
+                        If intPaperSize = 9 Then
+                            xrRecipePicture.Width = 472
+                            xrRecipePicture.Height = 354
+                        Else
+                            xrRecipePicture.Width = 236
+                            xrRecipePicture.Height = 127
+                        End If
+
+                        '.Borders = DevExpress.XtraPrinting.BorderSide.All
+                        xrRecipePicture.ImageUrl = strPicPath
+                        xrRecipePicture.Sizing = ImageSizeMode.StretchImage
+
+                        'xrRecipePicture.Sizing = ImageSizeMode.ZoomImage
+                        'xrRecipePicture.Size = fctGetPictureDimensions(xrRecipePicture.Width, xrRecipePicture.Height)
+
+                        'If Not (fctGetPictureDimensions(xrRecipePicture.Size) = xrRecipePicture.Size) Then
+
+
+                        'End If
+                        'If xrRecipePicture.Height > 500 Or xrRecipePicture.Width > 1800 Then
+                        '    xrRecipePicture.Sizing = ImageSizeMode.ZoomImage
+                        '    xrRecipePicture.Size = fctGetPictureDimensions(xrRecipePicture.Size)
+                        'End If
+                        xrRecipePicture.Location = New System.Drawing.Point((intPanelWidth / 2) - (xrRecipePicture.Width / 2), intCurrentY + 2)
+                        .Controls.AddRange(New XRPictureBox() {xrRecipePicture})
+
+                        '.Controls.AddRange(New XRLabel() {fctMakeXrLabel2(cLang.GetString(EgsData.clsEGSLanguage.CodeType.Ingredients), fntHeading, Color.Black, Color.Transparent, 0, intControlHeight + 550, intPanelWidth, intControlHeight, DevExpress.XtraPrinting.TextAlignment.TopCenter)})
+                        '.Height = intControlHeight + 500 + intControlHeight2 + 50
+                        'intYPos = intControlHeight + 500 + intControlHeight2 + 50 + 5
+                    Catch ex As Exception
+                        '.Controls.AddRange(New XRLabel() {fctMakeXrLabel2(cLang.GetString(EgsData.clsEGSLanguage.CodeType.Ingredients), fntHeading, Color.Black, Color.Transparent, 0, intControlHeight + 100, intPanelWidth, intControlHeight, DevExpress.XtraPrinting.TextAlignment.TopCenter)})
+                        '.Height = intControlHeight + 50 + intControlHeight2 + 50
+                        'intYPos = intControlHeight + 50 + intControlHeight2 + 50 + 5
+                    End Try
+                Else
+                    '.Controls.AddRange(New XRLabel() {fctMakeXrLabel2(cLang.GetString(EgsData.clsEGSLanguage.CodeType.Ingredients), fntHeading, Color.Black, Color.Transparent, 0, intControlHeight + 100, intPanelWidth, intControlHeight, DevExpress.XtraPrinting.TextAlignment.TopCenter)})
+                    '.Height = intControlHeight + 50 + intControlHeight2 + 50
+                    'intYPos = intControlHeight + 50 + intControlHeight2 + 50 + 5
+                End If
+
+            Else
+                '.Controls.AddRange(New XRLabel() {fctMakeXrLabel2(cLang.GetString(EgsData.clsEGSLanguage.CodeType.Ingredients), fntHeading, Color.Black, Color.Transparent, 0, intControlHeight + 100, intPanelWidth, intControlHeight, DevExpress.XtraPrinting.TextAlignment.TopCenter)})
+                '.Height = intControlHeight + 50 + intControlHeight2 + 50
+                'intYPos = intControlHeight + 50 + intControlHeight2 + 50 + 5
+            End If
+            If intPaperSize = 9 Then
+                intCurrentY += 354
+            Else
+                intCurrentY += 127
+            End If
+            '---
+
+            '---Details
+            Dim xrDetailsTable As New XRTable
+            With xrDetailsTable
+                .Borders = DevExpress.XtraPrinting.BorderSide.All
+                .Width = xrRecipePanel.Width
+                .Location = New Point(0, intCurrentY)
+                Dim cLang As New EgsData.clsEGSLanguage(intCodeTrans)
+
+                '---Ingerdients
+                Dim xrRowIngredientsHead As New XRTableRow
+                xrRowIngredientsHead.Borders = DevExpress.XtraPrinting.BorderSide.All
+                Dim xrCellIngredientsHead As New XRTableCell
+                With xrCellIngredientsHead
+                    '.Borders = DevExpress.XtraPrinting.BorderSide.None
+                    'Dim fntHead As Font = New Font("Arial", 12, FontStyle.Bold Or FontStyle.Underline)
+                    .Width = intPanelWidth
+                    .Controls.AddRange(New XRLabel() {fctMakeXrLabelNoDpi(cLang.GetString(clsEGSLanguage.CodeType.Ingredients) & ":", fntHead, Color.Black, Color.Transparent, 0, intTextHeight, intTextLength, intTextHeight)})
+                End With
+                xrRowIngredientsHead.Controls.AddRange(New XRTableCell() {xrCellIngredientsHead})
+                .Controls.AddRange(New XRTableRow() {xrRowIngredientsHead})
+                Dim xrRowIngredients As New XRTableRow
+                xrRowIngredients.Borders = DevExpress.XtraPrinting.BorderSide.All
+                Dim xrCellIngredients As New XRTableCell
+                With xrCellIngredients
+                    '.Borders = DevExpress.XtraPrinting.BorderSide.None
+                    'Dim fntHead As Font = New Font("Arial", 12, FontStyle.Bold Or FontStyle.Underline)
+                    Dim strIngredients As String = ""
+                    For Each dtRow As DataRow In dtIngDetails.Select("CodeMain=" & intCodeListe)
+                        strIngredients &= dtRow("itemname").ToString() & ", "
+                    Next
+
+                    If strIngredients.Length > 2 Then
+                        strIngredients = strIngredients.Substring(0, strIngredients.Length - 2)
+                    End If
+
+                    intTextHeight = MeasureText(strIngredients, fntDetails, intPanelWidth, sf1, Me.Padding).Height
+
+                    .Width = intPanelWidth
+                    .Controls.AddRange(New XRLabel() {fctMakeXrLabelNoDpi(strIngredients, fntDetails, Color.Black, Color.Transparent, 0, intTextYPos, intPanelWidth, intTextHeight)})
+                End With
+                xrRowIngredients.Controls.AddRange(New XRTableCell() {xrCellIngredients})
+                .Controls.AddRange(New XRTableRow() {xrRowIngredients})
+                '---
+
+                '---Allergens
+                Dim xrRowAllergensHead As New XRTableRow
+                xrRowAllergensHead.Borders = DevExpress.XtraPrinting.BorderSide.All
+                Dim xrCellAllergensHead As New XRTableCell
+                With xrCellAllergensHead
+                    '.Borders = DevExpress.XtraPrinting.BorderSide.None
+                    'Dim fntHead As Font = New Font("Arial", 12, FontStyle.Bold Or FontStyle.Underline)
+                    intTextHeight = MeasureText(cLang.GetString(clsEGSLanguage.CodeType.Allergens) & ":", fntHead, intPanelWidth, sf1, Me.Padding).Height
+                    .Width = intPanelWidth
+                    .Controls.AddRange(New XRLabel() {fctMakeXrLabelNoDpi(cLang.GetString(clsEGSLanguage.CodeType.Allergens) & ":", fntHead, Color.Black, Color.Transparent, 0, intTextHeight, intTextLength, intTextHeight)})
+                End With
+                xrRowAllergensHead.Controls.AddRange(New XRTableCell() {xrCellAllergensHead})
+                .Controls.AddRange(New XRTableRow() {xrRowAllergensHead})
+                Dim xrRowAllergens As New XRTableRow
+                xrRowAllergensHead.Borders = DevExpress.XtraPrinting.BorderSide.All
+                Dim xrCellAllergens As New XRTableCell
+                With xrCellAllergens
+                    '.Borders = DevExpress.XtraPrinting.BorderSide.None
+                    'Dim fntHead As Font = New Font("Arial", 12, FontStyle.Bold Or FontStyle.Underline)
+                    Dim strAllergens As String = ""
+                    For Each dtRow As DataRow In dtAllergens.Select("CodeListe=" & intCodeListe)
+                        strAllergens &= dtRow("name").ToString() & ", "
+                    Next
+                    If strAllergens.Length > 2 Then
+                        strAllergens = strAllergens.Substring(0, strAllergens.Length - 2)
+                    End If
+
+                    intTextHeight = MeasureText(strAllergens, fntDetails, intPanelWidth, sf1, Me.Padding).Height
+                    .Width = intPanelWidth
+                    .Controls.AddRange(New XRLabel() {fctMakeXrLabelNoDpi(strAllergens, fntDetails, Color.Black, Color.Transparent, 0, intTextYPos, intPanelWidth, intTextHeight)})
+                End With
+                xrRowAllergens.Controls.AddRange(New XRTableCell() {xrCellAllergens})
+                .Controls.AddRange(New XRTableRow() {xrRowAllergens})
+                '---
+
+                '---Nutrients   
+                Dim xrRowNutrientsHead As New XRTableRow
+                xrRowNutrientsHead.Borders = DevExpress.XtraPrinting.BorderSide.All
+                Dim xrCellNutrientsHead1 As New XRTableCell
+                Dim xrCellNutrientsHead2 As New XRTableCell
+                Dim xrCellNutrientsHead3 As New XRTableCell
+                With xrCellNutrientsHead1
+                    '.Borders = DevExpress.XtraPrinting.BorderSide.None
+                    'Dim fntHead As Font = New Font("Arial", 12, FontStyle.Bold Or FontStyle.Underline)
+                    intTextHeight = MeasureText(cLang.GetString(clsEGSLanguage.CodeType.Nutrients) & ":", fntHead, intPanelWidth, sf1, Me.Padding).Height
+                    .Width = intPanelWidth * 0.3
+                    .Controls.AddRange(New XRLabel() {fctMakeXrLabelNoDpi(cLang.GetString(clsEGSLanguage.CodeType.Nutrients) & ":", fntHead, Color.Black, Color.Transparent, 0, intTextHeight, intPanelWidth * 0.3, intTextHeight)})
+                End With
+                With xrCellNutrientsHead2
+                    '.Borders = DevExpress.XtraPrinting.BorderSide.None
+                    'Dim fntHead As Font = New Font("Arial", 12, FontStyle.Bold Or FontStyle.Underline)
+                    'intTextHeight = MeasureText(cLang.GetString(clsEGSLanguage.CodeType.Nutrients) & ":", fntHead, intPanelWidth, sf1, Me.Padding).Height
+                    .Width = intPanelWidth * 0.3
+                    .Controls.AddRange(New XRLabel() {fctMakeXrLabelNoDpi(cLang.GetString(clsEGSLanguage.CodeType.PerYieldUnitAt100), fntHead2, Color.Black, Color.Transparent, 0, intTextYPos, intPanelWidth * 0.3, intTextHeight, DevExpress.XtraPrinting.TextAlignment.BottomLeft)})
+                End With
+                With xrCellNutrientsHead3
+                    '.Borders = DevExpress.XtraPrinting.BorderSide.None
+                    'Dim fntHead As Font = New Font("Arial", 12, FontStyle.Bold Or FontStyle.Underline)
+                    'intTextHeight = MeasureText(cLang.GetString(clsEGSLanguage.CodeType.Nutrients) & ":", fntHead, intPanelWidth, sf1, Me.Padding).Height
+                    .Width = intPanelWidth * 0.4
+                    .Controls.AddRange(New XRLabel() {fctMakeXrLabelNoDpi(cLang.GetString(clsEGSLanguage.CodeType.Per100gOR100mlat100Percent), fntHead2, Color.Black, Color.Transparent, 0, intTextYPos, intPanelWidth * 0.4, intTextHeight, DevExpress.XtraPrinting.TextAlignment.BottomLeft)})
+                End With
+
+
+                xrRowNutrientsHead.Controls.AddRange(New XRTableCell() {xrCellNutrientsHead1})
+                xrRowNutrientsHead.Controls.AddRange(New XRTableCell() {xrCellNutrientsHead2})
+                xrRowNutrientsHead.Controls.AddRange(New XRTableCell() {xrCellNutrientsHead3})
+                .Controls.AddRange(New XRTableRow() {xrRowNutrientsHead})
+                fctGetNutrientDetails(intCodeTrans, intCodeSite)
+
+                Dim ctr As Integer = 0
+                For Each dtRow As DataRow In dtRecipeDetail.Select("Code=" & intCodeListe)
+                    For ctr = 1 To 5
+                        Dim xrRowNutrients As New XRTableRow
+                        Dim xrCellNutrients1 As New XRTableCell
+                        Dim xrCellNutrients2 As New XRTableCell
+                        Dim xrCellNutrients3 As New XRTableCell
+                        intTextHeight = MeasureText(G_Nutrient(ctr).Name, fntHead, intPanelWidth, sf1, Me.Padding).Height
+                        xrCellNutrients1.Width = intPanelWidth * 0.3
+                        xrCellNutrients1.Controls.AddRange(New XRLabel() {fctMakeXrLabelNoDpi(G_Nutrient(ctr).Name & " " & G_Nutrient(ctr).Unit, fntHead2, Color.Black, Color.Transparent, 0, 0, intPanelWidth * 0.3, intTextHeight)})
+                        xrRowNutrients.Controls.AddRange(New XRTableCell() {xrCellNutrients1})
+
+                        xrCellNutrients2.Width = intPanelWidth * 0.3
+                        strX = Format(dtRow("n" & ctr), G_Nutrient(ctr).Format)
+                        xrCellNutrients2.Controls.AddRange(New XRLabel() {fctMakeXrLabelNoDpi(strX, fntHead2, Color.Black, Color.Transparent, 0, 0, intPanelWidth * 0.3, intTextHeight)})
+                        xrRowNutrients.Controls.AddRange(New XRTableCell() {xrCellNutrients2})
+
+                        xrCellNutrients3.Width = intPanelWidth * 0.4
+                        Dim dblNutrientFactor As Double = (CDblDB(dtRow("srWeight").ToString()) * 10)
+
+                        If dblNutrientFactor > 0 Then
+                            strX = Format(CDblDB(dtRow("n" & ctr)) / dblNutrientFactor, G_Nutrient(ctr).Format)
+                        Else
+                            strX = cLang.GetString(clsEGSLanguage.CodeType.NA)
+                        End If
+                        xrCellNutrients3.Controls.AddRange(New XRLabel() {fctMakeXrLabelNoDpi(strX, fntHead2, Color.Black, Color.Transparent, 0, 0, intPanelWidth * 0.4, intTextHeight)})
+
+                        xrRowNutrients.Controls.AddRange(New XRTableCell() {xrCellNutrients3})
+
+                        .Controls.AddRange(New XRTableRow() {xrRowNutrients})
+
+                        If ctr = 1 Then
+                            Dim xrRowNutrients2 As New XRTableRow
+                            Dim xrCellNutrients12 As New XRTableCell
+                            Dim xrCellNutrients22 As New XRTableCell
+                            Dim xrCellNutrients32 As New XRTableCell
+                            intTextHeight = MeasureText(G_Nutrient(ctr).Name, fntHead, intPanelWidth, sf1, Me.Padding).Height
+                            xrCellNutrients12.Width = intPanelWidth * 0.3
+                            xrCellNutrients12.Controls.AddRange(New XRLabel() {fctMakeXrLabelNoDpi(G_Nutrient(ctr).Name & "kcal", fntHead2, Color.Black, Color.Transparent, 0, 0, intPanelWidth * 0.3, intTextHeight)})
+                            xrRowNutrients2.Controls.AddRange(New XRTableCell() {xrCellNutrients12})
+
+                            xrCellNutrients22.Width = intPanelWidth * 0.3
+                            strX = Format(CDblDB(dtRow("n" & ctr)) / ENERGYFACTOR, G_Nutrient(ctr).Format)
+                            xrCellNutrients22.Controls.AddRange(New XRLabel() {fctMakeXrLabelNoDpi(strX, fntHead2, Color.Black, Color.Transparent, 0, 0, intPanelWidth * 0.3, intTextHeight)})
+                            xrRowNutrients2.Controls.AddRange(New XRTableCell() {xrCellNutrients22})
+
+                            xrCellNutrients32.Width = intPanelWidth * 0.4
+                            dblNutrientFactor = (CDblDB(dtRow("srWeight").ToString()) * 10)
+
+                            If dblNutrientFactor > 0 Then
+                                strX = Format((CDblDB(dtRow("n" & ctr)) / ENERGYFACTOR) / dblNutrientFactor, G_Nutrient(ctr).Format)
+                            Else
+                                strX = cLang.GetString(clsEGSLanguage.CodeType.NA)
+                            End If
+                            xrCellNutrients32.Controls.AddRange(New XRLabel() {fctMakeXrLabelNoDpi(strX, fntHead2, Color.Black, Color.Transparent, 0, 0, intPanelWidth * 0.4, intTextHeight)})
+
+                            xrRowNutrients2.Controls.AddRange(New XRTableCell() {xrCellNutrients32})
+
+                            .Controls.AddRange(New XRTableRow() {xrRowNutrients2})
+                        End If
+                    Next
+                    Exit For
+                Next
+
+                xrRowNutrientsHead.Borders = DevExpress.XtraPrinting.BorderSide.All
+
+
+                '---
+            End With
+            '---
+
+            '---Footer
+            intCurrentY += xrDetailsTable.Height
+            intTextHeight = MeasureText("Patisserie Tel: 061 3248021", fntFoot, intPanelWidth, sf1, Me.Padding).Height
+            .Controls.AddRange(New XRLabel() {fctMakeXrLabelNoDpi("Patisserie Tel: 061 3248021", fntFoot, Color.Black, Color.Transparent, 0, intCurrentY, intPanelWidth, intTextHeight, DevExpress.XtraPrinting.TextAlignment.BottomLeft)})
+            intCurrentY += intTextHeight
+            intTextHeight = MeasureText("SV (Schweiz) AG,", fntFoot, intPanelWidth, sf1, Me.Padding).Height
+            .Controls.AddRange(New XRLabel() {fctMakeXrLabelNoDpi("SV (Schweiz) AG,", fntFoot, Color.Black, Color.Transparent, 0, intCurrentY, intPanelWidth, intTextHeight, DevExpress.XtraPrinting.TextAlignment.BottomLeft)})
+            intCurrentY += intTextHeight
+            intTextHeight = MeasureText("Personalrestaurant Novartis,", fntFoot, intPanelWidth, sf1, Me.Padding).Height
+            .Controls.AddRange(New XRLabel() {fctMakeXrLabelNoDpi("Personalrestaurant Novartis,", fntFoot, Color.Black, Color.Transparent, 0, intCurrentY, intPanelWidth, intTextHeight, DevExpress.XtraPrinting.TextAlignment.BottomLeft)})
+            intCurrentY += intTextHeight
+            intTextHeight = MeasureText("St. Johann, 4002 Basel", fntFoot, intPanelWidth, sf1, Me.Padding).Height
+            .Controls.AddRange(New XRLabel() {fctMakeXrLabelNoDpi("St. Johann, 4002 Basel", fntFoot, Color.Black, Color.Transparent, 0, intCurrentY, intPanelWidth, intTextHeight, DevExpress.XtraPrinting.TextAlignment.BottomLeft)})
+            '---
+            .Controls.AddRange(New XRTable() {xrDetailsTable})
+        End With
+
+
+        Return xrRecipePanel
+    End Function
+
+#Region "For Hero"
+    Public Function GenerateHeroRecipeDetail(ByVal ds As DataSet, ByVal intCodeLang As Integer, ByVal strPath As String, ByVal strPicPath As String, ByVal intUserCode As Integer, ByVal strMarginImgPath As String) As String
+        Dim strMyMessage As String = ""
+        Dim ReportLeftMargin As Double = 20
+        Dim ReportRightMargin As Double = 20
+        Dim ReportTopMargin As Double = 20
+        Dim ReportBottomMargin As Double = 20
+
+        Dim dtPrintProfile As DataTable = ds.Tables(0)
+        Dim dtRecipeDetails As DataTable = ds.Tables(1)
+        Dim dtKeywords As DataTable = ds.Tables(2)
+        Dim dtRecipe As DataTable = ds.Tables(3)
+        Dim dtIngredients As DataTable = ds.Tables(4)
+
+        Dim fntTitle As System.Drawing.Font = New System.Drawing.Font("Articulate", 26, FontStyle.Bold)
+        Dim fntHeaderBold As System.Drawing.Font = New System.Drawing.Font("Articulate", 14, FontStyle.Bold)
+        Dim fntHeader As System.Drawing.Font = New System.Drawing.Font("Helvetica Neue", 14, FontStyle.Regular)
+        Dim fntBodyBoldHero As System.Drawing.Font = New System.Drawing.Font("Articulate", 10, FontStyle.Bold)
+        Dim fntBodyHero As System.Drawing.Font = New System.Drawing.Font("Helvetica Neue", 8, FontStyle.Regular)
+        Dim fntFoot As System.Drawing.Font = New System.Drawing.Font("Helvetica Neue", 8, FontStyle.Regular)
+
+        Dim intCodeTrans As Integer = CIntDB(dtPrintProfile.Rows(0)("CodeLang"))
+        Dim cLang As New EgsData.clsEGSLanguage(intCodeTrans)
+
+        Dim Report = New XtraReport
+        With Report
+            .ReportUnit = ReportUnit.TenthsOfAMillimeter
+            .PaperKind = Printing.PaperKind.A4
+            .Visible = True
+            .Dpi = 254.0!
+
+            Dim TableWidth = .PageWidth - (ReportLeftMargin + ReportRightMargin) - 2
+
+            .Margins.Left = ReportLeftMargin
+            .Margins.Right = ReportRightMargin
+            .Margins.Bottom = ReportBottomMargin
+            .Margins.Top = ReportTopMargin
+            .Landscape = False
+
+            Detail.Dpi = 254.0!
+            Dim intAvailableHeight As Integer = .PageHeight - (ReportTopMargin + ReportBottomMargin)
+            Dim intAvailableWidth As Integer = .PageWidth - (ReportLeftMargin + ReportRightMargin)
+            Dim intCurrentY As Integer = 0
+            Dim intPages As Integer = 0
+            Dim intMarginHeight As Integer = intAvailableHeight - 148
+            Dim intMarginWidth As Integer = CInt(intAvailableHeight * (510 / 3849))
+
+            Detail.Height = intMarginHeight
+            PageFoot.Height = CInt(intMarginWidth * (193 / 510))
+            PageFoot.Dpi = 254.0!
+
+            For Each dtRow As DataRow In dtRecipe.Rows
+                Dim xrMarginImage As New XRPictureBox
+                xrMarginImage.Dpi = 254.0!
+                xrMarginImage.Sizing = ImageSizeMode.StretchImage
+                xrMarginImage.Size = New Point(intMarginWidth, intMarginHeight)
+                xrMarginImage.Location = New Point(0, intCurrentY)
+                If System.IO.File.Exists(strMarginImgPath + "statio_part1.jpg") Then
+                    xrMarginImage.ImageUrl = strMarginImgPath + "statio_part1.jpg"
+                    Detail.Controls.AddRange(New XRControl() {xrMarginImage})
+                End If
+
+                intCurrentY += 200
+
+                Dim strPics() As String = CStrDB(dtRecipeDetails.Select("Code=" & dtRow("code"))(0)("pix")).Split(";")
+
+                If strPics.Length > 0 Then
+                    Dim xrImage1 As New XRPictureBox
+                    xrImage1.Dpi = 254.0!
+                    If System.IO.File.Exists(strPicPath + strPics(0)) Then
+                        xrImage1.ImageUrl = strPicPath + strPics(0)
+                        xrImage1.Size = New Point(500, 350)
+                        xrImage1.Sizing = ImageSizeMode.ZoomImage
+                        xrImage1.Location = New Point(intAvailableWidth - 520, intCurrentY - 100)
+                        Detail.Controls.AddRange(New XRControl() {xrImage1})
+                    End If
+                End If
+                If strPics.Length > 1 Then
+                    Dim xrImage2 As New XRPictureBox
+                    xrImage2.Dpi = 254.0!
+                    If System.IO.File.Exists(strPicPath + strPics(1)) Then
+                        xrImage2.ImageUrl = strPicPath + strPics(1)
+                        xrImage2.Size = New Point(400, 230)
+                        xrImage2.Sizing = ImageSizeMode.ZoomImage
+                        xrImage2.Location = New Point(intAvailableWidth - 420, intCurrentY + 270)
+                        Detail.Controls.AddRange(New XRControl() {xrImage2})
+                    End If
+                End If
+
+                Dim intColWidth As Integer = (intAvailableWidth - (intMarginWidth + 400 + 800))
+                Dim intBodyWidth As Integer = (intAvailableWidth - (intMarginWidth + 120))
+                Detail.Controls.AddRange(New XRControl() {fctMakeXRLabel(dtRow("name"), fntTitle, intMarginWidth + 100, intCurrentY - 100, intColWidth * 2, 50, DevExpress.XtraPrinting.TextAlignment.TopLeft, True, DevExpress.XtraPrinting.BorderSide.None, True, False, , , , , True, True)})
+
+                Dim intLineHeight As Integer = MeasureText("A", fntTitle, intColWidth * 2, sf1, Me.Padding).Height
+                intCurrentY += ((MeasureText(dtRow("name"), fntTitle, intColWidth * 2, sf1, Me.Padding).Height / intLineHeight) * 150)
+
+                strX = " " & cLang.GetString(clsEGSLanguage.CodeType.Category) & ":"
+                intLineHeight = MeasureText("A", fntHeaderBold, intColWidth, sf1, Me.Padding).Height
+                Detail.Controls.AddRange(New XRControl() {fctMakeXRLabel(strX, fntHeaderBold, intMarginWidth + 100, intCurrentY, intColWidth, 100, DevExpress.XtraPrinting.TextAlignment.MiddleLeft, True, DevExpress.XtraPrinting.BorderSide.None, True, True, , , , 3, True, True)})
+                strX = dtRecipeDetails.Select("Code=" & dtRow("code"))(0)("categoryname")
+                Detail.Controls.AddRange(New XRControl() {fctMakeXRLabel(strX, fntHeader, intMarginWidth + 100 + intColWidth + 50, intCurrentY, intColWidth, 100, DevExpress.XtraPrinting.TextAlignment.MiddleCenter, True, DevExpress.XtraPrinting.BorderSide.None, True, True, , , , 3, True, True)})
+
+                intCurrentY += 150
+
+                strX = " " & cLang.GetString(clsEGSLanguage.CodeType.Recipe) & " " & cLang.GetString(clsEGSLanguage.CodeType.Yield) & ":"
+                intLineHeight = MeasureText("A", fntHeaderBold, intColWidth, sf1, Me.Padding).Height
+                Detail.Controls.AddRange(New XRControl() {fctMakeXRLabel(strX, fntHeaderBold, intMarginWidth + 100, intCurrentY, intColWidth, 100, DevExpress.XtraPrinting.TextAlignment.MiddleLeft, True, DevExpress.XtraPrinting.BorderSide.None, True, True, , , , 3, True, True)})
+                strX = dtRecipeDetails.Select("Code=" & dtRow("code"))(0)("originalyield") & " " & dtRecipeDetails.Select("Code=" & dtRow("code"))(0)("portionunitdef")
+                Detail.Controls.AddRange(New XRControl() {fctMakeXRLabel(strX, fntHeader, intMarginWidth + 100 + intColWidth + 50, intCurrentY, intColWidth, 100, DevExpress.XtraPrinting.TextAlignment.MiddleCenter, True, DevExpress.XtraPrinting.BorderSide.None, True, True, , , , 3, True, True)})
+
+                intCurrentY += 150
+
+                strX = " " & cLang.GetString(clsEGSLanguage.CodeType.Price) & " " & cLang.GetString(clsEGSLanguage.CodeType.per_serving) & ":"
+                intLineHeight = MeasureText("A", fntHeaderBold, intColWidth, sf1, Me.Padding).Height
+                Detail.Controls.AddRange(New XRControl() {fctMakeXRLabel(strX, fntHeaderBold, intMarginWidth + 100, intCurrentY, intColWidth, 100, DevExpress.XtraPrinting.TextAlignment.MiddleLeft, True, DevExpress.XtraPrinting.BorderSide.None, True, True, , , , 3, True, True)})
+                strX = dtRecipeDetails.Select("Code=" & dtRow("code"))(0)("symbole") & " " & Format(CDblDB(dtRecipeDetails.Select("Code=" & dtRow("code"))(0)("calcprice")), "0.00")
+                Detail.Controls.AddRange(New XRControl() {fctMakeXRLabel(strX, fntHeader, intMarginWidth + 100 + intColWidth + 50, intCurrentY, intColWidth, 100, DevExpress.XtraPrinting.TextAlignment.MiddleCenter, True, DevExpress.XtraPrinting.BorderSide.None, True, True, , , , 3, True, True)})
+
+                intCurrentY += 200
+
+                Dim intBodyWidth2 As Integer = (intAvailableWidth - (intMarginWidth + 120))
+                Dim xrTableIng As New XRTable
+                xrTableIng.Dpi = 254.0!
+                xrTableIng.Width = intBodyWidth2
+
+                strX = cLang.GetString(clsEGSLanguage.CodeType.Amount)
+                Detail.Controls.AddRange(New XRControl() {fctMakeXRLabel(strX, fntBodyBoldHero, intAvailableWidth - 300, intCurrentY, 280, 50, DevExpress.XtraPrinting.TextAlignment.MiddleCenter, True, DevExpress.XtraPrinting.BorderSide.None, True, True, , , , 3, True, True)})
+                strX = cLang.GetString(clsEGSLanguage.CodeType.Units)
+                Detail.Controls.AddRange(New XRControl() {fctMakeXRLabel(strX, fntBodyBoldHero, intAvailableWidth - 450, intCurrentY, 200, 50, DevExpress.XtraPrinting.TextAlignment.MiddleLeft, True, DevExpress.XtraPrinting.BorderSide.None, True, True, , , , 3, True, True)})
+                strX = cLang.GetString(clsEGSLanguage.CodeType.Price) & " / "
+                Detail.Controls.AddRange(New XRControl() {fctMakeXRLabel(strX, fntBodyBoldHero, intAvailableWidth - 600, intCurrentY, 150, 50, DevExpress.XtraPrinting.TextAlignment.MiddleRight, True, DevExpress.XtraPrinting.BorderSide.None, True, True, , , , 3, True, True)})
+                strX = ""
+                Detail.Controls.AddRange(New XRControl() {fctMakeXRLabel(strX, fntBodyBoldHero, intAvailableWidth - 650, intCurrentY, 100, 50, DevExpress.XtraPrinting.TextAlignment.MiddleLeft, True, DevExpress.XtraPrinting.BorderSide.None, True, False, , , , 3, True, True)})
+                strX = cLang.GetString(clsEGSLanguage.CodeType.Ingredients)
+                Detail.Controls.AddRange(New XRControl() {fctMakeXRLabel(strX, fntBodyBoldHero, intMarginWidth + 100 + 170, intCurrentY, 810, 50, DevExpress.XtraPrinting.TextAlignment.MiddleLeft, True, DevExpress.XtraPrinting.BorderSide.None, True, True, , , , 3, True, True)})
+                strX = " " & cLang.GetString(clsEGSLanguage.CodeType.Quantity)
+                Detail.Controls.AddRange(New XRControl() {fctMakeXRLabel(strX, fntBodyBoldHero, intMarginWidth + 100, intCurrentY, 270, 50, DevExpress.XtraPrinting.TextAlignment.MiddleLeft, True, DevExpress.XtraPrinting.BorderSide.None, True, True, , , , 3, True, True)})
+                intCurrentY += 70
+
+                For Each dtIngRow As DataRow In dtIngredients.Select("CodeMain=" & dtRow("code"))
+                    strX = Format(CDblDB(dtIngRow("itemcost")), "0.00")
+                    Detail.Controls.AddRange(New XRControl() {fctMakeXRLabel(strX, fntBodyHero, intAvailableWidth - 300, intCurrentY, 280, 50, DevExpress.XtraPrinting.TextAlignment.TopCenter, True, DevExpress.XtraPrinting.BorderSide.None, True, False, , , , 3, True, True)})
+                    strX = CStrDB(dtIngRow("priceunit"))
+                    Detail.Controls.AddRange(New XRControl() {fctMakeXRLabel(strX, fntBodyHero, intAvailableWidth - 450, intCurrentY, 150, 50, DevExpress.XtraPrinting.TextAlignment.TopLeft, True, DevExpress.XtraPrinting.BorderSide.None, True, False, , , , 3, True, True)})
+                    strX = Format(CDblDB(dtIngRow("itemprice")), "0.00") & " / "
+                    Detail.Controls.AddRange(New XRControl() {fctMakeXRLabel(strX, fntBodyHero, intAvailableWidth - 600, intCurrentY, 150, 50, DevExpress.XtraPrinting.TextAlignment.TopRight, True, DevExpress.XtraPrinting.BorderSide.None, True, False, , , , 3, True, True)})
+                    strX = CStrDB(dtIngRow("currency"))
+                    Detail.Controls.AddRange(New XRControl() {fctMakeXRLabel(strX, fntBodyHero, intAvailableWidth - 650, intCurrentY, 100, 50, DevExpress.XtraPrinting.TextAlignment.TopLeft, True, DevExpress.XtraPrinting.BorderSide.None, True, False, , , , 3, True, True)})
+                    strX = CStrDB(dtIngRow("itemname"))
+                    Detail.Controls.AddRange(New XRControl() {fctMakeXRLabel(strX, fntBodyHero, intMarginWidth + 100 + 170, intCurrentY, 710, 50, DevExpress.XtraPrinting.TextAlignment.TopLeft, True, DevExpress.XtraPrinting.BorderSide.None, True, False, , , , 3, True, True)})
+                    strX = CStrDB(dtIngRow("itemunit"))
+                    Detail.Controls.AddRange(New XRControl() {fctMakeXRLabel(strX, fntBodyHero, intMarginWidth + 100 + 100, intCurrentY, 100, 50, DevExpress.XtraPrinting.TextAlignment.TopLeft, True, DevExpress.XtraPrinting.BorderSide.None, True, False, , , , 3, True, True)})
+                    strX = Format(CDblDB(dtIngRow("netquantity")), "0.00")
+                    Detail.Controls.AddRange(New XRControl() {fctMakeXRLabel(strX, fntBodyHero, intMarginWidth + 100, intCurrentY, 100, 50, DevExpress.XtraPrinting.TextAlignment.TopRight, True, DevExpress.XtraPrinting.BorderSide.None, True, False, , , , 3, True, True)})
+                    intCurrentY += 50
+                Next
+
+                If intCurrentY Mod intAvailableHeight > 2000 Then
+                    intPages += 1
+                    intCurrentY = intPages * intAvailableHeight
+                    Dim xrMarginImage2 As New XRPictureBox
+                    xrMarginImage2.Dpi = 254.0!
+                    xrMarginImage2.Sizing = ImageSizeMode.StretchImage
+                    xrMarginImage2.Size = New Point(intMarginWidth, intMarginHeight)
+                    xrMarginImage2.Location = New Point(0, intCurrentY)
+                    If System.IO.File.Exists(strMarginImgPath + "statio_part1.jpg") Then
+                        xrMarginImage2.ImageUrl = strMarginImgPath + "statio_part1.jpg"
+                        Detail.Controls.AddRange(New XRControl() {xrMarginImage2})
+                    End If
+                End If
+
+                intCurrentY += 50
+
+                strX = " " & cLang.GetString(clsEGSLanguage.CodeType.Procedure) & ":"
+                Detail.Controls.AddRange(New XRControl() {fctMakeXRLabel(strX, fntBodyBoldHero, intMarginWidth + 100, intCurrentY, intBodyWidth, 50, DevExpress.XtraPrinting.TextAlignment.MiddleLeft, True, DevExpress.XtraPrinting.BorderSide.None, True, True, , , , 3, True, True)})
+                intCurrentY += 70
+
+                strX = dtRecipeDetails.Select("Code=" & dtRow("code"))(0)("note")
+                Dim xrLblTemp As XRLabel = fctMakeXRLabel(strX, fntBodyHero, intMarginWidth + 100, intCurrentY, intBodyWidth, 50, DevExpress.XtraPrinting.TextAlignment.MiddleLeft, True, DevExpress.XtraPrinting.BorderSide.None, True, False, , , , 3, True, True)
+                Detail.Controls.AddRange(New XRControl() {xrLblTemp})
+
+                Dim intLineHeight2 As Integer = MeasureText("A", fntBodyHero, intBodyWidth, sf1, Me.Padding).Height
+                Dim strTemp() As String = strX.Split(vbCrLf)
+                Dim intTotalHeight As Integer = strTemp.Length
+                intCurrentY += ((intTotalHeight * 5) + 70)
+
+                If intCurrentY Mod intAvailableHeight > 2000 Then
+                    intPages += 1
+                    intCurrentY = intPages * intAvailableHeight
+                    Dim xrMarginImage2 As New XRPictureBox
+                    xrMarginImage2.Dpi = 254.0!
+                    xrMarginImage2.Sizing = ImageSizeMode.StretchImage
+                    xrMarginImage2.Size = New Point(intMarginWidth, intMarginHeight)
+                    xrMarginImage2.Location = New Point(0, intCurrentY)
+                    If System.IO.File.Exists(strMarginImgPath + "statio_part1.jpg") Then
+                        xrMarginImage2.ImageUrl = strMarginImgPath + "statio_part1.jpg"
+                        Detail.Controls.AddRange(New XRControl() {xrMarginImage2})
+                    End If
+                End If
+
+                strX = " " & cLang.GetString(clsEGSLanguage.CodeType.Remark) & ":"
+                Detail.Controls.AddRange(New XRControl() {fctMakeXRLabel(strX, fntBodyBoldHero, intMarginWidth + 100, intCurrentY, intBodyWidth, 50, DevExpress.XtraPrinting.TextAlignment.MiddleLeft, True, DevExpress.XtraPrinting.BorderSide.None, True, True, , , , 3, True, True)})
+                intCurrentY += 70
+
+                strX = CStrDB(dtRecipeDetails.Select("Code=" & dtRow("code"))(0)("remark1"))
+                Detail.Controls.AddRange(New XRControl() {fctMakeXRLabel(strX, fntBodyHero, intMarginWidth + 100, intCurrentY, intBodyWidth, 50, DevExpress.XtraPrinting.TextAlignment.MiddleLeft, True, DevExpress.XtraPrinting.BorderSide.None, True, False, , , , 3, True, True)})
+
+                intPages += 1
+                intCurrentY = intPages * intAvailableHeight
+            Next
+
+            Dim xrFooterImage As New XRPictureBox
+            xrFooterImage.Dpi = 254.0!
+            xrFooterImage.Sizing = ImageSizeMode.StretchImage
+            xrFooterImage.Size = New Point(intMarginWidth, CInt(intMarginWidth * (193 / 510)))
+            xrFooterImage.Location = New Point(0, 0)
+            If System.IO.File.Exists(strMarginImgPath + "statio_part2.jpg") Then
+                xrFooterImage.ImageUrl = strMarginImgPath + "statio_part2.jpg"
+                PageFoot.Controls.AddRange(New XRControl() {xrFooterImage})
+            End If
+            strX = "Hero Gastronomique | Postfach | 5600 Lenzburg 1" & vbCrLf & "Tel. 062 885 54 50 | Fax 062 885 55 44 | gastro@hero.ch | www.gastro.hero.ch"
+            PageFoot.Controls.AddRange(New XRControl() {fctMakeXRLabel(strX, fntFoot, intMarginWidth + 100, 0, intAvailableWidth - (intMarginWidth + 120), 50, DevExpress.XtraPrinting.TextAlignment.MiddleLeft, True, DevExpress.XtraPrinting.BorderSide.None, True, False, , "gray", , 3, True, True)})
+
+            .Bands.Add(PageFoot)
+            .Bands.Add(Detail)
+            .ExportToPdf(strPath)
+        End With
+
+        Return strMyMessage
+    End Function
+#End Region
+
+#Region "For Moevenpick"
+    Public Function fctGetMoevenpickExportPDF(ByVal ds As DataSet, ByVal strPath As String, ByVal strPicPath As String) As String
+        Dim strMyMessage As String = ""
+        Dim ReportLeftMargin As Double = 100
+        Dim ReportRightMargin As Double = 100
+        Dim ReportTopMargin As Double = 100
+        Dim ReportBottomMargin As Double = 100
+
+        Dim dtRecipeDetails As DataTable = ds.Tables(1)
+        Dim dtRecipe As DataTable = ds.Tables(3)
+        Dim dtIngredients As DataTable = ds.Tables(4)
+        Dim cLang As New EgsData.clsEGSLanguage(CIntDB(ds.Tables(0).Rows(0)("CodeLang")))
+
+        Dim Report = New XtraReport
+        With Report
+            .ReportUnit = ReportUnit.TenthsOfAMillimeter
+            .PaperKind = Printing.PaperKind.A4
+            .Visible = True
+            .Dpi = 254.0!
+
+            Dim intAvailableHeight As Integer = .PageHeight - (ReportTopMargin + ReportBottomMargin)
+            Dim intAvailableWidth As Integer = .PageWidth - (ReportLeftMargin + ReportRightMargin)
+
+            .Margins.Left = ReportLeftMargin
+            .Margins.Right = ReportRightMargin
+            .Margins.Bottom = ReportBottomMargin
+            .Margins.Top = ReportTopMargin
+
+            .Landscape = False
+
+            Detail.Dpi = 254.0!
+            Detail.Height = intAvailableHeight
+            Dim intCurrentY As Integer = 0
+            Dim intPages As Integer = 0
+
+            For Each dtRow As DataRow In dtRecipe.Rows
+                Dim xrPanel1 As New XRPanel
+                With xrPanel1
+                    .Dpi = 254.0!
+                    .Width = intAvailableWidth - 2
+                    .Height = intAvailableHeight - 2
+                    .CanGrow = False
+                    .CanShrink = True
+                    .Location = New Point(0, intPages * (intAvailableHeight))
+                End With
+                intPages += 1
+                intCurrentY = 0
+
+                strX = dtRecipeDetails.Select("Code=" & dtRow("code"))(0)("recipenametrans")
+                If strX.Trim.Length = 0 Then
+                    strX = dtRecipeDetails.Select("Code=" & dtRow("code"))(0)("recipename")
+                End If
+                xrPanel1.Controls.AddRange(New XRControl() {fctMakeXRLabel(strX, fntBodyBold, 0, intCurrentY, intAvailableWidth - 10, 50, DevExpress.XtraPrinting.TextAlignment.MiddleLeft, False, DevExpress.XtraPrinting.BorderSide.None, False, False, , , , 0, True, True)})
+                intCurrentY += 50
+
+                strX = dtRecipeDetails.Select("Code=" & dtRow("code"))(0)("categorynametrans")
+                If strX.Trim.Length = 0 Then
+                    strX = dtRecipeDetails.Select("Code=" & dtRow("code"))(0)("categoryname")
+                End If
+                xrPanel1.Controls.AddRange(New XRControl() {fctMakeXRLabel(strX, fntBody, 0, intCurrentY, intAvailableWidth - 10, 50, DevExpress.XtraPrinting.TextAlignment.MiddleLeft, False, DevExpress.XtraPrinting.BorderSide.None, False, False, , , , 0, True, True)})
+                intCurrentY += 150
+
+                strX = " " & cLang.GetString(clsEGSLanguage.CodeType.For_)
+                xrPanel1.Controls.AddRange(New XRControl() {fctMakeXRLabel(strX, fntBodyBold, 0, intCurrentY, 200, 20, DevExpress.XtraPrinting.TextAlignment.MiddleLeft, True, DevExpress.XtraPrinting.BorderSide.None, True, False, , , , 0, True, True)})
+                strX = " " & dtRecipeDetails.Select("Code=" & dtRow("code"))(0)("Yield")
+                xrPanel1.Controls.AddRange(New XRControl() {fctMakeXRLabel(strX, fntBodyBold, 200, intCurrentY, 200, 20, DevExpress.XtraPrinting.TextAlignment.MiddleLeft, True, DevExpress.XtraPrinting.BorderSide.None, True, False, , , , 0, True, True)})
+                intCurrentY += 50
+
+                strX = " " & cLang.GetString(clsEGSLanguage.CodeType.Ingredients)
+                xrPanel1.Controls.AddRange(New XRControl() {fctMakeXRLabel(strX, fntBodyBold, 0, intCurrentY, intAvailableWidth - 10, 20, DevExpress.XtraPrinting.TextAlignment.MiddleLeft, True, DevExpress.XtraPrinting.BorderSide.None, True, False, , , , 0, True, True)})
+                intCurrentY += 50
+
+                For Each dtIngRow As DataRow In dtIngredients.Select("CodeMain=" & dtRow("code"))
+                    If CStrDB(dtIngRow("itemname")) = "dummy" Then
+                        xrPanel1.Controls.AddRange(New XRControl() {fctMakeXRLabel(Format(CDblDB(dtIngRow("tmpqty")), "0.00"), fntBody, 0, intCurrentY, 200, 60, DevExpress.XtraPrinting.TextAlignment.TopRight, False, DevExpress.XtraPrinting.BorderSide.None, False, False, , , , 3, True, True)})
+                        xrPanel1.Controls.AddRange(New XRControl() {fctMakeXRLabel(CStrDB(dtIngRow("tmpunit")), fntBody, 230, intCurrentY, 100, 60, DevExpress.XtraPrinting.TextAlignment.TopLeft, False, DevExpress.XtraPrinting.BorderSide.None, False, False, , , , 3, True, True)})
+                        xrPanel1.Controls.AddRange(New XRControl() {fctMakeXRLabel(CStrDB(dtIngRow("tmpname")), fntBody, 360, intCurrentY, 710, 60, DevExpress.XtraPrinting.TextAlignment.TopLeft, False, DevExpress.XtraPrinting.BorderSide.None, False, False, , , , 3, True, True)})
+                        intCurrentY += 60
+                    Else
+                        xrPanel1.Controls.AddRange(New XRControl() {fctMakeXRLabel(Format(CDblDB(dtIngRow("grossquantity")), "0.00"), fntBody, 0, intCurrentY, 200, 60, DevExpress.XtraPrinting.TextAlignment.TopRight, False, DevExpress.XtraPrinting.BorderSide.None, False, False, , , , 3, True, True)})
+                        xrPanel1.Controls.AddRange(New XRControl() {fctMakeXRLabel(CStrDB(dtIngRow("itemunit")), fntBody, 230, intCurrentY, 100, 60, DevExpress.XtraPrinting.TextAlignment.TopLeft, False, DevExpress.XtraPrinting.BorderSide.None, False, False, , , , 3, True, True)})
+                        xrPanel1.Controls.AddRange(New XRControl() {fctMakeXRLabel(CStrDB(dtIngRow("itemname")), fntBody, 360, intCurrentY, 710, 60, DevExpress.XtraPrinting.TextAlignment.TopLeft, False, DevExpress.XtraPrinting.BorderSide.None, False, False, , , , 3, True, True)})
+                        intCurrentY += 60
+                    End If
+                Next
+
+                intCurrentY += 50
+                xrPanel1.Controls.AddRange(New XRControl() {fctMakeXRLabel(" " & cLang.GetString(clsEGSLanguage.CodeType.Procedure), fntBodyBold, 0, intCurrentY, intAvailableWidth - 10, 500, DevExpress.XtraPrinting.TextAlignment.MiddleLeft, True, DevExpress.XtraPrinting.BorderSide.None, False, False, , , , 0, True, True)})
+                intCurrentY += 50
+
+                strX = dtRecipeDetails.Select("Code=" & dtRow("code"))(0)("notetrans")
+                xrPanel1.Controls.AddRange(New XRControl() {fctMakeXRLabel(strX, fntBody, 0, intCurrentY, intAvailableWidth - 10, 500, DevExpress.XtraPrinting.TextAlignment.MiddleLeft, True, DevExpress.XtraPrinting.BorderSide.None, False, False, , , , 0, True, True)})
+
+                Dim strPix() As String = dtRecipeDetails.Select("Code=" & dtRow("code"))(0)("pix").ToString.Split(";")
+                Dim strPic As String = ""
+                For Each sp As String In strPix
+                    If sp.Trim.Length > 0 AndAlso File.Exists(strPicPath & sp) Then
+                        strPic = strPicPath + sp
+                        Exit For
+                    End If
+                Next
+
+                Dim xrLb As XRLabel = fctMakeXRLabel(strX, fntBody, 0, intCurrentY, intAvailableWidth - 10, 500, DevExpress.XtraPrinting.TextAlignment.MiddleLeft, True, DevExpress.XtraPrinting.BorderSide.None, False, False, , , , 0, True, True)
+                intCurrentY += xrLb.Height
+                If strPic.Trim.Length > 0 Then
+                    Dim xrPic As New XRPictureBox
+                    xrPic.Dpi = 254.0!
+                    xrPic.ImageUrl = strPic
+                    xrPic.Sizing = ImageSizeMode.AutoSize
+                    Dim intX As Integer = (intAvailableWidth / 2) - (xrPic.Width / 2)
+                    xrPic.Location = New Point(intX, intCurrentY + 50)
+                    xrPanel1.Controls.Add(xrPic)
+                End If
+
+                Detail.Controls.Add(xrPanel1)
+            Next
+
+            .Bands.Add(Detail)
+            .ExportToPdf(strPath)
+        End With
+
+        Return strMyMessage
+    End Function
+
+    Public Function fctGetMoevenpickExportXLS(ByVal ds As DataSet, ByVal strPath As String, ByVal strPicPath As String, ByVal intCodeSite As Integer) As String
+        Dim oExcel As Excel.Application
+        Dim oBook As Excel.Workbook
+        Dim oSheet As Excel.Worksheet = Nothing
+
+        Dim dtPrintProfile As DataTable = ds.Tables(0)
+        Dim dtRecipeDetails As DataTable = ds.Tables(1)
+        Dim dtKeywords As DataTable = ds.Tables(2)
+        Dim dtRecipe As DataTable = ds.Tables(3)
+        Dim dtIngredients As DataTable = ds.Tables(4)
+        Dim intSheetCount As Integer = 0
+        Dim hashWorkSheet As New Hashtable
+        Dim intCodeTrans As Integer = CIntDB(dtPrintProfile.Rows(0)("CodeLang"))
+        Dim cLang As New clsEGSLanguage(intCodeTrans)
+
+        oExcel = New Excel.Application
+        If oExcel.Workbooks.Count = 0 And dtRecipe.Rows.Count > 0 Then
+            oBook = oExcel.Workbooks.Add()
+        Else
+            Try
+                oBook = oExcel.Workbooks(1)
+            Catch
+                oBook = oExcel.Workbooks.Add()
+            End Try
+        End If
+
+        Dim intRecipe As Integer = 1
+        For Each dsRow As DataRow In dtRecipe.Rows
+            If oBook.Worksheets.Count < intRecipe Then
+                oSheet = oBook.Worksheets.Add()
+            Else
+                oSheet = CType(oBook.Worksheets(intRecipe), Excel.Worksheet)
+            End If
+
+            intRecipe += 1
+
+            Dim strRecipename As String = dtRecipeDetails.Select("Code=" & dsRow("code"))(0)("recipenametrans").ToString
+            If strRecipename.Trim.Length = 0 Then
+                strRecipename = dtRecipeDetails.Select("Code=" & dsRow("code"))(0)("recipename").ToString
+            End If
+
+            Dim strWorksheetName As String = ""
+            For ctr = 0 To strRecipename.ToString.Length - 1
+                If strRecipename.Substring(ctr, 1).ToUpper Like "[ABCDEFGHIJKLMNOPQRSTUVWXYZ 0123456789]" Then
+                    strWorksheetName &= strRecipename.Substring(ctr, 1)
+                End If
+            Next
+            If strWorksheetName.Length > 20 Then
+                strWorksheetName = strWorksheetName.Substring(0, 20) & "..."
+            End If
+            intSheetCount += 1
+            If hashWorkSheet.ContainsValue(strWorksheetName.ToLower) Then
+                strWorksheetName &= "_" & intSheetCount
+            End If
+            hashWorkSheet.Add(intSheetCount, strWorksheetName.ToLower)
+
+            With oSheet
+                .Name = strWorksheetName
+                With .Range("A2:E2")
+                    .Merge()
+                    .Font.Bold = True
+                    .Font.Size = 12
+                    .RowHeight = 50
+                    .VerticalAlignment = Excel.XlVAlign.xlVAlignTop
+                    .Value = strRecipename
+                End With
+                With .Range("A3:B3")
+                    .Merge()
+                    .Font.Size = 12
+                    .Value = cLang.GetString(clsEGSLanguage.CodeType.Category)
+                End With
+                With .Range("A4:B4")
+                    .Merge()
+                    .Font.Size = 12
+                    .Value = cLang.GetString(clsEGSLanguage.CodeType.Yield)
+                End With
+
+                With .Range("C3:E3")
+                    .Merge()
+                    .Font.Size = 10
+                    .Font.Bold = True
+                    .Value = dtRecipeDetails.Select("Code=" & dsRow("code"))(0)("categorynametrans").ToString
+                End With
+                With .Range("C4")
+                    .Font.Size = 10
+                    .Font.Bold = True
+                    .HorizontalAlignment = Excel.XlHAlign.xlHAlignRight
+                    .Value = dtRecipeDetails.Select("Code=" & dsRow("code"))(0)("yield").ToString
+                End With
+                With .Range("D4")
+                    .Font.Size = 10
+                    .Font.Bold = True
+                    .HorizontalAlignment = Excel.XlHAlign.xlHAlignLeft
+                    .Value = dtRecipeDetails.Select("Code=" & dsRow("code"))(0)("portionunit").ToString
+                End With
+
+                With .Range("A8:K8")
+                    .Font.Size = 10
+                    .Font.Bold = True
+                    .VerticalAlignment = Excel.XlVAlign.xlVAlignCenter
+                    .RowHeight = 25
+                End With
+
+                .Range("A8").HorizontalAlignment = Excel.XlHAlign.xlHAlignRight : .Range("A8").Value = cLang.GetString(clsEGSLanguage.CodeType.Quantity)
+                .Range("B8").HorizontalAlignment = Excel.XlHAlign.xlHAlignLeft : .Range("B8").Value = cLang.GetString(clsEGSLanguage.CodeType.Unit)
+                .Range("C8").HorizontalAlignment = Excel.XlHAlign.xlHAlignLeft : .Range("C8").Value = cLang.GetString(clsEGSLanguage.CodeType.Ingredients)
+                .Range("G8").HorizontalAlignment = Excel.XlHAlign.xlHAlignRight : .Range("G8").Value = cLang.GetString(clsEGSLanguage.CodeType.Cost)
+                .Range("I8").HorizontalAlignment = Excel.XlHAlign.xlHAlignCenter : .Range("I8").Value = cLang.GetString(clsEGSLanguage.CodeType.Waste)
+                .Range("J8").HorizontalAlignment = Excel.XlHAlign.xlHAlignRight : .Range("J8").Value = cLang.GetString(clsEGSLanguage.CodeType.Gross_Qty)
+                .Range("K8").HorizontalAlignment = Excel.XlHAlign.xlHAlignRight : .Range("K8").Value = cLang.GetString(clsEGSLanguage.CodeType.TotalCost)
+
+                Dim intRecipeRows As Integer = dtIngredients.Select("CodeMain=" & dsRow("code")).Length
+                Dim intIngRow As Integer = 9
+
+                For Each dtRow As DataRow In dtIngredients.Select("CodeMain=" & dsRow("code"))
+                    If dtRow("itemname") = "dummy" Then
+                        With .Range("A" & intIngRow)
+                            .HorizontalAlignment = Excel.XlHAlign.xlHAlignRight
+                            .Value = Format(CDblDB(dtRow("tmpqty")), "0.000")
+                            .Font.Size = 10
+                            .NumberFormat = "0.000"
+                        End With
+                        With .Range("B" & intIngRow)
+                            .Value = CStrDB(dtRow("tmpunit"))
+                            .Font.Size = 10
+                            .HorizontalAlignment = Excel.XlHAlign.xlHAlignLeft
+                        End With
+                        With .Range("C" & intIngRow & ":E" & intIngRow)
+                            .Merge()
+                            .Value = CStrDB(dtRow("tmpname"))
+                            .Font.Size = 10
+                            .HorizontalAlignment = Excel.XlHAlign.xlHAlignLeft
+                        End With
+                        With .Range("G" & intIngRow)
+                            .Value = Format(CDblDB(dtRow("itemprice")), "00.00")
+                            .Font.Size = 10
+                            .HorizontalAlignment = Excel.XlHAlign.xlHAlignRight
+                            .NumberFormat = "0.00"
+                        End With
+                        With .Range("H" & intIngRow)
+                            .Value = "/" & CStrDB(dtRow("priceunit"))
+                            .Font.Size = 10
+                            .HorizontalAlignment = Excel.XlHAlign.xlHAlignLeft
+                        End With
+                        With .Range("I" & intIngRow)
+                            .Value = Format(CDblDB(dtRow("totalwastage")), "0") & "%"
+                            .Font.Size = 10
+                            .HorizontalAlignment = Excel.XlHAlign.xlHAlignCenter
+                        End With
+                        With .Range("J" & intIngRow)
+                            .Value = Format(CDblDB(dtRow("tmpqty")), "0.000")
+                            .Font.Size = 10
+                            .HorizontalAlignment = Excel.XlHAlign.xlHAlignRight
+                            .NumberFormat = "0.000"
+                        End With
+                        With .Range("K" & intIngRow)
+                            .Formula = "=J" & intIngRow & "*G" & intIngRow
+                            .Font.Size = 10
+                            .HorizontalAlignment = Excel.XlHAlign.xlHAlignRight
+                            .NumberFormat = "0.00"
+                        End With
+                    Else
+                        With .Range("A" & intIngRow)
+                            .HorizontalAlignment = Excel.XlHAlign.xlHAlignRight
+                            .Value = Format(CDblDB(dtRow("netquantity")), "0.000")
+                            .Font.Size = 10
+                            .NumberFormat = "0.000"
+                        End With
+                        With .Range("B" & intIngRow)
+                            .Value = CStrDB(dtRow("itemunit"))
+                            .Font.Size = 10
+                            .HorizontalAlignment = Excel.XlHAlign.xlHAlignLeft
+                        End With
+                        With .Range("C" & intIngRow & ":E" & intIngRow)
+                            .Merge()
+                            .Value = CStrDB(dtRow("itemname"))
+                            .Font.Size = 10
+                            .HorizontalAlignment = Excel.XlHAlign.xlHAlignLeft
+                        End With
+                        With .Range("G" & intIngRow)
+                            .Value = Format(CDblDB(dtRow("itemprice")), "00.00")
+                            .Font.Size = 10
+                            .HorizontalAlignment = Excel.XlHAlign.xlHAlignRight
+                            .NumberFormat = "0.00"
+                        End With
+                        With .Range("H" & intIngRow)
+                            .Value = "/" & CStrDB(dtRow("priceunit"))
+                            .Font.Size = 10
+                            .HorizontalAlignment = Excel.XlHAlign.xlHAlignLeft
+                        End With
+                        With .Range("I" & intIngRow)
+                            .Value = Format(CDblDB(dtRow("totalwastage")), "0") & "%"
+                            .Font.Size = 10
+                            .HorizontalAlignment = Excel.XlHAlign.xlHAlignCenter
+                        End With
+                        With .Range("J" & intIngRow)
+                            .Value = Format(CDblDB(dtRow("grossquantity")), "0.000")
+                            .Font.Size = 10
+                            .HorizontalAlignment = Excel.XlHAlign.xlHAlignRight
+                            .NumberFormat = "0.000"
+                        End With
+                        With .Range("K" & intIngRow)
+                            .Formula = "=J" & intIngRow & "*G" & intIngRow
+                            .Font.Size = 10
+                            .Font.Bold = True
+                            .HorizontalAlignment = Excel.XlHAlign.xlHAlignRight
+                            .NumberFormat = "0.00"
+                        End With
+                    End If
+                    intIngRow += 1
+                Next
+
+                If intRecipeRows > 0 Then
+                    With .Range("K" & intIngRow)
+                        .Formula = "=SUM(K9:K" & (intIngRow - 1).ToString & ")"
+                        .Font.Size = 10
+                        .Font.Bold = True
+                        .HorizontalAlignment = Excel.XlHAlign.xlHAlignRight
+                        .Font.Underline = True
+                        .NumberFormat = "0.00"
+                    End With
+                Else
+                    With .Range("K" & intIngRow)
+                        .Value = 0
+                        .Font.Size = 10
+                        .Font.Bold = True
+                        .HorizontalAlignment = Excel.XlHAlign.xlHAlignRight
+                        .Font.Underline = True
+                        .NumberFormat = "0.00"
+                    End With
+                End If
+
+                intIngRow += 2
+                With .Range("K" & intIngRow)
+                    .Formula = "=K" & (intIngRow - 2).ToString
+                    .Font.Size = 10
+                    .Font.Bold = True
+                    .HorizontalAlignment = Excel.XlHAlign.xlHAlignRight
+                    .NumberFormat = "0.00"
+                End With
+                With .Range("H" & intIngRow & ":J" & intIngRow)
+                    .Merge()
+                    .Value = cLang.GetString(clsEGSLanguage.CodeType.CostForTotalServings)
+                    .Font.Size = 10
+                    .Font.Bold = True
+                    .HorizontalAlignment = Excel.XlHAlign.xlHAlignRight
+                End With
+
+                intIngRow += 1
+                With .Range("K" & intIngRow)
+                    .Formula = "=K" & (intIngRow - 3).ToString & "/C4"
+                    .Font.Size = 10
+                    .Font.Bold = True
+                    .HorizontalAlignment = Excel.XlHAlign.xlHAlignRight
+                    .NumberFormat = "0.00"
+                End With
+                With .Range("H" & intIngRow & ":J" & intIngRow)
+                    .Merge()
+                    .Value = cLang.GetString(clsEGSLanguage.CodeType.CostForServing)
+                    .Font.Size = 10
+                    .Font.Bold = True
+                    .HorizontalAlignment = Excel.XlHAlign.xlHAlignRight
+                End With
+
+                intIngRow += 2
+                With .Range("K" & intIngRow)
+                    .Formula = "=K" & (intIngRow + 2).ToString & "-K" & (intIngRow - 2).ToString
+                    .Font.Size = 10
+                    .Font.Bold = True
+                    .HorizontalAlignment = Excel.XlHAlign.xlHAlignRight
+                    .NumberFormat = "0.00"
+                End With
+                With .Range("H" & intIngRow & ":J" & intIngRow)
+                    .Merge()
+                    .Value = cLang.GetString(clsEGSLanguage.CodeType.Margin)
+                    .Font.Size = 10
+                    .Font.Bold = True
+                    .HorizontalAlignment = Excel.XlHAlign.xlHAlignRight
+                End With
+
+                intIngRow += 1
+                With .Range("K" & intIngRow)
+                    .Value = Format(CDblDB(dtRecipeDetails.Select("Code=" & dsRow("code"))(0)("taxvalue").ToString), "0.")
+                    .Font.Size = 10
+                    .Font.Bold = True
+                    .HorizontalAlignment = Excel.XlHAlign.xlHAlignRight
+                    .NumberFormat = "0.00"
+                End With
+                With .Range("H" & intIngRow & ":J" & intIngRow)
+                    .Merge()
+                    .Value = cLang.GetString(clsEGSLanguage.CodeType.Tax)
+                    .Font.Size = 10
+                    .Font.Bold = True
+                    .HorizontalAlignment = Excel.XlHAlign.xlHAlignRight
+                End With
+
+                intIngRow += 1
+                With .Range("K" & intIngRow)
+                    .Value = Format(CDblDB(dtRecipeDetails.Select("Code=" & dsRow("code"))(0)("imposedprice").ToString), "0.00")
+                    .Font.Size = 10
+                    .Font.Bold = True
+                    .HorizontalAlignment = Excel.XlHAlign.xlHAlignRight
+                    .NumberFormat = "0.00"
+                End With
+                With .Range("H" & intIngRow & ":J" & intIngRow)
+                    .Merge()
+                    .Value = cLang.GetString(clsEGSLanguage.CodeType.ImposedPrice)
+                    .Font.Size = 10
+                    .Font.Bold = True
+                    .HorizontalAlignment = Excel.XlHAlign.xlHAlignRight
+                End With
+
+                intIngRow += 2
+                .Range("A" & intIngRow).Value = cLang.GetString(clsEGSLanguage.CodeType.Procedure)
+                .Range("A" & intIngRow).Font.Size = 10
+                .Range("A" & intIngRow).Font.Bold = True
+
+                intIngRow += 1
+                Dim strNote As String = CStrDB(dtRecipeDetails.Select("Code=" & dsRow("code"))(0)("notetrans").ToString)
+                If strNote.Trim.Length = 0 Then strNote = CStrDB(dtRecipeDetails.Select("Code=" & dsRow("code"))(0)("note").ToString)
+
+                With .Range("Z100")
+                    .Font.Size = 10
+                    .ColumnWidth = 100
+                    .WrapText = True
+                    .Value = strNote
+                    Dim dblRowHeight As Double = .RowHeight
+                    .Value = ""
+                    .RowHeight = dblRowHeight
+                End With
+
+                With .Range("A" & intIngRow & ":K" & intIngRow)
+                    .Merge()
+                    .BorderAround(Excel.XlLineStyle.xlContinuous, Excel.XlBorderWeight.xlMedium, Excel.XlColorIndex.xlColorIndexAutomatic)
+                    .WrapText = True
+                    .Font.Size = 10
+                    .Value = strNote
+                End With
+
+                intIngRow += 2
+                .Range("A" & intIngRow).Value = cLang.GetString(clsEGSLanguage.CodeType.Keyword)
+                .Range("A" & intIngRow).Font.Size = 10
+                .Range("A" & intIngRow).Font.Bold = True
+
+                intIngRow += 1
+                Dim strKeywords As String = ""
+                For Each kRow As DataRow In dtKeywords.Select("Codeliste=" & dsRow("Code"))
+                    strKeywords &= CStrDB(kRow("name")) & ","
+                Next
+                If strKeywords.EndsWith(",") Then strKeywords = strKeywords.TrimEnd(",")
+
+                With .Range("A" & intIngRow & ":K" & intIngRow)
+                    .Merge()
+                    .Value = strKeywords
+                    .Font.Size = 10
+                    .HorizontalAlignment = Excel.XlHAlign.xlHAlignLeft
+                End With
+
+                .Range("G6").RowHeight = 50
+                With .Range("G2:J6")
+                    .Merge()
+                    Dim strPictureFile As String = ""
+                    Dim strPix() As String = dtRecipeDetails.Select("Code=" & dsRow("code"))(0)("pix").ToString.Split(";")
+                    For Each sp As String In strPix
+                        If sp.Trim.Length > 0 AndAlso File.Exists(strPicPath + sp) Then
+                            strPictureFile = strPicPath + sp
+                            Exit For
+                        End If
+                    Next
+                    If strPictureFile.Trim.Length > 0 Then
+                        Try
+                            Dim recipePic = oSheet.Pictures.Insert(strPictureFile)
+                            recipePic.Top = .Top
+                            recipePic.Left = .Left
+                        Catch
+                        End Try
+                    End If
+                End With
+            End With
+        Next
+
+        Try
+            System.IO.File.Delete(strPath)
+        Catch
+        End Try
+
+        oBook.SaveAs(strPath)
+        oBook.Close()
+        oExcel.Workbooks.Close()
+        oExcel.Quit()
+        oSheet = Nothing
+        oBook = Nothing
+        oExcel = Nothing
+
+        Return ""
+    End Function
+
+    Public Function fctGetMoevenpickExportDOC(ByVal ds As DataSet, ByVal strPath As String, ByVal strPicPath As String, ByVal intCodeSite As Integer) As String
+        Dim oWord As New Word.Application
+        Dim oDoc As Word.Document = oWord.Documents.Add()
+        Dim dtPrintProfile As DataTable = ds.Tables(0)
+        Dim dtRecipeDetails As DataTable = ds.Tables(1)
+        Dim dtKeywords As DataTable = ds.Tables(2)
+        Dim dtRecipe As DataTable = ds.Tables(3)
+        Dim dtIngredients As DataTable = ds.Tables(4)
+
+        Dim intCodeTrans As Integer = CIntDB(dtPrintProfile.Rows(0)("CodeLang"))
+        Dim cLang As New clsEGSLanguage(intCodeTrans)
+
+        With oDoc.PageSetup
+            .PaperSize = Word.WdPaperSize.wdPaperA4
+            .RightMargin = oWord.InchesToPoints(0.75)
+            .LeftMargin = oWord.InchesToPoints(0.75)
+            .TopMargin = oWord.InchesToPoints(0.75)
+            .BottomMargin = oWord.InchesToPoints(0.75)
+        End With
+
+        Dim intRecipes As Integer = 0
+        For Each dsRow As DataRow In dtRecipe.Rows
+            intRecipes += 1
+            Dim strRecipename As String = CStrDB(dtRecipeDetails.Select("Code=" & dsRow("code"))(0)("recipenametrans").ToString)
+            If strRecipename.Trim.Length = 0 Then
+                strRecipename = CStrDB(dtRecipeDetails.Select("Code=" & dsRow("code"))(0)("recipename").ToString)
+            End If
+
+            Dim paraTitle As Word.Paragraph = oDoc.Content.Paragraphs.Add
+            With paraTitle
+                .Range.Text = strRecipename
+                .Range.Font.Size = 12
+                .Range.Font.Bold = True
+                .Format.SpaceAfter = 6
+                .Range.InsertParagraphAfter()
+            End With
+
+            Dim tblDetails As Word.Table = oDoc.Tables.Add(oDoc.Bookmarks.Item("\endofdoc").Range, 2, 2)
+            With tblDetails
+                .Range.ParagraphFormat.SpaceAfter = 6
+                .Columns(1).Width = oWord.InchesToPoints(1)
+                .Columns(2).Width = oWord.InchesToPoints(3)
+                .Cell(1, 1).Range.Text = cLang.GetString(clsEGSLanguage.CodeType.Category)
+                .Cell(1, 1).Range.Font.Size = 12
+                .Cell(2, 1).Range.Text = cLang.GetString(clsEGSLanguage.CodeType.Yield)
+                .Cell(2, 1).Range.Font.Size = 12
+
+                Dim catName As String = CStrDB(dtRecipeDetails.Select("Code=" & dsRow("code"))(0)("categorynametrans").ToString())
+                If catName.Trim.Length = 0 Then catName = CStrDB(dtRecipeDetails.Select("Code=" & dsRow("code"))(0)("categoryname").ToString)
+                With .Cell(1, 2).Range
+                    .Text = catName
+                    .Font.Bold = True
+                    .Font.Size = 12
+                End With
+
+                Dim unitName As String = CStrDB(dtRecipeDetails.Select("Code=" & dsRow("code"))(0)("portionunittrans").ToString())
+                If unitName.Trim.Length = 0 Then unitName = CStrDB(dtRecipeDetails.Select("Code=" & dsRow("code"))(0)("portionunit").ToString)
+                Dim yieldText As String = CDblDB(dtRecipeDetails.Select("Code=" & dsRow("code"))(0)("yield").ToString) & " " & unitName
+                With .Cell(2, 2).Range
+                    .Text = yieldText
+                    .Font.Bold = True
+                    .Font.Size = 12
+                End With
+            End With
+
+            Dim oPara4 As Word.Paragraph = oDoc.Content.Paragraphs.Add(oDoc.Bookmarks.Item("\endofdoc").Range)
+            oPara4.Range.InsertParagraphBefore()
+            oPara4.Range.Text = ""
+            oPara4.Format.SpaceAfter = 0
+            oPara4.Range.InsertParagraphAfter()
+
+            Dim intIngRows As Integer = dtIngredients.Select("CodeMain=" & dsRow("code")).Length
+            Dim tblIngredients As Word.Table = oDoc.Tables.Add(oDoc.Bookmarks.Item("\endofdoc").Range, 1 + intIngRows, 8)
+            With tblIngredients
+                .Range.ParagraphFormat.SpaceAfter = 6
+                .AllowAutoFit = False
+                .Columns(1).Width = oWord.InchesToPoints(0.75)
+                .Columns(2).Width = oWord.InchesToPoints(0.5)
+                .Columns(3).Width = oWord.InchesToPoints(2.5)
+                .Columns(4).Width = oWord.InchesToPoints(0.5)
+                .Columns(5).Width = oWord.InchesToPoints(0.75)
+                .Columns(6).Width = oWord.InchesToPoints(0.75)
+                .Columns(7).Width = oWord.InchesToPoints(0.75)
+                .Columns(8).Width = oWord.InchesToPoints(0.75)
+
+                .Cell(1, 1).Range.Text = cLang.GetString(clsEGSLanguage.CodeType.Quantity)
+                .Cell(1, 1).Range.Font.Size = 10
+                .Cell(1, 1).Range.Font.Bold = True
+
+                .Cell(1, 2).Range.Text = cLang.GetString(clsEGSLanguage.CodeType.Unit)
+                .Cell(1, 2).Range.Font.Size = 10
+                .Cell(1, 2).Range.Font.Bold = True
+
+                .Cell(1, 3).Range.Text = cLang.GetString(clsEGSLanguage.CodeType.Ingredients)
+                .Cell(1, 3).Range.Font.Size = 10
+                .Cell(1, 3).Range.Font.Bold = True
+
+                .Cell(1, 4).Range.Text = cLang.GetString(clsEGSLanguage.CodeType.Cost)
+                .Cell(1, 4).Range.Font.Size = 10
+                .Cell(1, 4).Range.Font.Bold = True
+
+                .Cell(1, 6).Range.Text = cLang.GetString(clsEGSLanguage.CodeType.Wastage)
+                .Cell(1, 6).Range.Font.Size = 10
+                .Cell(1, 6).Range.Font.Bold = True
+
+                .Cell(1, 7).Range.Text = cLang.GetString(clsEGSLanguage.CodeType.Gross_Qty)
+                .Cell(1, 7).Range.Font.Size = 10
+                .Cell(1, 7).Range.Font.Bold = True
+
+                .Cell(1, 8).Range.Text = cLang.GetString(clsEGSLanguage.CodeType.TotalCost)
+                .Cell(1, 8).Range.Font.Size = 10
+                .Cell(1, 8).Range.Font.Bold = True
+
+                Dim intRow As Integer = 2
+                For Each dtRow As DataRow In dtIngredients.Select("CodeMain=" & dsRow("code"))
+                    Dim strPriceUnit As String = "/" & CStrDB(dtRow("priceunit"))
+                    Dim strWaste As String = Format(CDblDB(CStrDB(dtRow("totalwastage"))), "0") & "%"
+                    Dim strCost As String = Format(CDblDB(CStrDB(dtRow("itemprice"))), "00.00")
+                    Dim strUnit As String, strIngName As String, strQty As String, strGross As String
+
+                    If dtRow("itemname") = "dummy" Then
+                        strUnit = CStrDB(dtRow("tmpunit"))
+                        strIngName = CStrDB(dtRow("tmpname"))
+                        strQty = Format(CDblDB(dtRow("tmpqty")), "0.000")
+                        strGross = Format(CDblDB(dtRow("tmpqty")), "0.000")
+                    Else
+                        strUnit = CStrDB(dtRow("itemunit"))
+                        strIngName = CStrDB(dtRow("itemname"))
+                        strQty = Format(CDblDB(dtRow("netquantity")), "0.000")
+                        strGross = Format(CDblDB(dtRow("grossquantity")), "0.000")
+                    End If
+
+                    Dim strTotalCost As String = Format(CDblDB(strGross) * CDblDB(strCost), "00.00")
+
+                    .Cell(intRow, 1).Range.Text = strQty
+                    .Cell(intRow, 1).Range.Font.Size = 10
+                    .Cell(intRow, 2).Range.Text = strUnit
+                    .Cell(intRow, 2).Range.Font.Size = 10
+                    .Cell(intRow, 3).Range.Text = strIngName
+                    .Cell(intRow, 3).Range.Font.Size = 10
+                    .Cell(intRow, 4).Range.Text = strCost
+                    .Cell(intRow, 4).Range.Font.Size = 10
+                    .Cell(intRow, 5).Range.Text = strPriceUnit
+                    .Cell(intRow, 5).Range.Font.Size = 10
+                    .Cell(intRow, 6).Range.Text = strWaste
+                    .Cell(intRow, 6).Range.Font.Size = 10
+                    .Cell(intRow, 7).Range.Text = strGross
+                    .Cell(intRow, 7).Range.Font.Size = 10
+                    .Cell(intRow, 8).Range.Text = strTotalCost
+                    .Cell(intRow, 8).Range.Font.Size = 10
+                    .Cell(intRow, 8).Range.Font.Bold = True
+
+                    intRow += 1
+                Next
+            End With
+
+            Dim oParaHead As Word.Paragraph = oDoc.Content.Paragraphs.Add(oDoc.Bookmarks.Item("\endofdoc").Range)
+            oParaHead.Range.Text = cLang.GetString(clsEGSLanguage.CodeType.Procedure)
+            oParaHead.Range.Font.Size = 10
+            oParaHead.Range.Font.Bold = True
+            oParaHead.Format.SpaceAfter = 0
+            oParaHead.Range.InsertParagraphAfter()
+
+            Dim strNote As String = CStrDB(dtRecipeDetails.Select("Code=" & dsRow("code"))(0)("notetrans").ToString())
+            If strNote.Trim.Length = 0 Then
+                strNote = CStrDB(dtRecipeDetails.Select("Code=" & dsRow("code"))(0)("note").ToString)
+            End If
+
+            Dim tblProc As Word.Table = oDoc.Tables.Add(oDoc.Bookmarks.Item("\endofdoc").Range, 1, 1)
+            tblProc.Cell(1, 1).Range.Text = strNote.Trim
+            tblProc.Cell(1, 1).Range.Font.Size = 10
+
+            Dim strPix() As String = dtRecipeDetails.Select("Code=" & dsRow("code"))(0)("pix").ToString.Split(";")
+            Dim strPic As String = ""
+            For Each sp As String In strPix
+                If sp.Trim.Length > 0 AndAlso File.Exists(strPicPath & sp) Then
+                    strPic = strPicPath + sp
+                    Exit For
+                End If
+            Next
+
+            If strPic.Trim.Length > 0 Then
+                oDoc.Bookmarks.Item("\endofdoc").Range.InlineShapes.AddPicture(FileName:=strPic, LinkToFile:=False, SaveWithDocument:=True)
+            End If
+
+            If intRecipes <> dtRecipe.Rows.Count Then
+                Dim oRng As Word.Range = oDoc.Bookmarks.Item("\endofdoc").Range
+                oRng.Collapse(Word.WdCollapseDirection.wdCollapseEnd)
+                oRng.InsertBreak(Word.WdBreakType.wdPageBreak)
+                oRng.Collapse(Word.WdCollapseDirection.wdCollapseEnd)
+            End If
+        Next
+
+        oDoc.SaveAs(strPath)
+        oDoc.Close()
+        oDoc = Nothing
+        oWord.Quit()
+        oWord = Nothing
+
+        Return ""
+    End Function
+
+#End Region
+
+    ' Helper used in Hero/Moevenpick sections (kept as in original)
+    Private Function fctMakeXRLabel(ByVal strText As String, ByVal fntFont As System.Drawing.Font, ByVal intX As Integer, ByVal intY As Integer, ByVal intSizeX As Integer, ByVal intSizeY As Integer, Optional ByVal DEAllignment As DevExpress.XtraPrinting.TextAlignment = DevExpress.XtraPrinting.TextAlignment.TopLeft, Optional ByVal blnCanGrow As Boolean = False, Optional ByVal Borders As DevExpress.XtraPrinting.BorderSide = DevExpress.XtraPrinting.BorderSide.None, Optional ByVal blnMultiline As Boolean = False, Optional ByVal blnKeepTogether As Boolean = False, Optional ByVal strBackColor As String = "", Optional ByVal strForeColor As String = "", Optional ByVal strBorderColor As String = "", Optional ByVal intPadding As Integer = 0, Optional ByVal blnWordWrap As Boolean = False, Optional ByVal blnCanShrink As Boolean = False) As XRLabel
+        Dim xr As New XRLabel
+        xr.Dpi = 254.0!
+        xr.Text = strText
+        xr.Font = fntFont
+        xr.Location = New Point(intX, intY)
+        xr.Size = New Size(intSizeX, intSizeY)
+        xr.TextAlignment = DEAllignment
+        xr.CanGrow = blnCanGrow
+        xr.Borders = Borders
+        xr.Multiline = blnMultiline
+        xr.KeepTogether = blnKeepTogether
+        xr.WordWrap = blnWordWrap
+        xr.CanShrink = blnCanShrink
+        If Not String.IsNullOrEmpty(strBackColor) Then
+            Dim c As Color = Color.FromName(strBackColor)
+            If c.IsNamedColor Then xr.BackColor = c
+        End If
+        If Not String.IsNullOrEmpty(strForeColor) Then
+            Dim c As Color = Color.FromName(strForeColor)
+            If c.IsNamedColor Then xr.ForeColor = c
+        End If
+        If Not String.IsNullOrEmpty(strBorderColor) Then
+            Dim c As Color = Color.FromName(strBorderColor)
+            If c.IsNamedColor Then xr.BorderColor = c
+        End If
+        If intPadding > 0 Then xr.Padding = New DevExpress.XtraPrinting.PaddingInfo(intPadding, intPadding, intPadding, intPadding)
+        Return xr
+    End Function
+
+    Private Sub InitializeComponent()
+        CType(Me, System.ComponentModel.ISupportInitialize).BeginInit()
+        Me.Name = "clsGenericDevExpress"
+        CType(Me, System.ComponentModel.ISupportInitialize).EndInit()
+    End Sub
+
+    Private Function GetIngredientsPanel(ByVal intCodeLang As Integer, ByVal dtDetails As DataTable, ByVal dtRecipeDetails As DataTable, ByVal intTableWidth As Integer, ByRef intYPos As Integer, ByVal intRecipecode As Integer) As XRPanel
+        Dim xrIngredientsPanel As New XRPanel
+        Dim xrIngredientsTable As New XRTable
+        Dim cLang As New EgsData.clsEGSLanguage(intCodeLang)
+        Dim intHeading As Integer = 0
+        Dim arrTableHeight As New ArrayList
+        Dim blnShowSteps As Boolean = False
+        Dim blnShowProcedure As Boolean = True
+        Dim blnItalic As Boolean = False
+
+        Dim strQty, strUnit, strIngredientName, strProcedure As String
+        Dim intItemCode As Integer
+
+        With xrIngredientsPanel
+            .Width = intTableWidth - 2
+            .Dpi = 254.0!
+            .Location = New System.Drawing.Point(0, 0)
+        End With
+        Dim ctr As Integer = 0
+        For Each dtStepRow As DataRow In dtDetails.Select("itemtype=75 AND codemain=" & intRecipecode)
+            ctr += 1
+        Next
+        If ctr > 0 Then
+            blnShowSteps = True
+        End If
+
+        Dim arrStepName(ctr - 1)() As String
+
+        ctr = 0
+        For Each dtStepRow As DataRow In dtDetails.Select("itemtype=75 AND codemain=" & intRecipecode)
+            arrStepName(CIntDB(dtStepRow("step")) - 1) = New String() {dtStepRow("itemname"), dtStepRow("step"), 0}
+        Next
+
+        For Each dtProcRow As DataRow In dtRecipeDetails.Rows
+            If dtProcRow("preparation") <> "" Then
+                blnShowProcedure = True
+                Exit For
+            End If
+        Next
+
+        With xrIngredientsTable
+            .Borders = DevExpress.XtraPrinting.BorderSide.All
+            .BorderWidth = 1
+            .Dpi = 254.0!
+            '125 + 254 + 500 'intTableWidth - 4
+            If blnShowSteps Then
+                .Width = intGlobalX - 10 - 125
+                .Location = New System.Drawing.Point(124, 0)
+            Else
+                .Width = intGlobalX - 10
+                .Location = New System.Drawing.Point(0, 0)
+            End If
+
+
+
+            ctr = 1
+            If blnShowSteps Then
+                For Each strStep() As String In arrStepName
+                    Dim intTableHeight As Integer = 0
+                    For Each dtRow As DataRow In dtDetails.Select("codemain=" & intRecipecode & "AND step=" & strStep(1) & " AND itemcode<>75")
+                        If intHeading = 0 Then
+                            intHeading += 1
+                            If blnShowProcedure Then
+                                .Rows.AddRange(New XRTableRow() {GetIngredientRow(cLang.GetString(EgsData.clsEGSLanguage.CodeType.Quantity), cLang.GetString(EgsData.clsEGSLanguage.CodeType.Unit), cLang.GetString(EgsData.clsEGSLanguage.CodeType.Ingredients), fntBodyBold, cLang.GetString(clsEGSLanguage.CodeType.Procedure), blnShowProcedure, blnShowSteps)})
+                                intYPos += GetIngredientRow(cLang.GetString(EgsData.clsEGSLanguage.CodeType.Quantity), cLang.GetString(EgsData.clsEGSLanguage.CodeType.Unit), cLang.GetString(EgsData.clsEGSLanguage.CodeType.Ingredients), fntBodyBold, cLang.GetString(clsEGSLanguage.CodeType.Procedure), blnShowProcedure, blnShowSteps).Height
+                            Else
+                                .Rows.AddRange(New XRTableRow() {GetIngredientRow(cLang.GetString(EgsData.clsEGSLanguage.CodeType.Quantity), cLang.GetString(EgsData.clsEGSLanguage.CodeType.Unit), cLang.GetString(EgsData.clsEGSLanguage.CodeType.Ingredients), fntBodyBold, , blnShowProcedure, blnShowSteps)})
+                                intYPos += GetIngredientRow(cLang.GetString(EgsData.clsEGSLanguage.CodeType.Quantity), cLang.GetString(EgsData.clsEGSLanguage.CodeType.Unit), cLang.GetString(EgsData.clsEGSLanguage.CodeType.Ingredients), fntBodyBold, blnShowProcedure, , blnShowSteps).Height
+                            End If
+
+                        Else
+
+                        End If
+                        'If dtRow("itemCode").ToString <> "75" Then
+                        intItemCode = dtRow("itemCode").ToString
+                        strQty = ""
+                        strUnit = ""
+                        strIngredientName = ""
+                        strProcedure = ""
+                        blnItalic = False
+                        If intItemCode = 0 Then
+                            strQty = dtRow("tmpqty").ToString
+                            strUnit = dtRow("tmpunit").ToString
+                            strIngredientName = dtRow("tmpname").ToString
+                            strProcedure = dtRow("tmppreparation").ToString
+                        Else
+                            For Each dtRow2 As DataRow In dtRecipeDetails.Select("itemcode=" & intItemCode)
+                                strQty = dtRow2("quantity").ToString
+                                strUnit = dtRow2("itemunit").ToString
+                                strIngredientName = dtRow2("ingredient").ToString
+                                strProcedure = dtRow2("preparation").ToString
+
+                                Exit For
+                            Next
+                        End If
+                        If dtRow("itemType").ToString = "4" Then
+                            strQty = ""
+                            strUnit = ""
+                        Else
+                            Format(Val(strQty), dtRow("itemFormat").ToString)
+                        End If
+                        If dtRow("itemType").ToString = "8" Then
+                            blnItalic = True
+                        End If
+                        If strQty <> "" Or strUnit <> "" Or strIngredientName <> "" Then
+                            .Rows.AddRange(New XRTableRow() {GetIngredientRow(strQty, strUnit, strIngredientName, fntBody, strProcedure, blnShowProcedure, blnShowSteps, blnItalic)})
+                            intTableHeight += GetIngredientRow(strQty, strUnit, strIngredientName, fntBody, strProcedure, blnShowProcedure, blnShowSteps).Height
+                            intYPos += GetIngredientRow(strQty, strUnit, strIngredientName, fntBody, strProcedure, blnShowProcedure, blnShowSteps).Height
+                        End If
+                        'End If
+
+                    Next
+                    strStep(2) = intTableHeight
+                    If ctr < arrStepName.Length Then
+                        Dim xrSpacerRow As New XRTableRow
+                        Dim xrSpacerCell As New XRTableCell
+                        With xrSpacerRow
+                            .Dpi = 254.0!
+                            .Width = xrIngredientsTable.Width
+                            .Height = 30
+                            .Borders = DevExpress.XtraPrinting.BorderSide.Right
+                            With xrSpacerCell
+                                .Dpi = 254.0!
+                                .Width = xrIngredientsTable.Width
+                                .Height = 30
+                                Dim xrSpacerLabel As New XRLabel
+                                xrSpacerLabel = fctMakeXrLabel2("", fntBody, Color.Transparent, Color.Transparent, 0, 0, 125, 30)
+                                xrSpacerLabel.Borders = DevExpress.XtraPrinting.BorderSide.None
+                                .Controls.AddRange(New XRControl() {xrSpacerLabel})
+                            End With
+                            .Cells.AddRange(New XRTableCell() {xrSpacerCell})
+                        End With
+                        .Rows.AddRange(New XRTableRow() {xrSpacerRow})
+                    End If
+                    ctr += 1
+                Next
+            Else
+                Dim intTableHeight As Integer = 0
+                For Each dtRow As DataRow In dtDetails.Select("codemain=" & intRecipecode, "position asc")
+                    If intHeading = 0 Then
+                        intHeading += 1
+                        If blnShowProcedure Then
+                            .Rows.AddRange(New XRTableRow() {GetIngredientRow(cLang.GetString(EgsData.clsEGSLanguage.CodeType.Quantity), cLang.GetString(EgsData.clsEGSLanguage.CodeType.Unit), cLang.GetString(EgsData.clsEGSLanguage.CodeType.Ingredients), fntBodyBold, cLang.GetString(clsEGSLanguage.CodeType.Procedure), blnShowProcedure, blnShowSteps)})
+                            intYPos += GetIngredientRow(cLang.GetString(EgsData.clsEGSLanguage.CodeType.Quantity), cLang.GetString(EgsData.clsEGSLanguage.CodeType.Unit), cLang.GetString(EgsData.clsEGSLanguage.CodeType.Ingredients), fntBodyBold, cLang.GetString(clsEGSLanguage.CodeType.Procedure), blnShowProcedure, blnShowSteps).Height
+                        Else
+                            .Rows.AddRange(New XRTableRow() {GetIngredientRow(cLang.GetString(EgsData.clsEGSLanguage.CodeType.Quantity), cLang.GetString(EgsData.clsEGSLanguage.CodeType.Unit), cLang.GetString(EgsData.clsEGSLanguage.CodeType.Ingredients), fntBodyBold, , blnShowProcedure, blnShowSteps)})
+                            intYPos += GetIngredientRow(cLang.GetString(EgsData.clsEGSLanguage.CodeType.Quantity), cLang.GetString(EgsData.clsEGSLanguage.CodeType.Unit), cLang.GetString(EgsData.clsEGSLanguage.CodeType.Ingredients), fntBodyBold, , blnShowProcedure, blnShowSteps).Height
+                        End If
+
+                    Else
+
+                    End If
+                    If dtRow("itemCode").ToString <> "75" Then
+                        intItemCode = dtRow("itemCode").ToString
+                        strQty = ""
+                        strUnit = ""
+                        strIngredientName = ""
+                        strProcedure = ""
+                        If intItemCode = 0 Then
+                            strQty = dtRow("tmpqty").ToString
+                            strUnit = dtRow("tmpunit").ToString
+                            strIngredientName = dtRow("tmpname").ToString
+                            strProcedure = dtRow("tmppreparation").ToString
+                        Else
+                            For Each dtRow2 As DataRow In dtRecipeDetails.Select("itemcode=" & intItemCode)
+                                strQty = dtRow2("quantity").ToString
+                                strUnit = dtRow2("itemunit").ToString
+                                strIngredientName = dtRow2("ingredient").ToString
+                                strProcedure = dtRow2("preparation").ToString
+
+                                Exit For
+                            Next
+                        End If
+
+                        If dtRow("itemType").ToString = "4" Then
+                            strQty = ""
+                            strUnit = ""
+                        Else
+                            strQty = Format(Val(strQty), dtRow("itemFormat").ToString) 'strQty.Format(dtRow("itemFormat").ToString)
+                        End If
+                        If dtRow("itemType").ToString = "8" Then
+                            blnItalic = True
+                        End If
+                        If strQty <> "" Or strUnit <> "" Or strIngredientName <> "" Then
+                            .Rows.AddRange(New XRTableRow() {GetIngredientRow(strQty, strUnit, strIngredientName, fntBody, , blnShowProcedure, blnShowSteps, blnItalic)})
+                            intTableHeight += GetIngredientRow(strQty, strUnit, strIngredientName, fntBody).Height
+                            intYPos += GetIngredientRow(strQty, strUnit, strIngredientName, fntBody).Height
+                        End If
+                    End If
+
+                Next
+            End If
+
+
+            'arrTableHeight.Clear()
+            'arrTableHeight.Add(intTableHeight)
+            'xrStepLabel.Height = intTableHeight
+            'xrStep.Height = intTableHeight
+            'xrStepCell.Height = intTableHeight 
+        End With
+
+
+
+        Dim intX As Integer = 0
+        Dim xrIngredientsStepTable As New XRTable
+        If blnShowSteps Then
+
+            With xrIngredientsStepTable
+                .Dpi = 254.0!
+                .Width = 125
+                .Location = New System.Drawing.Point(0, 0)
+                .Borders = DevExpress.XtraPrinting.BorderSide.All
+                .BorderWidth = 1
+
+                'If intHeading = 0 Then
+                Dim xrStepHead As New XRTableRow
+                With xrStepHead
+                    Dim xrStepHeadCell As New XRTableCell
+                    With xrStepHeadCell
+                        .Dpi = 254.0!
+                        .Width = 125
+                        Dim intControlHeight As Double = MeasureText("Step", fntBodyBold, 125 / 2.7, System.Drawing.StringFormat.GenericDefault, Me.Padding).Height
+                        intControlHeight *= 2.7
+
+                        .Controls.Add(fctMakeXrLabel2("Step", fntBodyBold, Color.Black, Color.Transparent, 0, 0, 125, intControlHeight, DevExpress.XtraPrinting.TextAlignment.TopCenter, True))
+                    End With
+                    .Cells.Add(xrStepHeadCell)
+
+                End With
+
+                .Rows.Add(xrStepHead)
+                'End If
+                ctr = 1
+                For Each strStep() As String In arrStepName
+                    Dim xrStep As New XRTableRow
+                    With xrStep
+                        Dim xrStepCell As New XRTableCell
+                        With xrStepCell
+                            .Dpi = 254.0!
+                            .Width = 125
+                            .Controls.Add(fctMakeXrLabel2(strStep(0), fntBody, Color.Black, Color.Transparent, 0, 0, 125, strStep(2), DevExpress.XtraPrinting.TextAlignment.MiddleCenter, True))
+                        End With
+                        .Cells.Add(xrStepCell)
+                    End With
+                    .Rows.Add(xrStep)
+                    If ctr < arrStepName.Length Then
+                        Dim xrSpacerRow As New XRTableRow
+                        Dim xrSpacerCell As New XRTableCell
+                        With xrSpacerRow
+                            .Dpi = 254.0!
+                            .Width = intGlobalX - 10
+                            .Height = 30
+                            .Borders = DevExpress.XtraPrinting.BorderSide.Left
+                            With xrSpacerCell
+                                .Dpi = 254.0!
+                                .Width = intGlobalX - 10
+                                .Height = 30
+                                .Controls.AddRange(New XRControl() {fctMakeXrLabel2("", fntBody, Color.Transparent, Color.Transparent, 0, 0, 125, 30)})
+                            End With
+                            .Cells.AddRange(New XRTableCell() {xrSpacerCell})
+                        End With
+                        .Rows.AddRange(New XRTableRow() {xrSpacerRow})
+                    End If
+                    ctr += 1
+                Next
+
+            End With
+        End If
+
+
+        'Dim xrProcedureTable As New XRTable
+        'With xrProcedureTable
+        '    .Dpi = 254.0!
+        '    Dim intWidth As Integer = intGlobalX - (122 + 254 + 125 + 500) - 5
+        '    .Width = intWidth
+        '    .Location = New System.Drawing.Point((118 + 254 + 125 + 500), 0)
+        '    .Borders = DevExpress.XtraPrinting.BorderSide.All
+        '    .BorderWidth = 1
+
+        '    'If intHeading = 0 Then
+        '    Dim xrProcedureHead As New XRTableRow
+        '    With xrProcedureHead
+        '        Dim xrProcedureHeadCell As New XRTableCell
+        '        With xrProcedureHeadCell
+        '            .Width = intWidth
+        '            Dim intControlHeight As Double = MeasureText(cLang.GetString(EgsData.clsEGSLanguage.CodeType.Procedure), fntBodyBold, 254 / 2.7, System.Drawing.StringFormat.GenericDefault, Me.Padding).Height
+        '            intControlHeight *= 2.7
+        '            .Controls.Add(fctMakeXrLabel2(cLang.GetString(EgsData.clsEGSLanguage.CodeType.Procedure), fntBodyBold, Color.Black, Color.Transparent, 0, 0, intWidth, intControlHeight, DevExpress.XtraPrinting.TextAlignment.TopCenter, True))
+        '        End With
+        '        .Cells.Add(xrProcedureHeadCell)
+        '    End With
+
+        '    .Rows.Add(xrProcedureHead)
+        '    'End If
+
+        '    Dim ctr As Integer = 0
+        '    Dim xrProcedure As New XRTableRow
+        '    With xrProcedure
+        '        Dim xrProcedureCell As New XRTableCell
+        '        With xrProcedureCell
+        '            .Width = intGlobalX - (122 + 254 + 125 + 500)
+        '            .Controls.Add(fctMakeXrLabel2("#", fntBody, Color.Black, Color.Transparent, 0, 0, intWidth, arrTableHeight(ctr), DevExpress.XtraPrinting.TextAlignment.TopCenter, True))
+        '        End With
+        '        .Cells.Add(xrProcedureCell)
+        '    End With
+        '    .Rows.Add(xrProcedure)
+        'End With
+
+        'Dim intTableHeight1 As Integer = 0
+        'For Each intA As Integer In arrTableHeight
+        '    intTableHeight1 += intA
+        'Next
+
+        intYPos += xrIngredientsTable.Height
+
+        xrIngredientsPanel.Controls.Add(xrIngredientsTable)
+        'xrIngredientsPanel.Controls.Add(xrProcedureTable)
+        If blnShowSteps Then xrIngredientsPanel.Controls.Add(xrIngredientsStepTable)
+        Return xrIngredientsPanel
+    End Function
+
+    Private Function GetPreparationPanel(ByVal intCodeLang As Integer, ByVal dtDetails As DataTable, ByVal intTableWidth As Integer, ByVal intRecipeCode As Integer, ByRef intYPos As Integer) As XRPanel
+        Dim cLang As New EgsData.clsEGSLanguage(intCodeLang)
+        Dim intControlHeight, intControlHeight1 As Integer
+        Dim xrPrepPanel As New XRPanel
+        Dim blnTemplate As Boolean = False
+
+
+        With xrPrepPanel
+            .Dpi = 254.0!
+            .Width = intTableWidth
+            .Location = New System.Drawing.Point(0, 50)
+            '.Borders = DevExpress.XtraPrinting.BorderSide.All
+            Dim strTitle() As String
+            Dim strNotes() As String
+            For Each dtRow As DataRow In dtDetails.Select("code=" & intRecipeCode)
+                If Val(dtRow("templatecode").ToString) > 0 Then
+                    blnTemplate = True
+                    strTitle = dtRow("noteheader").ToString.Split("¤")
+                    strNotes = dtRow("note").ToString.Split("¤")
+                End If
+                Exit For
+            Next
+            If blnTemplate Then
+                Dim intCurrentY As Integer = 0
+
+                Dim ctr As Integer = 0
+                For ctr = 0 To strTitle.Length - 1
+                    intControlHeight1 = MeasureText(strTitle(ctr), fntHeading, intTableWidth - 2, System.Drawing.StringFormat.GenericDefault, Me.Padding).Height
+                    .Controls.Add(fctMakeXrLabel2(strTitle(ctr), fntHeading, Color.Black, Color.Transparent, 0, intCurrentY, intTableWidth - 2, intControlHeight1, DevExpress.XtraPrinting.TextAlignment.TopCenter))
+                    intControlHeight = MeasureText(strNotes(ctr), fntBody, intTableWidth - 2, System.Drawing.StringFormat.GenericDefault, Me.Padding).Height
+                    .Controls.Add(fctMakeXrLabel2(strNotes(ctr), fntBody, Color.Black, Color.Transparent, 0, intControlHeight1 + intCurrentY, intTableWidth - 2, intControlHeight, DevExpress.XtraPrinting.TextAlignment.TopCenter, True, True))
+                    intCurrentY += intControlHeight + intControlHeight1 + 20
+                Next
+                intYPos += intCurrentY
+            Else
+                Dim strTitleHead As String = vbLf & cLang.GetString(EgsData.clsEGSLanguage.CodeType.Preparation)
+                intControlHeight1 = MeasureText(strTitleHead, fntHeading, intTableWidth - 2, System.Drawing.StringFormat.GenericDefault, Me.Padding).Height
+                .Controls.Add(fctMakeXrLabel2(strTitleHead, fntHeading, Color.Black, Color.Transparent, 0, 0, intTableWidth - 2, intControlHeight1, DevExpress.XtraPrinting.TextAlignment.TopCenter))
+                For Each dtRow As DataRow In dtDetails.Select("code=" & intRecipeCode)
+                    Dim strNote As String = dtRow("note").ToString
+                    intControlHeight = MeasureText(strNote, fntBody, intTableWidth - 2, System.Drawing.StringFormat.GenericDefault, Me.Padding).Height
+                    .Controls.Add(fctMakeXrLabel2(strNote, fntBody, Color.Black, Color.Transparent, 0, intControlHeight1, intTableWidth - 2, intControlHeight, DevExpress.XtraPrinting.TextAlignment.TopCenter, True, True))
+                    Exit For
+                Next
+                intYPos += (intControlHeight + intControlHeight1)
+            End If
+
+        End With
+
+        Return xrPrepPanel
+    End Function
+
+    Private Function GetIngredientRow(ByVal strQuantity As String, ByVal strUnit As String, ByVal strIngredientName As String, ByVal fntFont As System.Drawing.Font, Optional ByVal strProcedure As String = "", Optional ByVal bShowProcedure As Boolean = False, Optional ByVal bShowStep As Boolean = False, Optional ByVal bItalic As Boolean = False) As XRTableRow
+        Dim xrIngRow As New XRTableRow
+        Dim intControlHeight As Integer
+        Dim intProcedureWidth As Integer
+        'bShowProcedure = False
+
+        Dim intIngredientsCellWidth As Integer
+
+        If bShowProcedure Then
+            intIngredientsCellWidth = 500
+            If bShowStep Then
+                intProcedureWidth = intGlobalX - 500 - 254 - 125 - 125
+            Else
+                intProcedureWidth = intGlobalX - 500 - 254 - 125
+            End If
+        ElseIf bShowStep Then
+            intIngredientsCellWidth = intGlobalX - 125 - 254 - 125
+        Else
+            intIngredientsCellWidth = intGlobalX - 125 - 254
+        End If
+
+        If intControlHeight = 60 Then intControlHeight += 5
+        intControlHeight = MeasureText(strQuantity, fntFont, 254 / 2.7, System.Drawing.StringFormat.GenericDefault, Me.Padding).Height
+        If MeasureText(strUnit, fntFont, 125 / 2.7, System.Drawing.StringFormat.GenericDefault, Me.Padding).Height > intControlHeight Then intControlHeight = MeasureText(strUnit, fntFont, 125 / 2.7, System.Drawing.StringFormat.GenericDefault, Me.Padding).Height
+        If MeasureText(strIngredientName, fntFont, intIngredientsCellWidth / 2.7, System.Drawing.StringFormat.GenericDefault, Me.Padding).Height > intControlHeight Then intControlHeight = MeasureText(strIngredientName, fntFont, intIngredientsCellWidth / 2.7, System.Drawing.StringFormat.GenericDefault, Me.Padding).Height
+        If MeasureText(strProcedure, fntFont, intProcedureWidth / 2.7, System.Drawing.StringFormat.GenericDefault, Me.Padding).Height > intControlHeight Then intControlHeight = MeasureText(strProcedure, fntFont, intProcedureWidth / 2.7, System.Drawing.StringFormat.GenericDefault, Me.Padding).Height
+        intControlHeight *= 2.7
+        'intControlHeight = MeasureText(strQuantity, fntFont, 254, System.Drawing.StringFormat.GenericDefault, Me.Padding).Height
+        'If MeasureText(strUnit, fntFont, 125, System.Drawing.StringFormat.GenericDefault, Me.Padding).Height > intControlHeight Then intControlHeight = MeasureText(strUnit, fntFont, 125, System.Drawing.StringFormat.GenericDefault, Me.Padding).Height
+        'If MeasureText(strIngredientName, fntFont, 500, System.Drawing.StringFormat.GenericDefault, Me.Padding).Height > intControlHeight Then intControlHeight = MeasureText(strIngredientName, fntFont, 500, System.Drawing.StringFormat.GenericDefault, Me.Padding).Height
+
+        With xrIngRow
+            .Dpi = 254.0!
+            '.Borders = DevExpress.XtraPrinting.BorderSide.None
+            Dim xrQuantityCell As New XRTableCell
+            With xrQuantityCell
+                .Width = 254
+                '.Height = intControlHeight
+                .Controls.Add(fctMakeXrLabel2(strQuantity, fntFont, Color.Black, Color.Transparent, 0, 0, 254, intControlHeight, DevExpress.XtraPrinting.TextAlignment.TopCenter, False, True, True))
+            End With
+            .Cells.Add(xrQuantityCell)
+            Dim xrUnitCell As New XRTableCell
+            With xrUnitCell
+                .Width = 125
+                '.Height = intControlHeight
+                .Controls.Add(fctMakeXrLabel2(strUnit, fntFont, Color.Black, Color.Transparent, 0, 0, 125, intControlHeight, DevExpress.XtraPrinting.TextAlignment.TopCenter, False, True, True))
+            End With
+            .Cells.Add(xrUnitCell)
+            Dim xrIngredientCell As New XRTableCell
+            With xrIngredientCell
+                .Width = intIngredientsCellWidth
+                '.Height = intControlHeight
+                If bItalic Then
+                    .Controls.Add(fctMakeXrLabel2(strIngredientName, fntBodyItalic, Color.Black, Color.Transparent, 0, 0, intIngredientsCellWidth, intControlHeight, DevExpress.XtraPrinting.TextAlignment.TopCenter, False, True, True))
+                Else
+                    .Controls.Add(fctMakeXrLabel2(strIngredientName, fntFont, Color.Black, Color.Transparent, 0, 0, intIngredientsCellWidth, intControlHeight, DevExpress.XtraPrinting.TextAlignment.TopCenter, False, True, True))
+                End If
+
+            End With
+            'If xrIngredientCell.Height > xrUnitCell.Height And xrIngredientCell.Height > xrQuantityCell.Height Then
+            '    xrUnitCell.Height = xrIngredientCell.Height
+            '    xrQuantityCell.Height = xrIngredientCell.Height
+            'End If
+            .Cells.Add(xrIngredientCell)
+            If bShowProcedure Then
+                Dim xrProcedureCell As New XRTableCell
+                With xrProcedureCell
+                    .Width = intProcedureWidth
+                    '.Height = intControlHeight
+                    .Controls.Add(fctMakeXrLabel2(strProcedure, fntFont, Color.Black, Color.Transparent, 0, 0, intProcedureWidth, intControlHeight, DevExpress.XtraPrinting.TextAlignment.TopCenter, False, True, True))
+                End With
+                'If xrIngredientCell.Height > xrUnitCell.Height And xrIngredientCell.Height > xrQuantityCell.Height Then
+                '    xrUnitCell.Height = xrIngredientCell.Height
+                '    xrQuantityCell.Height = xrIngredientCell.Height
+                'End If
+                .Cells.Add(xrProcedureCell)
+            End If
+            .Height = intControlHeight
+        End With
+
+        Return xrIngRow
+    End Function
+End Class

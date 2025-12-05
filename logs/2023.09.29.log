@@ -1,0 +1,44 @@
+2023-09-29 12:57:45,297 [5] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2023-09-29 12:57:45,424 [5] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2023-09-29 12:57:45,425 [5] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2023-09-29 12:57:49,833 [7] ERROR CalcmenuAPI.CalcmenuAPI.MerchandiseController - GetMerchandise: Unexpected error occured
+System.IndexOutOfRangeException: CodeCountry
+   at System.Data.ProviderBase.FieldNameLookup.GetOrdinal(String fieldName)
+   at System.Data.SqlClient.SqlDataReader.GetOrdinal(String name)
+   at System.Data.SqlClient.SqlDataReader.get_Item(String name)
+   at CalcmenuAPI.CalcmenuAPI.MerchandiseController.GetMerchandise(Int32 codeliste, Int32 codesite, Int32 codetrans, Int32 codesetprice, Int32 codenutrientset) in C:\TFS Projects\CalcmenuAPI-v7.0.48_COOP\Controllers\MerchandiseController.vb:line 288
+2023-09-29 12:59:25,882 [6] ERROR CalcmenuAPI.CalcmenuAPI.MerchandiseController - GetMerchandise: Unexpected error occured
+System.IndexOutOfRangeException: CodeCountry
+   at System.Data.ProviderBase.FieldNameLookup.GetOrdinal(String fieldName)
+   at System.Data.SqlClient.SqlDataReader.GetOrdinal(String name)
+   at System.Data.SqlClient.SqlDataReader.get_Item(String name)
+   at CalcmenuAPI.CalcmenuAPI.MerchandiseController.GetMerchandise(Int32 codeliste, Int32 codesite, Int32 codetrans, Int32 codesetprice, Int32 codenutrientset) in C:\TFS Projects\CalcmenuAPI-v7.0.48_COOP\Controllers\MerchandiseController.vb:line 288
+2023-09-29 13:00:28,115 [5] ERROR CalcmenuAPI.CalcmenuAPI.MerchandiseController - GetMerchandise: Unexpected error occured
+System.IndexOutOfRangeException: CodeCountry
+   at System.Data.ProviderBase.FieldNameLookup.GetOrdinal(String fieldName)
+   at System.Data.SqlClient.SqlDataReader.GetOrdinal(String name)
+   at System.Data.SqlClient.SqlDataReader.get_Item(String name)
+   at CalcmenuAPI.CalcmenuAPI.MerchandiseController.GetMerchandise(Int32 codeliste, Int32 codesite, Int32 codetrans, Int32 codesetprice, Int32 codenutrientset) in C:\TFS Projects\CalcmenuAPI-v7.0.48_COOP\Controllers\MerchandiseController.vb:line 288
+2023-09-29 13:00:38,297 [9] ERROR CalcmenuAPI.CalcmenuAPI.MerchandiseController - GetMerchandise: Unexpected error occured
+System.IndexOutOfRangeException: Country
+   at System.Data.ProviderBase.FieldNameLookup.GetOrdinal(String fieldName)
+   at System.Data.SqlClient.SqlDataReader.GetOrdinal(String name)
+   at System.Data.SqlClient.SqlDataReader.get_Item(String name)
+   at CalcmenuAPI.CalcmenuAPI.MerchandiseController.GetMerchandise(Int32 codeliste, Int32 codesite, Int32 codetrans, Int32 codesetprice, Int32 codenutrientset) in C:\TFS Projects\CalcmenuAPI-v7.0.48_COOP\Controllers\MerchandiseController.vb:line 289
+2023-09-29 13:00:40,753 [19] ERROR CalcmenuAPI.CalcmenuAPI.MerchandiseController - GetMerchandise: Unexpected error occured
+System.IndexOutOfRangeException: Country
+   at System.Data.ProviderBase.FieldNameLookup.GetOrdinal(String fieldName)
+   at System.Data.SqlClient.SqlDataReader.GetOrdinal(String name)
+   at System.Data.SqlClient.SqlDataReader.get_Item(String name)
+   at CalcmenuAPI.CalcmenuAPI.MerchandiseController.GetMerchandise(Int32 codeliste, Int32 codesite, Int32 codetrans, Int32 codesetprice, Int32 codenutrientset) in C:\TFS Projects\CalcmenuAPI-v7.0.48_COOP\Controllers\MerchandiseController.vb:line 289
+2023-09-29 13:13:35,892 [5] ERROR CalcmenuAPI.CalcmenuAPI.MerchandiseController - GetMerchandise: Unexpected error occured
+System.IndexOutOfRangeException: Country
+   at System.Data.ProviderBase.FieldNameLookup.GetOrdinal(String fieldName)
+   at System.Data.SqlClient.SqlDataReader.GetOrdinal(String name)
+   at System.Data.SqlClient.SqlDataReader.get_Item(String name)
+   at CalcmenuAPI.CalcmenuAPI.MerchandiseController.GetMerchandise(Int32 codeliste, Int32 codesite, Int32 codetrans, Int32 codesetprice, Int32 codenutrientset) in C:\TFS Projects\CalcmenuAPI-v7.0.48_COOP\Controllers\MerchandiseController.vb:line 289

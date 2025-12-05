@@ -1,0 +1,569 @@
+﻿Imports System
+Imports System.Web
+Imports System.Collections.Generic
+Imports System.Linq
+Imports AttributeRouting.Web.Http
+Imports System.Data.SqlClient
+Imports System.Web.Script.Serialization
+Imports log4net
+Imports System.Net
+Imports Newtonsoft.Json
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace CalcmenuAPI
+    Public Class PublicationController
+        Inherits ControllerBase
+
+        Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType)
+
+        <HttpGet> <[GET]("/api/publication/{codesite:int}/{codeproperty?}/{name?}")> _
+        Public Function GetPublication(codesite As Integer, _
+                                       Optional codeproperty As Integer = -1,
+                                       Optional name As String = "") As List(Of Models.TreeNode)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_Placement]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@CodeProperty", SqlDbType.Int).Value = codeproperty
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim placements As New List(Of Models.GenericTree)
+                For Each r In ds.Tables(0).Rows
+                    placements.Add(New Models.GenericTree With {
+                                   .Code = GetInt(r("Code")), _
+                                   .Name = GetStr(r("Name")), _
+                                   .ParentCode = GetInt(r("ParentCode")), _
+                                   .ParentName = GetStr(r("ParentName")), _
+                                   .Flagged = GetBool(r("isParent"))})
+                Next
+
+                If name.Trim <> "" Then
+                    Dim placementschildren As New List(Of Models.GenericTree)
+                    Dim placementsresult As New List(Of Models.GenericTree)
+
+                    Dim arrNames() As String = name.Trim.Split(",")
+                    For Each word In arrNames
+                        For Each k In placements
+                            If k.Name.ToLower.Contains(Common.ReplaceSpecialCharacters(word.Trim.ToLower)) Then ''And k.ParentCode > 0
+                                If placementschildren.IndexOf(k) = -1 Then
+                                    placementschildren.Add(k)
+                                End If
+                            End If
+                        Next
+                    Next
+
+                    For Each kid In placementschildren
+                        placementsresult.Add(kid)
+                        Dim _currentParentCode As Integer = kid.ParentCode
+                        While _currentParentCode > 0
+                            Dim _currentParent As Models.GenericTree = GetParent(_currentParentCode, placements)
+                            If placementsresult.IndexOf(_currentParent) = -1 Then
+                                placementsresult.Add(_currentParent)
+                            End If
+                            _currentParentCode = _currentParent.ParentCode
+                        End While
+                    Next
+                    placements = placementsresult
+
+                End If
+
+                Dim placementdata As New List(Of Models.TreeNode)
+                Dim parents = placements.Where(Function(obj) obj.ParentCode = Nothing Or obj.ParentCode = -99).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each p In parents
+                    Dim parent As New Models.TreeNode
+                    parent.title = p.Name
+                    parent.key = p.Code
+                    parent.icon = False
+                    parent.children = CreateChildren(placements, p.Code)
+                    parent.CanBeParent = p.Flagged
+                    parent.parenttitle = p.ParentName
+                    placementdata.Add(parent)
+                Next
+
+                Return placementdata
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        'START - Raqi Pinili 08.26.2015
+        <HttpPost> <[POST]("/api/publication/search")> _
+        Public Function GetPublication2(data As Models.ConfigurationcSearch) As List(Of Models.TreeNode)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_Placement]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.CodeSite
+                                .Parameters.Add("@CodeProperty", SqlDbType.Int).Value = data.CodeProperty
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim placements As New List(Of Models.GenericTree)
+                For Each r In ds.Tables(0).Rows
+                    placements.Add(New Models.GenericTree With {
+                                   .Code = GetInt(r("Code")), _
+                                   .Name = GetStr(r("Name")), _
+                                   .ParentCode = GetInt(r("ParentCode")), _
+                                   .ParentName = GetStr(r("ParentName")), _
+                                   .Flagged = GetBool(r("IsParent"))})
+                Next
+
+                If data.Name.Trim <> "" Then
+                    Dim placementschildren As New List(Of Models.GenericTree)
+                    Dim placementsresult As New List(Of Models.GenericTree)
+
+                    Dim arrNames() As String = data.Name.Trim.Split(",")
+                    For Each word In arrNames
+                        For Each k In placements
+                            If k.Name.ToLower.Contains(Common.ReplaceSpecialCharacters(word.Trim.ToLower)) Then ''And k.ParentCode > 0
+                                If placementschildren.IndexOf(k) = -1 Then
+                                    placementschildren.Add(k)
+                                End If
+                            End If
+                        Next
+                    Next
+
+                    For Each kid In placementschildren
+                        placementsresult.Add(kid)
+                        Dim _currentParentCode As Integer = kid.ParentCode
+                        While _currentParentCode > 0
+                            Dim _currentParent As Models.GenericTree = GetParent(_currentParentCode, placements)
+                            If placementsresult.IndexOf(_currentParent) = -1 Then
+                                placementsresult.Add(_currentParent)
+                            End If
+                            _currentParentCode = _currentParent.ParentCode
+                        End While
+                    Next
+                    placements = placementsresult
+
+                End If
+
+                Dim placementdata As New List(Of Models.TreeNode)
+                Dim parents = placements.Where(Function(obj) obj.ParentCode = Nothing Or obj.ParentCode = -99 Or obj.Flagged = True).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each p In parents
+                    Dim parent As New Models.TreeNode
+                    parent.title = p.Name
+                    parent.key = p.Code
+                    parent.icon = False
+                    parent.children = CreateChildren(placements, p.Code)
+                    parent.CanBeParent = p.Flagged
+                    parent.parenttitle = p.ParentName
+                    If p.ParentCode = 0 Then
+                        placementdata.Add(parent)
+                    End If
+
+
+                Next
+
+                Return placementdata
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+        'END - Raqi Pinili 08.26.2015
+
+        <HttpGet> <[GET]("/api/publicationlist/{codesite:int}/{codeproperty?}")> _
+        Public Function GetPublicationList(codesite As Integer, Optional codeproperty As Integer = -1) As List(Of Models.GenericList)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_Placement]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@CodeProperty", SqlDbType.Int).Value = codeproperty
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim placements As New List(Of Models.GenericList)
+                For Each r In ds.Tables(0).Rows
+                    placements.Add(New Models.GenericList With {
+                                   .Code = GetInt(r("Code")), _
+                                   .Value = GetStr(r("Name")), _
+                                   .IsParent = GetBool(r("IsParent"))})
+                Next
+
+                Return placements
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpGet> <[GET]("/api/publication/sharing/{codeplacement:int}")> _
+        Public Function GetPublicationSharing(codeplacement As Integer) As List(Of Models.TreeNode)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_SharingPlacement]"
+                                .Parameters.Add("@CodePlacement", SqlDbType.Int).Value = codeplacement
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim sharings As New List(Of Models.GenericTree)
+                For Each r In ds.Tables(0).Rows
+                    sharings.Add(New Models.GenericTree With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name")), _
+                                    .ParentCode = GetInt(r("ParentCode")), _
+                                    .ParentName = GetStr(r("ParentName")), _
+                                    .Flagged = GetBool(r("Flagged")), _
+                                    .Type = GetInt(r("Type")), _
+                                    .Global = GetBool(r("Global"))})
+                Next
+
+                Dim sharingdata As New List(Of Models.TreeNode)
+
+                Dim parents = sharings.Where(Function(obj) obj.ParentCode = 0 And obj.Type = 1).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each p In parents
+                    If sharingdata.Where(Function(obj) obj.key = p.Code).Count = 0 Then
+                        Dim parent As New Models.TreeNode
+                        parent.title = p.Name
+                        parent.key = p.Code
+                        parent.icon = False
+                        parent.children = CreateChildrenSharing(sharings, p.Code)
+                        parent.select = p.Flagged
+                        parent.selected = p.Flagged
+                        parent.parenttitle = p.ParentName
+                        parent.groupLevel = GroupLevel.Property     'MKAM 2014.11.11
+                        If parent.children.Count > 0 Then sharingdata.Add(parent)
+                    End If
+                Next
+
+                Return sharingdata
+			Catch aex As ArgumentException
+				Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+				Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+			Catch hex As HttpResponseException
+				Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+				Throw hex
+			Catch ex As Exception
+				Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+				Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+			End Try
+        End Function
+
+		<HttpPost> <POST("api/publication")> _
+		Public Function SavePublication(data As Models.GenericData) As Models.ResponseCallBack
+			Dim response As New Models.ResponseCallBack
+			Dim resultCode As Integer = 0
+			Dim _trans As SqlTransaction = Nothing
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + JsonConvert.SerializeObject(data, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+                Using cmd As New SqlCommand
+                    Dim arrSharing As New ArrayList
+                    For Each sh In data.Sharing
+                        If arrSharing.IndexOf(sh.Code) = -1 Then arrSharing.Add(sh.Code)
+                    Next
+                    Dim _codeSiteList As String = Common.Join(arrSharing, "", "", ",")
+                    If _codeSiteList.Trim = "" And data.Info.Global Then
+                        _codeSiteList = data.Info.CodeSite
+                    End If
+                    'IF NOT EXISTS(SELECT Id FROM Placement P WHERE LTRIM(RTRIM(ISNULL(P.Name,'')))=LTRIM(RTRIM(@Name))) 
+                    With cmd
+                        Using cn = New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[API_Manage_Publication_Update]"
+                                .Parameters.Clear()
+
+
+                                .Parameters.Add("@Code", SqlDbType.Int).Value = data.Info.Code
+                                .Parameters.Add("@Name", SqlDbType.NVarChar, 150).Value = data.Info.Name
+                                .Parameters.Add("@IsGlobal", SqlDbType.Bit).Value = data.Info.Global
+                                .Parameters.Add("@CodeParent", SqlDbType.Int).Value = data.Info.ParentCode
+                                .Parameters.Add("@CodeSiteList", SqlDbType.NVarChar, 4000).Value = _codeSiteList
+                                .Parameters.Add("@CodeUser", SqlDbType.Int).Value = data.Profile.Code
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.Profile.CodeSite
+                                .Parameters.Add("@IsParent", SqlDbType.Bit).Value = data.Info.IsParent
+
+
+                                .Parameters.Add("@Return", SqlDbType.Int).Direction = ParameterDirection.ReturnValue
+                                .Parameters("@Code").Direction = ParameterDirection.InputOutput
+                                cn.Open()
+                                _trans = cn.BeginTransaction ' RBAJ-2014.01.13
+                                .Transaction = _trans
+                                .ExecuteNonQuery()
+
+                                resultCode = GetInt(.Parameters("@Return").Value, -1) ' RBAJ-2014.01.14   
+                                If resultCode <> 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Save publication failed", resultCode))
+                                End If
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = GetInt(.Parameters("@Code").Value, -1)
+                                response.Status = True
+                                _trans.Commit()
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                Try
+                                    _trans.Rollback()
+                                    If Not _trans Is Nothing Then
+                                        CType(_trans, IDisposable).Dispose()
+                                    End If
+                                Catch
+                                End Try
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.Status = False
+                                response.Message = "Save publication failed"
+                                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Publication")
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+
+                End Using
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                response.Code = 400
+                response.Message = "Missing or invalid parameters"
+                response.Parameters = New List(Of Models.param) From {New Models.param With {.name = "data", .value = "RecipeData"}}
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), aex.Message.ToString(), aex.StackTrace.ToString(), "Publication")
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), hex.Message.ToString(), hex.StackTrace.ToString(), "Publication")
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Publication")
+            End Try
+            Return response
+        End Function
+
+        <HttpPost> <POST("api/publication/delete")> _
+        Public Function DeletePublication(data As Models.GenericDeleteData) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim resultCode As Integer
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + JsonConvert.SerializeObject(data, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+                Using cmd As New SqlCommand
+                    Dim arrPublicationCodes As New ArrayList
+                    For Each c In data.CodeList
+                        If arrPublicationCodes.IndexOf(c.Code) = -1 Then arrPublicationCodes.Add(c.Code)
+                    Next
+                    Dim _codePublicationList As String = Common.Join(arrPublicationCodes, "", "", ",")
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandText = "API_DELETE_Generic"
+                                .CommandType = CommandType.StoredProcedure
+                                .Parameters.Clear()
+                                .Parameters.Add("@CodeList", SqlDbType.VarChar, 4000).Value = _codePublicationList
+                                .Parameters.Add("@TableName", SqlDbType.VarChar, 200).Value = "PLACEMENT"
+                                .Parameters.Add("@CodeUser", SqlDbType.Int).Value = data.CodeUser                    ''codeuser
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.CodeSite                    ''codesite                                                        
+                                .Parameters.Add("@ForceDelete", SqlDbType.Bit).Value = data.ForceDelete              ''force delete
+                                .Parameters.Add("@SkipList", SqlDbType.VarChar, 4000).Direction = ParameterDirection.Output
+                                .Parameters.Add("@Return", SqlDbType.Int)
+                                .Parameters("@Return").Direction = ParameterDirection.ReturnValue
+
+                                cn.Open()
+                                .ExecuteNonQuery()
+                                resultCode = GetInt(.Parameters("@Return").Value, -1) ' RBAJ-2014.01.14                               
+                                If resultCode <> 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Delete publication failed", resultCode))
+                                End If
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = GetStr(.Parameters("@SkipList").Value)
+                                response.Status = True
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.ReturnValue = GetStr(.Parameters("@SkipList").Value) ''JDO 1.21.2014
+                                response.Status = False
+                                response.Message = "Delete publication failed"
+                                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Publication")
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+
+                End Using
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                response.Code = 400
+                response.Message = "Missing or invalid parameters"
+                response.Parameters = New List(Of Models.param) From {New Models.param With {.name = "data", .value = "RecipeData"}}
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), aex.Message.ToString(), aex.StackTrace.ToString(), "Publication")
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), hex.Message.ToString(), hex.StackTrace.ToString(), "Publication")
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Publication")
+            End Try
+            Return response
+        End Function
+
+        Public Function GetParent(ByVal _parentcode As Integer, ByVal _keywords As List(Of Models.GenericTree)) As Models.GenericTree
+            Return _keywords.Where(Function(obj) obj.Code = _parentcode).Single()
+        End Function
+
+        Private Function CreateChildren(_keyworddata As List(Of Models.GenericTree),
+                                        _code As Integer) As List(Of Models.TreeNode)
+
+            Dim children As New List(Of Models.TreeNode)
+            If _keyworddata IsNot Nothing Then
+                Dim kids = _keyworddata.Where(Function(obj) obj.Code <> _code And obj.ParentCode = _code And _code > 0).OrderBy(Function(obj) obj.Name).ToList() ' RBAJ-2014.04.23 Fixed infinite loop "obj.Code <> _code"
+
+                For Each k In kids
+                    Dim child As New Models.TreeNode
+                    child.title = k.Name
+                    child.CanBeParent = k.Flagged
+                    child.key = k.Code
+                    child.icon = False
+                    child.children = CreateChildren(_keyworddata, k.Code)
+                    children.Add(child)
+                    child.select = k.Flagged
+                    child.parenttitle = k.ParentName
+                Next
+            End If
+            Return children
+
+        End Function
+
+        'Private Function CreateChildrenSharing(_sharingdata As List(Of Models.GenericTree),
+        '                                       _code As Integer) As List(Of Models.TreeNode)
+
+        '    Dim children As New List(Of Models.TreeNode)
+        '    If _sharingdata IsNot Nothing Then
+        '        Dim kids = _sharingdata.Where(Function(obj) obj.ParentCode = _code And obj.Type = 2).OrderBy(Function(obj) obj.Name).ToList() ' RBAJ-2014.04.23 Fixed infinite loop "obj.Code <> _code"
+
+        '        For Each k In kids
+        '            Dim child As New Models.TreeNode
+        '            child.title = k.Name
+        '            child.key = k.Code
+        '            child.icon = False
+        '            child.children = Nothing
+        '            children.Add(child)
+        '            child.select = k.Flagged
+        '            child.parenttitle = k.ParentName
+        '            child.note = k.Global
+        '        Next
+        '    End If
+        '    Return children
+
+        'End Function
+
+    End Class
+End Namespace
+
+
+
+
+
+
+

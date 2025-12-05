@@ -1,0 +1,70 @@
+﻿<?xml version="1.0"?>
+<doc>
+<assembly>
+<name>
+EgsReport
+</name>
+</assembly>
+<members>
+<member name="T:EgsReport.My.Resources.Resources">
+<summary>
+  A strongly-typed resource class, for looking up localized strings, etc.
+</summary>
+</member>
+<member name="P:EgsReport.My.Resources.Resources.ResourceManager">
+<summary>
+  Returns the cached ResourceManager instance used by this class.
+</summary>
+</member>
+<member name="P:EgsReport.My.Resources.Resources.Culture">
+<summary>
+  Overrides the current thread's CurrentUICulture property for all
+  resource lookups using this strongly typed resource class.
+</summary>
+</member>
+<member name="T:EgsReport.CryptoService">
+ <summary>
+ VB.NET translation of the provided crypto_service.ts
+ - AES-128-CBC with PKCS7 padding (Set/Set_Old, Get/Get_Old)
+ - HMAC-SHA256 -> hex -> BigInteger -> Base36 -> 25-char string (Get25CharString)
+ </summary>
+</member>
+<member name="M:EgsReport.StandardDetail.fctMakeSectionHeader(System.String,System.Int32,System.Int32,System.Int32,System.Int32,System.Boolean,DevExpress.XtraPrinting.TextAlignment)">
+ <summary>
+  Create a section header using XRTable control
+ </summary>
+ <param name="strSectionText"> String: Text to be displayed as the Section header </param>
+ <param name="intXPosition"> Integer: Position of the Section header in the X ordinate</param>
+ <param name="intYPostion">Integer: Position of the Section header in the Y ordinate</param>
+ <param name="intTableWidth">Integer: Section width</param>
+ <param name="intTableRowHeight">Integer: Section Height </param>
+ <param name="blnHighlightSection">Boolean: Highlight the section header</param>
+ <param name="SectionTextAllign">TextAllignment: Section text allignment</param>
+ <returns>XRTable Control</returns>
+ <remarks>Created by RDC 05.16.2013</remarks>
+</member>
+<member name="M:EgsReport.StandardDetail.fctMakeDataRow(System.String[],System.Int32[],DevExpress.XtraPrinting.TextAlignment[],DevExpress.XtraPrinting.BorderSide,System.Drawing.FontStyle,System.Int32)">
+ <summary>
+ Create data row using XRTableRow/XRTableCell
+ </summary>
+ <param name="arrCellText">String(): Set of values to be inserted in a the table cell</param>
+ <param name="arrCellWidth">Integer(): Set of values to be set on cell's width</param>
+ <param name="arrCellTextAllignment">TextAllignment(): Text ordering within the cell</param>
+ <param name="intCellBorder">BorderSide: Border style of the cell. Default is None.</param>
+ <returns>XRTableRow</returns>
+ <remarks>Created by RDC 05.16.2013</remarks>
+</member>
+<member name="M:EgsReport.StandardDetail.subDisplayNutrientComputation(System.Int32,System.String,System.Int32,System.Int32,EgsReport.StandardDetail.NutrientDisplayOption,System.Int32,System.Int32,System.String)">
+ <summary>
+ 
+ </summary>
+ <param name="intCode">Integer : Item code</param>
+ <param name="intPlotX">Integer : Where to plot the control in the X axis</param>
+ <param name="intPlotY">Integer : Where to plot the control in the Y axis</param>
+ <param name="intNutrientSet">Optional Integer : Selected nutrient set (default 0)</param>
+ <param name="intCodeTrans">Optional Integer : Selected translation code (default 0)</param>
+ <param name="intDisplayOption">Optional NutrientDisplayOption : Option where user can display Calculated or Imposed nutrient or both.</param>
+ <remarks>Created for Nutrient Set requirement</remarks>
+</member>
+</members>
+</doc>

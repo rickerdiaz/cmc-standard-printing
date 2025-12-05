@@ -1,0 +1,32 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <EnableDefaultItems>false</EnableDefaultItems>
+    <AssemblyName>CalcmenuAPI_CMC_CoopGastro</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="Program.cs" />
+    <Compile Include="Controllers\AliasController.cs" />
+    <Compile Include="Controllers\BrandController.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Models\CompatModels.vb" />
+    <ProjectReference Include="CalcmenuAPI.Models\CalcmenuAPI.Models.vbproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.10" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
+    <PackageReference Include="System.Net.Http" Version="4.3.4" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
+    <PackageReference Include="log4net" Version="2.0.17" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="CalcmenuAPI_CMC_CoopGastro\" />
+  </ItemGroup>
+</Project>

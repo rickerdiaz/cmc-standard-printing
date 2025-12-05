@@ -1,0 +1,490 @@
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using System.Linq;
+using log4net;
+using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
+using static EgsData.modGlobalDeclarations; // ConnectionString, DebugEnabled
+using static EgsData.modFunctions;         // GetInt, GetStr, Common.Join, Common.SendEmail, GenericErrorResponse
+
+namespace CalcmenuAPI.Core.Controllers
+{
+    [ApiController]
+    public class AliasController : ControllerBase
+    {
+        private static readonly ILog Log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod()!.DeclaringType);
+
+        // Get alias information
+        [HttpGet("/api/alias/{codealias:int}/{codetrans:int}")]
+        public ActionResult<Models.AliasData> GetAlias(int codealias, int codetrans)
+        {
+            try
+            {
+                var ds = new DataSet();
+                using (var cmd = new SqlCommand())
+                {
+                    cmd.Connection = new SqlConnection(ConnectionString);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.CommandText = Common.SP_API_GET_AliasInfo;
+                    cmd.Parameters.Add("@CodeAlias", SqlDbType.Int).Value = codealias;
+                    cmd.Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans;
+
+                    cmd.Connection.Open();
+                    using var _da = new SqlDataAdapter(cmd);
+                    _da.Fill(ds);
+                    cmd.Connection.Close();
+                }
+
+                var aliases = new Models.AliasData();
+                foreach (DataRow r in ds.Tables[0].Rows)
+                {
+                    // TODO: map rows into aliases object if needed
+                }
+
+                return Ok(aliases);
+            }
+            catch (ArgumentException aex)
+            {
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod()!.Name + ": Missing or invalid parameters", aex);
+                return Problem(title: "Request failed", statusCode: 400);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod()!.Name + ": Unexpected error occured", ex);
+                return Problem(title: "Request failed", statusCode: 500);
+            }
+        }
+
+        // Save alias
+        [HttpPost("api/alias")]
+        public ActionResult<Models.ResponseCallBack> SaveAlias([FromBody] Models.AliasData data)
+        {
+            var response = new Models.ResponseCallBack();
+            int resultCode = 0;
+            SqlTransaction? _trans = null;
+
+            try
+            {
+                if (DebugEnabled)
+                    Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod()!.Name + ":" + JsonConvert.SerializeObject(data, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
+
+                using (var cmd = new SqlCommand())
+                using (var cn = new SqlConnection(ConnectionString))
+                {
+                    try
+                    {
+                        cmd.Connection = cn;
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.CommandText = "[API_UPDATE_Alias]";
+                        cmd.Parameters.Clear();
+
+                        cmd.Parameters.Add("@Id", SqlDbType.Int).Value = data.Info.Code;
+                        cmd.Parameters.Add("@IdMain", SqlDbType.Int).Value = data.Info.IdMain;
+                        cmd.Parameters.Add("@CodeTrans", SqlDbType.Int).Value = data.Info.CodeTrans;
+                        cmd.Parameters.Add("@Name", SqlDbType.NVarChar).Value = data.Info.Name;
+                        cmd.Parameters.Add("@Alias", SqlDbType.NVarChar).Value = data.Info.Alias;
+
+                        var retval = cmd.Parameters.Add("@retval", SqlDbType.Int);
+                        retval.Direction = ParameterDirection.ReturnValue;
+                        cmd.Parameters["@Id"].Direction = ParameterDirection.InputOutput;
+
+                        cn.Open();
+                        _trans = cn.BeginTransaction();
+                        cmd.Transaction = _trans;
+
+                        cmd.ExecuteNonQuery();
+                        resultCode = GetInt(retval.Value, -1);
+                        if (resultCode != 0)
+                        {
+                            throw new DatabaseException($"[{resultCode}] Save alias failed");
+                        }
+
+                        int codeAlias = Convert.ToInt32(cmd.Parameters["@Id"].Value);
+
+                        response.Code = 0;
+                        response.Message = "OK";
+                        response.ReturnValue = codeAlias;
+                        response.Status = true;
+                        _trans.Commit();
+                    }
+                    catch (DatabaseException ex)
+                    {
+                        Log.Error(System.Reflection.MethodBase.GetCurrentMethod()!.Name + ": Database error occured", ex);
+                        try
+                        {
+                            _trans?.Rollback();
+                            (_trans as IDisposable)?.Dispose();
+                        }
+                        catch { }
+                        if (resultCode == 0) resultCode = 500;
+                        response.Code = resultCode;
+                        response.Status = false;
+                        response.Message = "Save alias failed";
+                        Common.SendEmail(HttpContext?.Request?.Path.ToString() ?? string.Empty, ex.Message, ex.StackTrace ?? string.Empty, "Alias");
+                    }
+                    finally
+                    {
+                        cn.Close();
+                        (cn as IDisposable)?.Dispose();
+                    }
+                }
+            }
+            catch (ArgumentException aex)
+            {
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod()!.Name + ": Missing or invalid parameters", aex);
+                response.Code = 400;
+                response.Message = "Missing or invalid parameters";
+                response.Parameters = new List<Models.param> { new Models.param { name = "data", value = "RecipeData" } };
+                Common.SendEmail(HttpContext?.Request?.Path.ToString() ?? string.Empty, aex.Message, aex.StackTrace ?? string.Empty, "Alias");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod()!.Name + ": Unexpected error occured", ex);
+                response.Status = false;
+                response.Message = "Unexpected error occured";
+                response.Code = 500;
+                Common.SendEmail(HttpContext?.Request?.Path.ToString() ?? string.Empty, ex.Message, ex.StackTrace ?? string.Empty, "Alias");
+            }
+
+            return Ok(response);
+        }
+
+        // Search aliases by CodeTrans
+        [HttpGet("/api/alias/{codetrans:int}")]
+        public ActionResult<List<Models.Alias>> SearchAlias(int codetrans)
+        {
+            try
+            {
+                var ds = new DataSet();
+                using (var cmd = new SqlCommand())
+                using (var cn = new SqlConnection(ConnectionString))
+                {
+                    try
+                    {
+                        cmd.Connection = cn;
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.CommandText = "[dbo].[API_GET_Generic]";
+                        cmd.Parameters.Add("@CodeSite", SqlDbType.Int).Value = -1;
+                        cmd.Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans;
+                        cmd.Parameters.Add("@Type", SqlDbType.Int).Value = -1;
+                        cmd.Parameters.Add("@TableName", SqlDbType.NVarChar, 200).Value = "EGSWSEARCHALIASES";
+                        cmd.Parameters.Add("@Status", SqlDbType.Int).Value = 1;
+                        cn.Open();
+                        using var _da = new SqlDataAdapter(cmd);
+                        _da.Fill(ds);
+                    }
+                    finally
+                    {
+                        cn.Close();
+                        (cn as IDisposable)?.Dispose();
+                    }
+                }
+
+                var aliases = new List<Models.Alias>();
+                foreach (DataRow r in ds.Tables[0].Rows)
+                {
+                    aliases.Add(new Models.Alias
+                    {
+                        Code = GetInt(r["Code"]),
+                        IdMain = GetInt(r["IdMain"]),
+                        CodeTrans = GetInt(r["CodeTrans"]),
+                        Name = GetStr(r["Name"]),
+                        Alias = GetStr(r["Alias"]) 
+                    });
+                }
+
+                return Ok(aliases);
+            }
+            catch (ArgumentException aex)
+            {
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod()!.Name + ": Missing or invalid parameters", aex);
+                return Problem(title: "Request failed", statusCode: 400);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod()!.Name + ": Unexpected error occured", ex);
+                return Problem(title: "Request failed", statusCode: 500);
+            }
+        }
+
+        // Search aliases by name
+        [HttpGet("/api/alias/{codetrans:int}/{name?}")]
+        public ActionResult<List<Models.Alias>> SearchAliasByName(int codetrans, string? name = "")
+        {
+            try
+            {
+                var ds = new DataSet();
+                using (var cmd = new SqlCommand())
+                {
+                    cmd.Connection = new SqlConnection(System.Configuration.ConfigurationManager.AppSettings.Get("dsn")!.ToString());
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.CommandText = "[dbo].[API_MANAGE_Generic]";
+                    cmd.Parameters.Add("@CodeSite", SqlDbType.Int).Value = -1;
+                    cmd.Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans;
+                    cmd.Parameters.Add("@Type", SqlDbType.Int).Value = -1;
+                    cmd.Parameters.Add("@Status", SqlDbType.Int).Value = -1;
+                    cmd.Parameters.Add("@TableName", SqlDbType.NVarChar, 200).Value = "EGSWSEARCHALIASES";
+                    cmd.Parameters.Add("@Name", SqlDbType.NVarChar, 300).Value = name ?? string.Empty;
+
+                    cmd.Connection.Open();
+                    using var _da = new SqlDataAdapter(cmd);
+                    _da.Fill(ds);
+                    cmd.Connection.Close();
+                }
+
+                var aliases = new List<Models.Alias>();
+                foreach (DataRow r in ds.Tables[0].Rows)
+                {
+                    aliases.Add(new Models.Alias
+                    {
+                        Code = GetInt(r["Id"]),
+                        IdMain = GetInt(r["IdMain"]),
+                        CodeTrans = GetInt(r["CodeTrans"]),
+                        Name = GetStr(r["Name"]),
+                        Alias = GetStr(r["Alias"]) 
+                    });
+                }
+
+                return Ok(aliases.ToList());
+            }
+            catch (ArgumentException aex)
+            {
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod()!.Name + ": Missing or invalid parameters", aex);
+                return Problem(title: "Request failed", statusCode: 400);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod()!.Name + ": Unexpected error occured", ex);
+                return Problem(title: "Request failed", statusCode: 500);
+            }
+        }
+
+        // Search aliases by name via POST
+        [HttpPost("/api/alias/search")]
+        public ActionResult<List<Models.Alias>> SearchAliasByName2([FromBody] Models.ConfigurationcSearch data)
+        {
+            try
+            {
+                var ds = new DataSet();
+                using (var cmd = new SqlCommand())
+                {
+                    cmd.Connection = new SqlConnection(System.Configuration.ConfigurationManager.AppSettings.Get("dsn")!.ToString());
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.CommandText = "[dbo].[API_MANAGE_Generic]";
+                    cmd.Parameters.Add("@CodeSite", SqlDbType.Int).Value = -1;
+                    cmd.Parameters.Add("@CodeTrans", SqlDbType.Int).Value = data.CodeTrans;
+                    cmd.Parameters.Add("@Type", SqlDbType.Int).Value = -1;
+                    cmd.Parameters.Add("@Status", SqlDbType.Int).Value = -1;
+                    cmd.Parameters.Add("@TableName", SqlDbType.NVarChar, 200).Value = "EGSWSEARCHALIASES";
+                    cmd.Parameters.Add("@Name", SqlDbType.NVarChar, 300).Value = data.Name ?? string.Empty;
+
+                    cmd.Connection.Open();
+                    using var _da = new SqlDataAdapter(cmd);
+                    _da.Fill(ds);
+                    cmd.Connection.Close();
+                }
+
+                var aliases = new List<Models.Alias>();
+                foreach (DataRow r in ds.Tables[0].Rows)
+                {
+                    aliases.Add(new Models.Alias
+                    {
+                        Code = GetInt(r["Id"]),
+                        IdMain = GetInt(r["IdMain"]),
+                        CodeTrans = GetInt(r["CodeTrans"]),
+                        Name = GetStr(r["Name"]),
+                        Alias = GetStr(r["Alias"]) 
+                    });
+                }
+
+                return Ok(aliases.ToList());
+            }
+            catch (ArgumentException aex)
+            {
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod()!.Name + ": Missing or invalid parameters", aex);
+                return Problem(title: "Request failed", statusCode: 400);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod()!.Name + ": Unexpected error occured", ex);
+                return Problem(title: "Request failed", statusCode: 500);
+            }
+        }
+
+        // Delete alias
+        [HttpPost("api/alias/delete")]
+        public ActionResult<Models.ResponseCallBack> DeleteAlias([FromBody] Models.GenericDeleteData data)
+        {
+            var response = new Models.ResponseCallBack();
+            int resultCode = 0;
+            try
+            {
+                if (DebugEnabled)
+                    Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod()!.Name + ":" + JsonConvert.SerializeObject(data, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }));
+
+                var arrAliasCodes = new ArrayList();
+                foreach (var c in data.CodeList)
+                {
+                    if (!arrAliasCodes.Contains(c.Code)) arrAliasCodes.Add(c.Code);
+                }
+                string _codeAliasList = Common.Join(arrAliasCodes, "", "", ",");
+
+                using (var cmd = new SqlCommand())
+                using (var cn = new SqlConnection(ConnectionString))
+                {
+                    try
+                    {
+                        cmd.Connection = cn;
+                        cmd.CommandText = "API_DELETE_Generic";
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.Clear();
+                        cmd.Parameters.Add("@CodeList", SqlDbType.VarChar, 4000).Value = _codeAliasList;
+                        cmd.Parameters.Add("@TableName", SqlDbType.VarChar, 200).Value = "EGSWSEARCHALIASES";
+                        cmd.Parameters.Add("@CodeUser", SqlDbType.Int).Value = data.CodeUser;
+                        cmd.Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.CodeSite;
+                        cmd.Parameters.Add("@ForceDelete", SqlDbType.Bit).Value = data.ForceDelete;
+                        var skipList = cmd.Parameters.Add("@SkipList", SqlDbType.NVarChar, 4000);
+                        skipList.Direction = ParameterDirection.Output;
+                        var ret = cmd.Parameters.Add("@Return", SqlDbType.Int);
+                        ret.Direction = ParameterDirection.ReturnValue;
+
+                        cn.Open();
+                        cmd.ExecuteNonQuery();
+                        resultCode = GetInt(ret.Value, -1);
+                        if (resultCode != 0)
+                        {
+                            throw new DatabaseException($"[{resultCode}] Delete alias failed");
+                        }
+
+                        response.Code = 0;
+                        response.Message = "OK";
+                        response.ReturnValue = GetStr(skipList.Value);
+                        response.Status = true;
+                    }
+                    catch (DatabaseException ex)
+                    {
+                        Log.Error(System.Reflection.MethodBase.GetCurrentMethod()!.Name + ": Database error occured", ex);
+                        if (resultCode == 0) resultCode = 500;
+                        response.Code = resultCode;
+                        response.Status = false;
+                        response.ReturnValue = GetStr(cmd.Parameters["@SkipList"].Value);
+                        response.Message = "Delete failed failed";
+                        Common.SendEmail(HttpContext?.Request?.Path.ToString() ?? string.Empty, ex.Message, ex.StackTrace ?? string.Empty, "Alias");
+                    }
+                    finally
+                    {
+                        cn.Close();
+                        (cn as IDisposable)?.Dispose();
+                    }
+                }
+            }
+            catch (ArgumentException aex)
+            {
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod()!.Name + ": Missing or invalid parameters", aex);
+                response.Code = 400;
+                response.Message = "Missing or invalid parameters";
+                response.Parameters = new List<Models.param> { new Models.param { name = "data", value = "RecipeData" } };
+                Common.SendEmail(HttpContext?.Request?.Path.ToString() ?? string.Empty, aex.Message, aex.StackTrace ?? string.Empty, "Alias");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod()!.Name + ": Unexpected error occured", ex);
+                response.Status = false;
+                response.Message = "Unexpected error occured";
+                response.Code = 500;
+                Common.SendEmail(HttpContext?.Request?.Path.ToString() ?? string.Empty, ex.Message, ex.StackTrace ?? string.Empty, "Alias");
+            }
+
+            return Ok(response);
+        }
+
+        // Purge alias
+        [HttpPost("api/alias/purge/{type:int}/{codeUser:int}/{codeSite:int}")]
+        public ActionResult<Models.ResponseCallBack> PurgeAlias(int type, long codeUser, long codeSite)
+        {
+            var response = new Models.ResponseCallBack();
+            int resultCode = 0;
+            SqlTransaction? _trans = null;
+
+            try
+            {
+                if (DebugEnabled)
+                    Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod()!.Name + ":" + "[" + type.ToString() + "]");
+
+                using (var cmd = new SqlCommand())
+                using (var cn = new SqlConnection(ConnectionString))
+                {
+                    try
+                    {
+                        cmd.Connection = cn;
+                        cmd.CommandText = "API_PURGE_Generic";
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.Clear();
+                        cmd.Parameters.Add("@TableName", SqlDbType.VarChar, 200).Value = "EGSWSEARCHALIASES";
+                        cmd.Parameters.Add("@Type", SqlDbType.Int).Value = type;
+                        cmd.Parameters.Add("@CodeUser", SqlDbType.Int).Value = codeUser;
+                        cmd.Parameters.Add("@CodeSite", SqlDbType.Int).Value = codeSite;
+                        var ret = cmd.Parameters.Add("@Return", SqlDbType.Int);
+                        ret.Direction = ParameterDirection.ReturnValue;
+
+                        cn.Open();
+                        _trans = cn.BeginTransaction();
+                        cmd.Transaction = _trans;
+                        cmd.ExecuteNonQuery();
+                        resultCode = GetInt(ret.Value, -1);
+                        if (resultCode != 0)
+                        {
+                            throw new DatabaseException($"[{resultCode}] Purge alias failed");
+                        }
+
+                        response.Code = 0;
+                        response.Message = "OK";
+                        response.Status = true;
+                        _trans.Commit();
+                    }
+                    catch (DatabaseException ex)
+                    {
+                        Log.Error(System.Reflection.MethodBase.GetCurrentMethod()!.Name + ": Database error occured", ex);
+                        try
+                        {
+                            _trans?.Rollback();
+                            (_trans as IDisposable)?.Dispose();
+                        }
+                        catch { }
+                        if (resultCode == 0) resultCode = 500;
+                        response.Code = resultCode;
+                        response.Status = false;
+                        response.Message = "Purge alias failed";
+                        Common.SendEmail(HttpContext?.Request?.Path.ToString() ?? string.Empty, ex.Message, ex.StackTrace ?? string.Empty, "Alias");
+                    }
+                    finally
+                    {
+                        cn.Close();
+                        (cn as IDisposable)?.Dispose();
+                    }
+                }
+            }
+            catch (ArgumentException aex)
+            {
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod()!.Name + ": Missing or invalid parameters", aex);
+                response.Code = 400;
+                response.Message = "Missing or invalid parameters";
+                response.Parameters = new List<Models.param> { new Models.param { name = "data", value = "RecipeData" } };
+                Common.SendEmail(HttpContext?.Request?.Path.ToString() ?? string.Empty, aex.Message, aex.StackTrace ?? string.Empty, "Alias");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod()!.Name + ": Unexpected error occured", ex);
+                response.Status = false;
+                response.Message = "Unexpected error occured";
+                response.Code = 500;
+                Common.SendEmail(HttpContext?.Request?.Path.ToString() ?? string.Empty, ex.Message, ex.StackTrace ?? string.Empty, "Alias");
+            }
+
+            return Ok(response);
+        }
+    }
+}

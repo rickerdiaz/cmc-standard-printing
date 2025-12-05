@@ -1,0 +1,4 @@
+C:\StandardPrinting\CalcmenuAPI.Models\obj\Debug\net8.0\CalcmenuAPI.Models.GeneratedMSBuildEditorConfig.editorconfig
+C:\StandardPrinting\CalcmenuAPI.Models\obj\Debug\net8.0\CalcmenuAPI.Models.AssemblyInfoInputs.cache
+C:\StandardPrinting\CalcmenuAPI.Models\obj\Debug\net8.0\CalcmenuAPI.Models.AssemblyInfo.vb
+C:\StandardPrinting\CalcmenuAPI.Models\obj\Debug\net8.0\CalcmenuAPI.Models.vbproj.CoreCompileInputs.cache

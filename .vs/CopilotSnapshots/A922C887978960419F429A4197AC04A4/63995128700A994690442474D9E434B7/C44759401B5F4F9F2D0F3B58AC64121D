@@ -1,0 +1,275 @@
+﻿Imports System
+Imports System.Web
+Imports System.Collections.Generic
+Imports System.Linq
+Imports AttributeRouting.Web.Http
+Imports System.Data.SqlClient
+Imports System.Web.Script.Serialization
+Imports Newtonsoft.Json
+Imports log4net
+Imports System.Net
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace CalcmenuAPI
+    Public Class UserController
+        Inherits ControllerBase
+
+        Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType)
+
+		<HttpGet> <[GET]("/api/userlist/{codesite:int}")> _
+		Public Function GetUserList(codesite As Integer) As List(Of Models.GenericList)
+			Try
+				Dim ds As New DataSet
+				Using cmd As New SqlCommand
+					With cmd
+						Using cn As New SqlConnection(ConnectionString)
+							Try
+								.Connection = cn
+								.CommandType = CommandType.StoredProcedure
+								.CommandText = "[dbo].[API_GET_Users]"
+								.Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+								cn.Open()
+								Dim _da As New SqlDataAdapter(cmd)
+								_da.Fill(ds)
+							Finally
+								If Not cn Is Nothing Then
+									cn.Close()
+									CType(cn, IDisposable).Dispose()
+								End If
+							End Try
+						End Using
+					End With
+				End Using
+
+				Dim users As New List(Of Models.GenericList)
+				For Each r In ds.Tables(0).Rows
+					users.Add(New Models.GenericList With {
+								  .Code = GetInt(r("Code")), _
+								  .Value = GetStr(r("Name"))})
+                Next
+
+				Return users
+			Catch aex As ArgumentException
+				Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+				Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+			Catch hex As HttpResponseException
+				Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+				Throw hex
+			Catch ex As Exception
+				Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+				Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+			End Try
+		End Function
+		<HttpGet> <[GET]("/api/userlist/nonadmin/{codesite:int}")> _
+		Public Function GetNonAdminUser(codesite As Integer) As List(Of Models.GenericList)
+			Try
+				Dim ds As New DataSet
+				Using cmd As New SqlCommand
+					With cmd
+						Using cn As New SqlConnection(ConnectionString)
+							Try
+								.Connection = cn
+								.CommandType = CommandType.StoredProcedure
+								.CommandText = "[dbo].[API_GET_UsersNonAdmin]"
+								.Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+								cn.Open()
+								Dim _da As New SqlDataAdapter(cmd)
+								_da.Fill(ds)
+							Finally
+								If Not cn Is Nothing Then
+									cn.Close()
+									CType(cn, IDisposable).Dispose()
+								End If
+							End Try
+						End Using
+					End With
+				End Using
+
+				Dim users As New List(Of Models.GenericList)
+				For Each r In ds.Tables(0).Rows
+					users.Add(New Models.GenericList With {
+								  .Code = GetInt(r("Code")), _
+								  .Value = GetStr(r("Name"))})
+				Next
+
+				Return users
+			Catch aex As ArgumentException
+				Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+				Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+			Catch hex As HttpResponseException
+				Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+				Throw hex
+			Catch ex As Exception
+				Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+				Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+			End Try
+		End Function
+        <HttpGet> <[GET]("/api/user/rights/{codeuser:int}")> _
+        Public Function GetUserRights(codeuser As Integer) As String
+            Try
+                Dim encodedUserRights As New Models.EncodedUserRights
+                Dim userRoleRights As New List(Of Models.UserRights)
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "API_GET_UserRole"
+                                .Parameters.Add("@CodeUser", SqlDbType.Int).Value = codeuser
+                                cn.Open()
+
+                                Using dr As SqlDataReader = cmd.ExecuteReader()
+                                    While dr.Read
+                                        userRoleRights.Add(New Models.UserRights With {
+                                            .RoleId = GetInt(dr("RoleId")), _
+                                            .Name = GetStr(dr("Name")), _
+                                            .RoleLevel = GetInt(dr("RoleLevel")), _
+                                            .Modules = GetInt(dr("Modules")), _
+                                            .Rights = GetInt(dr("Rights"))
+                                        })
+                                    End While
+                                    dr.Close()
+                                End Using
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Return ProxyEncode(JsonConvert.SerializeObject(userRoleRights, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+			Catch aex As ArgumentException
+				Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+				Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+			Catch hex As HttpResponseException
+				Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+				Throw hex
+			Catch ex As Exception
+				Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+				Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+			End Try
+        End Function
+        ''' <summary>
+		''' Get username Information
+        ''' </summary>
+		''' <param name="codeuser">Code number of user</param>
+		''' <returns>UserData class</returns>
+        ''' <remarks>JDO 1.20.2014</remarks>
+		<HttpGet> <[GET]("/api/user/{codeuser:int}/")> _
+		Public Function GetUserInfo(codeuser As Integer) As Models.UserData
+			Try
+				Dim data As New Models.UserData
+				Dim ds As New DataSet
+				Using cmd As New SqlCommand
+					With cmd
+						Using cn As New SqlConnection(ConnectionString)
+							Try
+								.Connection = cn
+								.CommandType = CommandType.StoredProcedure
+								.CommandText = "[dbo].[API_GET_UserInfo]"
+								.Parameters.Add("@CodeUser", SqlDbType.Int).Value = codeuser
+								cn.Open()
+								Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+							Finally
+								If Not cn Is Nothing Then
+									cn.Close()
+									CType(cn, IDisposable).Dispose()
+								End If
+							End Try
+						End Using
+					End With
+				End Using
+
+				If ds IsNot Nothing AndAlso ds.Tables.Count = 3 Then
+					Dim tblInfo As DataTable = ds.Tables(0),
+					tblConfig As DataTable = ds.Tables(1),
+					tblRights As DataTable = ds.Tables(2)
+
+					Dim info = New Models.User
+					For Each dr As DataRow In tblInfo.Rows
+						info.Code = GetInt(dr("Code"))
+						info.UserName = GetStr(dr("UserName"))
+						info.Name = GetStr(dr("Name"))
+						info.Email = GetStr(dr("Email"))
+						info.CodeSite = GetInt(dr("CodeSite"))
+                        info.RoleLevel = GetInt(dr("RoleLevel"))
+                        info.SalesSite = GetInt(dr("SalesSite"))
+                        info.SalesSiteLanguage = GetInt(dr("SalesSiteLanguage"))
+                        info.SiteName = GetStr(dr("SiteName"))
+					Next
+					data.Info = ProxyEncode(JsonConvert.SerializeObject(info, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+					If tblConfig.Rows.Count > 0 Then
+						Dim config = New List(Of Models.GenericList)						
+						For Each dr In tblConfig.Rows
+							config.Add(New Models.GenericList With {.Code = GetInt(dr("Code")), .Value = GetStr(dr("Value"))})
+						Next
+						data.Config = ProxyEncode(JsonConvert.SerializeObject(config, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+					End If
+
+					If tblRights.Rows.Count > 0 Then
+						Dim rights = New List(Of Models.GenericList)
+						For Each dr In tblRights.Rows
+							rights.Add(New Models.GenericList With {.Code = GetInt(dr("Modules")), .Value = GetStr(dr("Rights"))})
+						Next
+						data.Rights = ProxyEncode(JsonConvert.SerializeObject(rights, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+					End If
+
+				End If
+
+				Return data
+			Catch aex As ArgumentException
+				Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+				Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+			Catch hex As HttpResponseException
+				Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+				Throw hex
+			Catch ex As Exception
+				Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+				Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+			End Try
+        End Function
+        'KMQDC For Label Printing 2016.07
+        <HttpGet> <[GET]("/api/user/clearprinterqueue/")> _
+        Public Function ClearPrinterQueue() As Integer
+
+
+            Try
+                Using cmd As New SqlCommand
+                    Using cn As New SqlConnection(ConnectionString)
+
+                        With cmd
+
+                            .Connection = cn
+                            .CommandType = CommandType.Text
+                            .CommandText = " DELETE From EgswLabeltoPrint"
+                            cn.Open()  'DLS 27.01.2009
+                            .ExecuteNonQuery()
+                            cn.Close()
+                            cn.Dispose() 'DLS 27.01.2009
+
+
+
+                        End With
+                    End Using
+                End Using
+                Return 1
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+          
+    End Class
+End Namespace

@@ -1,0 +1,1119 @@
+﻿Imports System
+Imports System.Web
+Imports System.Collections.Generic
+Imports System.Linq
+Imports AttributeRouting.Web.Http
+Imports System.Data.SqlClient
+Imports System.Web.Script.Serialization
+Imports log4net
+Imports System.Net
+Imports Newtonsoft.Json
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace CalcmenuAPI
+    Public Class UnitController
+        Inherits ControllerBase
+
+        Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType)
+
+        <HttpGet> <[GET]("/api/unit/{codesite:int}/{codetrans:int}/{kind:int}")> _
+        Public Function GetUnitByKind(codesite As Integer, _
+                              codetrans As Integer, _
+                              kind As Integer) As List(Of Models.GenericList)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[GET_UNITCODENAME]"
+                                .Parameters.Add("@intCodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@intCodeTrans", SqlDbType.Int).Value = codetrans
+                                .Parameters.Add("@intUnitType", SqlDbType.Int).Value = kind
+                                .Parameters.Add("@intCodeliste", SqlDbType.Int).Value = -1
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim units As New List(Of Models.GenericList)
+                For Each r In ds.Tables(0).Rows
+                    units.Add(New Models.GenericList With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Value = GetStr(r("NameDisplay"))})
+                Next
+
+                Return units.ToList
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpGet> <[GET]("/api/unitlist/{codesite}/{codetrans}/{codesetprice}/{mainType}")> _
+        Public Function GetUnit(codesite As Integer, _
+                                 codetrans As Integer, _
+                                 codesetprice As Integer, _
+                                 mainType As Integer, _
+                                 Optional type As Integer = UnitType.Neutral, _
+                                 Optional codeliste As Integer = -1) As List(Of Models.Unit)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_Units]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans
+                                .Parameters.Add("@CodeSetPrice", SqlDbType.Int).Value = codesetprice
+                                .Parameters.Add("@MainType", SqlDbType.Int).Value = mainType
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = type
+                                .Parameters.Add("@CodeListe", SqlDbType.Int).Value = codeliste
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim units As New List(Of Models.Unit)
+                For Each dr In ds.Tables(0).Rows
+                    units.Add(New Models.Unit With {
+                                    .Code = GetInt(dr("CodeUnit")), _
+                                    .Value = GetStr(dr("UnitName")), _
+                                    .Price = GetStr(dr("Price")), _
+                                    .PriceUnit = GetStr(dr("PriceUnit")), _
+                                    .PriceFactor = GetDbl(dr("PriceFactor")), _
+                                    .IsIngredient = GetInt(dr("IsIngredient")), _
+                                    .IsMetric = GetInt(dr("IsMetric")), _
+                                    .IsYield = GetInt(dr("PriceFactor")), _
+                                    .Format = GetStr(dr("Format"), "#,###.###")})
+                Next
+
+                Return units.ToList
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpGet> <[GET]("/api/unit/search/{codesite:int}/{name?}")> _
+        Public Function GetUnitByName(codesite As Integer, Optional name As String = "") As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim resultCode As Integer = 0
+            Try
+                Dim intCodeUnit As Integer = -1
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                If name.Trim() <> "" Then
+                                    .Connection = cn
+                                    .CommandType = CommandType.StoredProcedure
+                                    .CommandText = SP_API_GET_UnitByName
+                                    .Parameters.Add("@UnitName", SqlDbType.NVarChar, 32).Value = GetStr(name)
+                                    .Parameters.Add("@CodeSite", SqlDbType.Int).Value = GetInt(codesite)
+                                    .Parameters.Add("@CodeUnit", SqlDbType.Int).Direction = ParameterDirection.Output
+                                    cn.Open()
+                                    .ExecuteNonQuery()
+
+                                    intCodeUnit = GetInt(.Parameters("@CodeUnit").Value)
+
+                                    ' Done without errors
+                                    response.Code = 0
+                                    response.Message = "OK"
+                                    response.ReturnValue = intCodeUnit.ToString()
+                                    response.Status = True
+                                Else
+                                    response.Code = 0
+                                    response.Message = "OK"
+                                    response.ReturnValue = ""
+                                    response.Status = True
+                                End If
+
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.Status = False
+                                response.Message = "Search unit failed"
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                response.Code = 400
+                response.Message = "Missing or invalid parameters"
+                response.Parameters = New List(Of Models.param) From {New Models.param With {.name = "data", .value = "RecipeData"}}
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+            End Try
+            Return response
+        End Function
+
+        <HttpGet> <[GET]("/api/unit/{codeUnit:int}/{codeTrans:int}")> _
+        Public Function GetUnitInfo(codeunit As Integer, _
+                                 codetrans As Integer) As List(Of Models.UnitInfo) ''JDO 1.16.2014 
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_UnitInfo]"
+                                .Parameters.Add("@CodeUnit", SqlDbType.Int).Value = codeunit
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim units As New List(Of Models.UnitInfo)
+                For Each r In ds.Tables(0).Rows
+                    units.Add(New Models.UnitInfo With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("NameDisplay")), _
+                                    .TypeMain = GetInt(r("TypeMain")), _
+                                    .Type = GetInt(r("Type")), _
+                                    .Factor = GetInt(r("Factor")), _
+                                    .Format = GetStr(r("Format"))})
+                Next
+
+                Return units.ToList
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpGet> <[GET]("/api/unit/convert/{codesite:int}/{codetrans:int}/{conversiontype}/{codeunit}/{useplural}")> _
+        Public Function ConvertUnit(codesite As Integer, codetrans As Integer, conversiontype As Integer, codeunit As Integer, useplural As Integer, Optional value1 As Double = 0.0R, Optional value2 As Double = 0.0R) As Models.UnitConvert
+            Try
+                '// conversiontype
+                ' 0 = convert to Imperial
+                ' 1 = convert to Metric
+                Dim unit As New Models.UnitConvert
+                unit.Code = codeunit
+                unit.Name = ""
+                unit.Value1 = value1
+                unit.Value2 = value2
+
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "sp_egswGetBestUnitConversion3"
+
+                                .Parameters.Add("@fltValue", SqlDbType.Float).Value = value1
+                                .Parameters.Add("@fltValue2", SqlDbType.Float).Value = value2
+                                .Parameters.Add("@intCodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@intUnitCode", SqlDbType.Int).Value = codeunit
+                                .Parameters.Add("@nvcName", SqlDbType.NVarChar, 30).Value = ""
+                                .Parameters.Add("@nvcFormat", SqlDbType.NVarChar, 15).Value = ""
+                                .Parameters.Add("@fltUnitFactor", SqlDbType.Float).Value = 0
+                                .Parameters.Add("@intUnitTypeMain", SqlDbType.Int).Value = DBNull.Value
+                                .Parameters.Add("@intCodeTrans", SqlDbType.Int).Value = codetrans
+                                .Parameters.Add("@UnitDisplayType", SqlDbType.SmallInt).Value = conversiontype
+                                .Parameters.Add("@intUsePlural", SqlDbType.SmallInt).Value = useplural ' JDO-2014.04.15  0 if it should return unit in singular form, 1 if it will check it for plural form
+                                .Parameters("@fltValue").Direction = ParameterDirection.InputOutput
+                                .Parameters("@fltValue2").Direction = ParameterDirection.InputOutput
+                                .Parameters("@intUnitCode").Direction = ParameterDirection.InputOutput
+                                .Parameters("@nvcName").Direction = ParameterDirection.InputOutput
+                                .Parameters("@nvcFormat").Direction = ParameterDirection.InputOutput
+                                .Parameters("@fltUnitFactor").Direction = ParameterDirection.InputOutput
+                                .Parameters("@intUnitTypeMain").Direction = ParameterDirection.InputOutput
+
+                                cn.Open()
+                                .ExecuteNonQuery()
+
+                                unit.Code = GetInt(.Parameters("@intUnitCode").Value, codeunit)
+                                unit.Name = GetStr(.Parameters("@nvcName").Value)
+                                unit.Value1 = GetDbl(.Parameters("@fltValue").Value)
+                                unit.Value2 = GetDbl(.Parameters("@fltValue2").Value)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+                Return unit
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpGet> <[GET]("/api/unit/{codesite:int}/{codetrans:int}/{type:int}/{status}/{codeproperty?}/{merchandiseyield?}/{name?}")> _
+        Public Function SearchUnitByName(codesite As Integer, _
+                              codetrans As Integer, _
+                              type As Integer, _
+                              status As Integer, _
+                              Optional codeproperty As Integer = -1,
+                              Optional merchandiseyield As Integer = 0,
+                              Optional name As String = "") As List(Of Models.Unit)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        .Connection = New SqlConnection(ConfigurationManager.AppSettings.Get("dsn").ToString)
+                        .CommandType = CommandType.StoredProcedure
+                        .CommandText = "[dbo].[API_MANAGE_Generic]"
+                        .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                        .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans
+                        .Parameters.Add("@Type", SqlDbType.Int).Value = type
+                        .Parameters.Add("@Status", SqlDbType.Int).Value = status
+                        .Parameters.Add("@TableName", SqlDbType.NVarChar, 200).Value = "EGSWUNIT"
+                        .Parameters.Add("@CodeProperty", SqlDbType.Int).Value = codeproperty 'UNCOMMENTED. NEED THIS TO FILTER BY MERCHANDISE/YIELD
+
+                        If merchandiseyield = 1 Then
+                            .Parameters.Add("@IsMerchandise", SqlDbType.Bit).Value = 1 'JSS 112415 CWA-19248
+                        ElseIf merchandiseyield = 2 Then
+                            .Parameters.Add("@IsYield", SqlDbType.Bit).Value = 1 'JSS 112415 CWA-19248
+                        End If
+
+                        .Connection.Open()
+
+
+                        Dim _da As New SqlDataAdapter(cmd)
+                        _da.Fill(ds)
+                        .Connection.Close()
+                    End With
+                End Using
+
+                Dim units As New List(Of Models.Unit)
+                For Each r In ds.Tables(0).Rows
+                    units.Add(New Models.Unit With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("NameDisplay")), _
+                                    .NameDisplay = GetStr(r("NameDisplay")), _
+                                     .NameDef = GetStr(r("NameDef")), _
+                                     .NamePlural = GetStr(r("NamePlural")), _
+                                     .AutoConversion = GetStr(r("AutoConversion")), _
+                                     .Format = GetStr(r("Format")), _
+                                    .Global = GetBool(r("Global")), _
+                                    .IsYield = r("Yield"), _
+                                    .IsIngredient = GetBool(r("Ingredient")), _
+                                    .IsAdded = GetBool(r("Added")), _
+                                    .IsActive = GetBool(r("Status"))})
+                Next
+
+                If name.Trim <> "" Then
+
+                    Dim unitresult As New List(Of Models.Unit)
+
+                    Dim arrNames() As String = name.Trim.Split(",")
+                    For Each word In arrNames
+                        If word.Trim.ToString <> "" Then    'RDTC 2015.08.10; added this otherwise the rows are getting duplicated
+                            For Each c In units
+                                If c.Name.ToLower.Contains(Common.ReplaceSpecialCharacters(word.Trim.ToLower)) Then
+                                    unitresult.Add(c)
+                                End If
+                            Next
+                        End If
+                    Next
+                    units = unitresult
+
+                End If
+
+                Return units.ToList
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        'START NBG 9.11.2015 COMMENTED OUT FOR CWA-19248
+        'LLG 11.25.2015 UNCOMMENT FOR INFINTE LOAD IN CONFIG UNITS
+        <HttpPost> <[POST]("/api/unit/search")> _
+        Public Function SearchUnitByName2(data As Models.ConfigurationcSearch) As Object
+            'Public Function SearchUnitByName2(codesite As Integer, _
+            '                      codetrans As Integer, _
+            '                      type As Models.ListeType, _
+            '                      status As Integer, _
+            '                      Optional codeproperty As Integer = -1,
+            '                      Optional merchandiseyield As Integer = 0,
+            '                      Optional name As String = "") As List(Of Models.Unit)
+            Try
+                Dim totalCount As Integer
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        .Connection = New SqlConnection(ConfigurationManager.AppSettings.Get("dsn").ToString)
+                        .CommandType = CommandType.StoredProcedure
+                        .CommandText = "[dbo].[API_MANAGE_Generic]"
+                        .Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.CodeSite
+                        .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = data.CodeTrans
+                        .Parameters.Add("@Type", SqlDbType.Int).Value = data.Type
+                        .Parameters.Add("@Status", SqlDbType.Int).Value = data.Status
+                        .Parameters.Add("@TableName", SqlDbType.NVarChar, 200).Value = "EGSWUNIT"
+                        .Parameters.Add("@CodeProperty", SqlDbType.Int).Value = data.CodeProperty 'UNCOMMENTED. NEED THIS TO FILTER BY MERCHANDISE/YIELD
+                        .Parameters.Add("@skip", SqlDbType.Int).Value = data.Skip
+                        .Parameters.Add("@rowsPerPage", SqlDbType.Int).Value = data.RowsPerPage
+                        .Parameters.Add("@textSearch", SqlDbType.NVarChar, 1000).Value = data.Name
+
+
+                        If data.MerchandiseYield = 1 Then
+                            .Parameters.Add("@IsMerchandise", SqlDbType.Bit).Value = 2
+                        ElseIf data.MerchandiseYield = 2 Then
+                            .Parameters.Add("@IsMerchandise", SqlDbType.Bit).Value = 0
+                        End If
+
+                        .Connection.Open()
+
+
+                        Dim _da As New SqlDataAdapter(cmd)
+                        _da.Fill(ds)
+                        .Connection.Close()
+                    End With
+                End Using
+
+                totalCount = GetInt(ds.Tables(0).Rows(0).Item("Total"))
+
+                Dim units As New List(Of Models.Unit)
+                For Each r In ds.Tables(1).Rows
+                    units.Add(New Models.Unit With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("NameDisplay")), _
+                                    .NameDisplay = GetStr(r("NameDisplay")), _
+                                     .NameDef = GetStr(r("NameDef")), _
+                                     .NamePlural = GetStr(r("NamePlural")), _
+                                     .AutoConversion = GetStr(r("AutoConversion")), _
+                                     .Format = GetStr(r("Format")), _
+                                    .Global = GetBool(r("Global")), _
+                                    .IsYield = r("Yield"), _
+                                    .IsIngredient = GetBool(r("Ingredient")), _
+                                    .IsAdded = GetBool(r("Added")), _
+                                    .IsActive = GetBool(r("Status"))})
+                Next
+
+                If data.Name.Trim <> "" Then
+
+                    Dim unitresult As New List(Of Models.Unit)
+
+                    Dim arrNames() As String = data.Name.Trim.Split(",")
+                    For Each word In arrNames
+                        If word.Trim.ToString <> "" Then    'RDTC 2015.08.10; added this otherwise the rows are getting duplicated
+                            For Each c In units
+                                If c.Name.ToLower.Contains(Common.ReplaceSpecialCharacters(word.Trim.ToLower)) Then
+                                    unitresult.Add(c)
+                                End If
+                            Next
+                        End If
+                    Next
+                    units = unitresult
+                End If
+
+                Return New Models.UnitResponseSearch(units.ToList, totalCount)
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+        'END NBG 9.11.2015 
+
+        <HttpGet> <[GET]("/api/unit/translation/{codeunit:int}/{codesite:int}")> _
+        Public Function GetUnitTranslation(codeunit As Integer, _
+                                           codesite As Integer) As List(Of Models.UnitTranslation)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_UnitTranslation]"
+                                .Parameters.Add("@CodeUnit", SqlDbType.Int).Value = codeunit
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim translations As New List(Of Models.UnitTranslation)
+                For Each r In ds.Tables(0).Rows
+
+
+                    translations.Add(New Models.UnitTranslation With {
+                                    .CodeTrans = GetInt(r("CodeTrans")), _
+                                    .TranslationName = GetStr(r("TranslationName")), _
+                                    .NameDisplay = GetStr(r("NameDisplay")), _
+                                    .NameDef = GetStr(r("NameDef")), _
+                                    .NamePlural = GetStr(r("NamePlural")), _
+                                    .AutoConversion = GetStr(r("AutoConversion")), _
+                                    .Format = GetStr(r("Format")), _
+                                    .IsIngredient = GetBool(r("Ingredient")), _
+                                    .IsYield = GetBool(r("Yield")), _
+                                    .UsedAsYield = GetInt(r("UsedAsYield")), _
+                                    .UsedAsIngredient = GetInt(r("UsedAsIngredient"))})
+                Next
+
+                Return translations.ToList
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpGet> <[GET]("/api/unit/sharing/{codesite:int}/{type:int}/{tree:int}/{codeunit:int}")> _
+        Public Function GetUnitSharing(codesite As Integer, _
+                                  type As Integer, _
+                                  tree As Integer, _
+                                  codeunit As Integer) As List(Of Models.TreeNode)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_SharingAll]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = type
+                                .Parameters.Add("@Code", SqlDbType.Int).Value = codeunit
+                                .Parameters.Add("@CodeEgswTable", SqlDbType.Int).Value = 135
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim sharings As New List(Of Models.GenericTree)
+                For Each r In ds.Tables(0).Rows
+                    sharings.Add(New Models.GenericTree With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name")), _
+                                    .ParentCode = GetInt(r("ParentCode")), _
+                                    .ParentName = GetStr(r("ParentName")), _
+                                    .Flagged = GetBool(r("Flagged")), _
+                                    .Type = GetInt(r("Type")), _
+                                    .Global = GetBool(r("Global"))})
+                Next
+
+                Dim sharingdata As New List(Of Models.TreeNode)
+
+                Dim parents = sharings.Where(Function(obj) obj.ParentCode = 0 And obj.Type = 1).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each p In parents
+                    If sharingdata.Where(Function(obj) obj.key = p.Code).Count = 0 Then
+                        Dim parent As New Models.TreeNode
+                        parent.title = p.Name
+                        parent.key = p.Code
+                        parent.icon = False
+                        parent.children = CreateChildren(sharings, p.Code)
+                        parent.select = p.Flagged
+                        parent.parenttitle = p.ParentName
+                        sharingdata.Add(parent)
+                    End If
+                Next
+
+                Return sharingdata
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        Private Function CreateChildren(_sharingdata As List(Of Models.GenericTree),
+                                        _code As Integer) As List(Of Models.TreeNode)
+            Dim children As New List(Of Models.TreeNode)
+
+            If _sharingdata IsNot Nothing Then
+                Dim kids = _sharingdata.Where(Function(obj) obj.ParentCode = _code And obj.Type = 2).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each k In kids
+                    Dim child As New Models.TreeNode
+                    child.title = k.Name
+                    child.key = k.Code
+                    child.icon = False
+                    child.children = Nothing
+                    children.Add(child)
+                    child.select = k.Flagged
+                    child.parenttitle = k.ParentName
+                    child.note = k.Global
+                Next
+            End If
+
+            Return children
+        End Function
+
+
+        <HttpPost> <POST("api/unit")>
+        Public Function SaveUnit(data As Models.UnitData) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim resultCode As Integer = 0
+            Dim _trans As SqlTransaction = Nothing
+            Dim yield As Integer 'JSS 112415 CWA-19248
+            Dim ingredient As Integer 'JSS 112415 CWA-19248
+
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + JsonConvert.SerializeObject(data, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+                Dim arrSharing As New ArrayList
+                For Each sh In data.Sharing
+                    If arrSharing.IndexOf(sh.Code) = -1 Then arrSharing.Add(sh.Code)
+                Next
+                Dim _codeSiteList As String = Common.Join(arrSharing, "(", ")", ",")
+                Dim tran As Integer
+                If data.Info.Code = -1 Then
+                    tran = 1
+
+                Else
+                    tran = 2
+                End If
+
+
+                Dim arrmergelist As New ArrayList
+                For Each sh In data.MergeList
+                    If arrmergelist.IndexOf(sh) = -1 Then arrmergelist.Add(sh)
+                Next
+                Dim _mergelist As String = Common.Join(arrmergelist, "(", ")", ",")
+
+                'JSS 112415 CWA-19248 START
+                If data.Info.IsYield = False Then
+                    yield = 0
+                Else
+                    yield = 1
+                End If
+
+                If data.Info.IsIngredient = False Then
+                    ingredient = 0
+                Else
+                    ingredient = 1
+                End If
+                'JSS 112415 CWA-19248 END
+
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "sp_EgswUnitUpdate"
+                                .Parameters.Clear()
+                                .Parameters.Add("@retval", SqlDbType.Int)
+                                .Parameters.Add("@intCodeUser", SqlDbType.Int).Value = data.Info.CodeUser
+                                .Parameters.Add("@intCodeSite", SqlDbType.Int).Value = data.Info.CodeSite
+                                .Parameters.Add("@intCode", SqlDbType.Int).Value = data.Info.Code
+                                .Parameters.Add("@nvcNameDef", SqlDbType.NVarChar, 32).Value = IIf(data.Info.NameDef Is Nothing, "", data.Info.NameDef)
+                                .Parameters.Add("@nvcNamePlural", SqlDbType.NVarChar, 32).Value = IIf(data.Info.NamePlural Is Nothing, "", data.Info.NamePlural)
+                                .Parameters.Add("@nvcNameDisp", SqlDbType.NVarChar, 32).Value = IIf(data.Info.NameDisplay Is Nothing, "", data.Info.NameDisplay)
+                                .Parameters.Add("@nvcAutoConversion", SqlDbType.NVarChar, 500).Value = IIf(data.Info.AutoConversion Is Nothing, "", data.Info.AutoConversion)
+                                .Parameters.Add("@IsBasic", SqlDbType.Bit).Value = 0
+                                .Parameters.Add("@IsStock", SqlDbType.Bit).Value = 0
+                                .Parameters.Add("@IsPackaging", SqlDbType.Bit).Value = 0
+                                .Parameters.Add("@IsTranspo", SqlDbType.Bit).Value = 0
+                                .Parameters.Add("@IsIngredient", SqlDbType.Bit).Value = ingredient 'JSS 112415 CWA-19248
+                                .Parameters.Add("@IsYield", SqlDbType.Bit).Value = yield 'JSS 112415 CWA-19248
+                                .Parameters.Add("@IsServing", SqlDbType.Bit).Value = 0
+                                .Parameters.Add("@fltFactor", SqlDbType.Float).Value = 1
+                                .Parameters.Add("@intTypeMain", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@IsMetric", SqlDbType.Bit).Value = 0
+                                .Parameters.Add("@nvcFormat", SqlDbType.NVarChar, 15).Value = IIf(data.Info.Format Is Nothing, "", data.Info.Format)
+                                .Parameters.Add("@IsAdded", SqlDbType.Bit).Value = 1
+                                .Parameters.Add("@intPosition", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@IsGlobal", SqlDbType.Bit).Value = data.Info.Global
+                                .Parameters.Add("@bitUseMakes", SqlDbType.Bit).Value = 1
+                                .Parameters.Add("@tntTranMode", SqlDbType.TinyInt).Value = tran
+
+                                .Parameters("@intCode").Direction = ParameterDirection.InputOutput
+                                .Parameters("@retval").Direction = ParameterDirection.ReturnValue
+
+                                _codeSiteList.Trim()
+                                If _codeSiteList <> "" Then
+                                    If Not (_codeSiteList.StartsWith("(") And _codeSiteList.EndsWith(")")) Then
+                                        Throw New DatabaseException(String.Format("[{0}] Save unit failed", resultCode))
+                                    Else
+                                        .Parameters.Add("@vchCodeSiteList", SqlDbType.VarChar, 8000).Value = _codeSiteList
+                                    End If
+                                End If
+
+                                If _mergelist <> "" Then
+                                    .Parameters.Add("@vchCodeMergeList", SqlDbType.VarChar, 8000).Value = _mergelist
+                                End If
+
+
+
+                                cn.Open()
+                                _trans = cn.BeginTransaction
+                                .Transaction = _trans
+
+                                .ExecuteNonQuery()
+                                resultCode = GetInt(.Parameters("@retval").Value, -1)
+                                If resultCode <> 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Save unit failed", resultCode))
+                                End If
+
+                                Dim codeunit = CInt(.Parameters("@intCode").Value)
+
+                                .CommandText = "sp_EgswActivateDeactivateUnits"
+                                .CommandType = CommandType.StoredProcedure
+                                .Parameters.Clear()
+                                .Parameters.Add("@Codes", SqlDbType.VarChar).Value = codeunit.ToString
+                                .Parameters.Add("@Status", SqlDbType.Int).Value = IIf(data.Info.IsActive, 1, 2)
+                                .ExecuteNonQuery()
+
+                                If codeunit > 0 Then
+                                    .CommandText = "sp_EgswItemTranslationUpdate"
+                                    .CommandType = CommandType.StoredProcedure
+                                    For Each t In data.Translation
+                                        .Parameters.Clear()
+                                        .Parameters.Add("@intCode", SqlDbType.Int).Value = codeunit
+                                        .Parameters.Add("@nvcName", SqlDbType.NVarChar, 260).Value = t.NameDisplay
+                                        .Parameters.Add("@nvcName2", SqlDbType.NVarChar, 150).Value = t.NameDef
+                                        .Parameters.Add("@intCodeTrans", SqlDbType.Int).Value = t.CodeTrans
+                                        .Parameters.Add("@intCodeSite", SqlDbType.Int).Value = data.Info.CodeSite
+                                        .Parameters.Add("@tntListType", SqlDbType.Int).Value = 3
+                                        .Parameters.Add("@intCodeUser", SqlDbType.Int).Value = data.Info.CodeUser
+                                        .Parameters.Add("@tntType", SqlDbType.Int).Value = data.Info.Type
+                                        .Parameters.Add("@nvcPlural", SqlDbType.NVarChar, 150).Value = t.NamePlural
+                                        .Parameters.Add("@retval", SqlDbType.Int).Direction = ParameterDirection.ReturnValue
+                                        .ExecuteNonQuery()
+                                        resultCode = GetInt(.Parameters("@retval").Value, -1)
+                                        If resultCode <> 0 Then
+                                            Throw New DatabaseException(String.Format("[{0}] Save unit failed", resultCode))
+                                        End If
+                                    Next
+
+
+
+                                Else
+                                    resultCode = GetInt(.Parameters("@retval").Value, -1)
+                                    If resultCode <> 0 Then
+                                        Throw New DatabaseException(String.Format("[{0}] Save unit failed", resultCode))
+                                    End If
+                                End If
+
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = codeunit
+                                response.Status = True
+                                _trans.Commit()
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                Try
+                                    _trans.Rollback()
+                                    If Not _trans Is Nothing Then
+                                        CType(_trans, IDisposable).Dispose()
+                                    End If
+                                Catch
+                                End Try
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.Status = False
+
+                                Select Case response.Code
+                                    Case -82 : response.Message = "Merging of system units not allowed"
+                                    Case Else : response.Message = "Save unit failed"
+
+                                End Select
+
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+
+                End Using
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                response.Code = 400
+                response.Message = "Missing or invalid parameters"
+                response.Parameters = New List(Of Models.param) From {New Models.param With {.name = "data", .value = "RecipeData"}}
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), aex.Message.ToString(), aex.StackTrace.ToString(), "Unit")
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), hex.Message.ToString(), hex.StackTrace.ToString(), "Unit")
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Unit")
+            End Try
+            Return response
+
+        End Function
+
+
+        <HttpPost> <POST("api/unit/delete")> _
+        Public Function DeleteUnit(data As Models.GenericDeleteData) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim resultCode As Integer = 0
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + JsonConvert.SerializeObject(data, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+                Dim arrUnitCodes As New ArrayList
+                For Each c In data.CodeList
+                    If arrUnitCodes.IndexOf(c.Code) = -1 Then arrUnitCodes.Add(c.Code)
+                Next
+                Dim _codeUnitList As String = Common.Join(arrUnitCodes, "", "", ",")
+
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandText = "API_DELETE_Generic"
+                                .CommandType = CommandType.StoredProcedure
+                                .Parameters.Clear()
+                                .Parameters.Add("@CodeList", SqlDbType.VarChar, 4000).Value = _codeUnitList
+                                .Parameters.Add("@TableName", SqlDbType.VarChar, 200).Value = "EGSWUNIT"
+                                .Parameters.Add("@CodeUser", SqlDbType.Int).Value = data.CodeUser                    ''codeuser
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.CodeSite                    ''codesite                                                        
+                                .Parameters.Add("@ForceDelete", SqlDbType.Bit).Value = data.ForceDelete              ''force delete
+                                .Parameters.Add("@SkipList", SqlDbType.NVarChar, 4000).Direction = ParameterDirection.Output
+                                .Parameters.Add("@Return", SqlDbType.Int)
+                                .Parameters("@Return").Direction = ParameterDirection.ReturnValue
+
+                                cn.Open()
+                                .ExecuteNonQuery()
+                                resultCode = GetInt(.Parameters("@Return").Value, -1)
+                                If resultCode <> 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Delete unit failed", resultCode))
+                                End If
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = GetStr(.Parameters("@SkipList").Value)
+                                response.Status = True
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.Status = False
+                                response.ReturnValue = GetStr(.Parameters("@SkipList").Value)
+                                response.Message = "Delete unit failed"
+                            Catch exc As Exception
+
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+
+                End Using
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                response.Code = 400
+                response.Message = "Missing or invalid parameters"
+                response.Parameters = New List(Of Models.param) From {New Models.param With {.name = "data", .value = "RecipeData"}}
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), aex.Message.ToString(), aex.StackTrace.ToString(), "Unit")
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), hex.Message.ToString(), hex.StackTrace.ToString(), "Unit")
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Unit")
+            End Try
+            Return response
+
+        End Function
+
+        <HttpPost> <[POST]("api/unit/activatedeactivate")>
+        Public Function ActivateDeactivate(data As Models.ActivateDeactivate) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim resultCode As Integer = 0
+
+            Dim _trans As SqlTransaction = Nothing
+
+            Try
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+
+                                .Connection = cn
+                                .CommandText = "sp_EgswActivateDeactivateUnits"
+                                .CommandType = CommandType.StoredProcedure
+                                .Parameters.Clear()
+                                .Parameters.Add("@Codes", SqlDbType.VarChar).Value = String.Join(",", data.CodesList)
+                                .Parameters.Add("@Status", SqlDbType.Int).Value = data.Status
+
+                                cn.Open()
+                                _trans = cn.BeginTransaction
+                                .Transaction = _trans
+
+                                .ExecuteNonQuery()
+
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = "OK"
+                                response.Status = True
+                                _trans.Commit()
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                Try
+                                    _trans.Rollback()
+                                    If Not _trans Is Nothing Then
+                                        CType(_trans, IDisposable).Dispose()
+                                    End If
+                                Catch
+                                End Try
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.Status = False
+
+                                Select Case response.Code
+                                    Case -82 : response.Message = IIf(data.Status = 1, "Activation", "Deactivation") & " of system units not allowed"
+                                    Case Else : response.Message = "Save unit failed"
+
+                                End Select
+
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                response.Code = 400
+                response.Message = "Missing or invalid parameters"
+                response.Parameters = New List(Of Models.param) From {New Models.param With {.name = "data", .value = "RecipeData"}}
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), aex.Message.ToString(), aex.StackTrace.ToString(), "Unit")
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), hex.Message.ToString(), hex.StackTrace.ToString(), "Unit")
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Unit")
+            End Try
+
+            Return response
+        End Function
+        '<HttpPost> <POST("api/unit/delete")> _
+        'Public Function DeleteUnit(data As Models.GenericDeleteData) As Models.ResponseCallBack
+        '    Dim response As New Models.ResponseCallBack
+        '    Dim resultCode As Integer = 0
+        '    Try
+        '        If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + JsonConvert.SerializeObject(data, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+        '        Dim arrUnitCodes As New ArrayList
+        '        For Each c In data.CodeList
+        '            If arrUnitCodes.IndexOf(c.Code) = -1 Then arrUnitCodes.Add(c.Code)
+        '        Next
+
+        '        Dim _codeUnitList As String = Common.Join(arrUnitCodes, "(", ")", ",")
+        '        Using cmd As New SqlCommand
+        '            With cmd
+        '                Using cn As New SqlConnection(ConnectionString)
+        '                    Try
+        '                        .Connection = cn
+        '                        .CommandText = "sp_EgswUnitDelete"
+        '                        .CommandType = CommandType.StoredProcedure
+        '                        .Parameters.Clear()
+        '                        .Parameters.Add("@retval", SqlDbType.Int)
+        '                        .Parameters.Add("@intCode", SqlDbType.Int).Value = 0
+        '                        .Parameters.Add("@IsGlobal", SqlDbType.Bit).Value = 0
+        '                        .Parameters.Add("@intCodeUser", SqlDbType.Int).Value = data.CodeUser
+        '                        .Parameters.Add("@intCodeSite", SqlDbType.Int).Value = data.CodeSite
+        '                        .Parameters.Add("@intCodeProperty", SqlDbType.Int).Value = -1
+        '                        .Parameters.Add("@tntTranMode", SqlDbType.TinyInt).Value = 7
+
+        '                        _codeUnitList.Trim()
+        '                        If _codeUnitList <> "" Then
+        '                            If Not (_codeUnitList.StartsWith("(") And _codeUnitList.EndsWith(")")) Then
+        '                                Throw New DatabaseException(String.Format("[{0}] Delete unit failed", resultCode))
+        '                            Else
+        '                                .Parameters.Add("@vchCodeList", SqlDbType.VarChar, 8000).Value = _codeUnitList
+        '                            End If
+        '                        End If
+
+
+        '                        .Parameters("@retval").Direction = ParameterDirection.ReturnValue
+
+        '                        cn.Open()
+        '                        .ExecuteNonQuery()
+        '                        resultCode = GetInt(.Parameters("@retval").Value, -1) ' RBAJ-2014.01.14                               
+        '                        If resultCode <> 0 Then
+        '                            Throw New DatabaseException(String.Format("[{0}] Delete unit failed", resultCode))
+        '                        End If
+
+        '                        ' Done without errors
+        '                        response.Code = resultCode
+        '                        response.Message = "OK"
+        '                        response.ReturnValue = ""
+        '                        response.Status = True
+        '                    Catch ex As DatabaseException
+        '                        Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+        '                        If resultCode = 0 Then
+        '                            resultCode = 500
+        '                        End If
+        '                        response.Code = resultCode
+        '                        response.Status = False
+        '                        response.ReturnValue = ""
+        '                        response.Message = "Delete unit failed" ''"Delete _codeUnitList failed"
+        '                    Catch exc As Exception
+
+        '                    Finally
+        '                        If Not cn Is Nothing Then
+        '                            cn.Close()
+        '                            CType(cn, IDisposable).Dispose()
+        '                        End If
+        '                    End Try
+        '                End Using
+        '            End With
+
+        '        End Using
+        '    Catch aex As ArgumentException
+        '        Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+        '        response.Code = 400
+        '        response.Message = "Missing or invalid parameters"
+        '        response.Parameters = New List(Of Models.param) From {New Models.param With {.name = "data", .value = "RecipeData"}}
+        '    Catch hex As HttpResponseException
+        '        Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+        '        Throw hex
+        '    Catch ex As Exception
+        '        Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+        '        response.Status = False
+        '        response.Message = "Unexpected error occured"
+        '        response.Code = 500
+        '    End Try
+        '    Return response
+
+        'End Function
+    End Class
+End Namespace

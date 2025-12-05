@@ -1,0 +1,1448 @@
+﻿Imports System
+Imports System.Web
+Imports System.Collections.Generic
+Imports System.Linq
+Imports AttributeRouting.Web.Http
+Imports System.Data.SqlClient
+Imports System.Web.Script.Serialization
+Imports log4net
+Imports System.Net
+Imports Newtonsoft.Json
+Imports System.Text
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace CalcmenuAPI
+    Public Class BrandController
+        Inherits ControllerBase
+
+        Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType)
+
+        <HttpGet> <[GET]("/api/brands/{codeliste:int}/{codetrans:int}")> _
+        Public Function GetBrandByCode(codeliste As Integer, _
+                              codetrans As Integer) As List(Of Models.GenericList)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[GET_ListeIngredientsBrandList]"
+                                .Parameters.Add("@CodeListe", SqlDbType.Int).Value = codeliste
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim ingredientbrands As New List(Of Models.GenericList)
+                For Each r In ds.Tables(0).Rows
+                    ingredientbrands.Add(New Models.GenericList With {
+                                         .Code = GetInt(r("CodeBrand")), _
+                                         .Value = GetStr(r("NameBrand"))})
+                Next
+
+                Return ingredientbrands.ToList
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpGet> <[GET]("/api/brands/{codesite:int}/{codetrans:int}/{activeonly:bool?}/{tree?}/{name?}")> _
+        Public Function GetBrandBySite(codesite As Integer, _
+                              codetrans As Integer, _
+                              Optional name As String = "", _
+                              Optional activeonly As Boolean = True, _
+                              Optional tree As Boolean = True) As Object
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                If (name Is Nothing Or name = "" Or name = "null" Or name = "undefined") Then name = Nothing
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[GET_BRANDCODENAME]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans
+                                .Parameters.Add("@ActiveOnly", SqlDbType.Bit).Value = activeonly
+                                .Parameters.Add("@name", SqlDbType.VarChar).Value = name
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim brands As New List(Of Models.Brand)
+                For Each r In ds.Tables(0).Rows
+                    brands.Add(New Models.Brand With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name")), _
+                                    .ParentCode = GetInt(r("ParentCode")), _
+                                    .ParentName = GetStr(r("ParentName")), _
+                                    .Flagged = False})
+                Next
+
+                If tree Then
+                    Dim branddata As New List(Of Models.BrandTreeNode)
+
+                    Dim parents = brands.Where(Function(obj) obj.ParentCode = Nothing).OrderBy(Function(obj) obj.Name).ToList()
+
+                    For Each p In parents
+                        Dim parent As New Models.BrandTreeNode
+                        parent.title = p.Name
+                        parent.key = p.Code
+                        parent.icon = False
+                        parent.children = CreateChildren1(brands, p.Code)
+                        parent.select = p.Flagged
+                        parent.parenttitle = p.ParentName
+                        branddata.Add(parent)
+                    Next
+
+                    Return branddata
+                Else
+                    Return brands
+                End If
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpGet> <[GET]("/api/brand/tree/{codesite:int}/{codetrans:int}/{codebrands}/{codeliste:int}/{brandclass:int}")> _
+        Public Function GetBrandTree(codesite As Integer, _
+                                 codetrans As Integer, _
+                                 codebrands As String, _
+                                 codeliste As Integer, _
+                                 brandclass As Integer) As List(Of Models.BrandTreeNode)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_Brands]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans
+                                .Parameters.Add("@CodeBrands", SqlDbType.VarChar, 2000).Value = codebrands
+                                .Parameters.Add("@CodeListe", SqlDbType.Int).Value = codeliste
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim brands As New List(Of Models.Brand)
+                For Each r In ds.Tables(0).Rows
+                    If GetInt(r("IsIngredientbrand")) = brandclass Then
+                        brands.Add(New Models.Brand With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name")), _
+                                    .ParentCode = GetInt(r("ParentCode")), _
+                                    .ParentName = GetStr(r("ParentName")), _
+                                    .Flagged = GetBool(r("Flagged")), _
+                                    .Note = GetInt(r("IsIngredientbrand")), _
+                                    .Classification = GetInt(r("BrandClassification"))})
+                    End If
+                Next
+
+                Dim branddata As New List(Of Models.BrandTreeNode)
+
+                Dim parents = brands.Where(Function(obj) obj.ParentCode = Nothing).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each p In parents
+                    Dim parent As New Models.BrandTreeNode
+                    parent.title = p.Name
+                    parent.key = p.Code
+                    parent.icon = False
+                    parent.children = CreateChildren1(brands, p.Code)
+                    parent.select = p.Flagged
+                    parent.parenttitle = p.ParentName
+                    parent.note = p.Note
+                    parent.classification = p.Classification
+                    branddata.Add(parent)
+                Next
+
+                Return branddata
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        Private Function CreateChildren1(_keyworddata As List(Of Models.Brand), _code As Integer) As List(Of Models.BrandTreeNode)
+
+            Dim children As New List(Of Models.BrandTreeNode)
+
+            If _keyworddata IsNot Nothing Then
+                Dim kids = _keyworddata.Where(Function(obj) obj.Code <> _code And obj.ParentCode = _code And _code > 0).OrderBy(Function(obj) obj.Name).ToList() ' RBAJ-2014.04.23 Fixed infinite loop "obj.Code <> _code"
+
+                For Each k In kids
+                    Dim child As New Models.BrandTreeNode
+                    child.title = k.Name
+                    child.key = k.Code
+                    child.icon = False
+                    child.children = CreateChildren1(_keyworddata, k.Code)
+                    children.Add(child)
+                    child.select = k.Flagged
+                    child.parenttitle = k.ParentName
+                    child.classification = k.Classification
+                    child.note = k.Note
+                Next
+            End If
+
+            Return children
+
+        End Function
+
+        Private Function CreateChildren(_sharingdata As List(Of Models.GenericTree),
+                                     _code As Integer) As List(Of Models.TreeNode)
+
+            Dim children As New List(Of Models.TreeNode)
+            If _sharingdata IsNot Nothing Then
+                Dim kids = _sharingdata.Where(Function(obj) obj.ParentCode = _code And obj.Type = 2).OrderBy(Function(obj) obj.Name).ToList() ' RBAJ-2014.04.23 Fixed infinite loop "obj.Code <> _code"
+
+                For Each k In kids
+                    Dim child As New Models.TreeNode
+                    child.title = k.Name
+                    child.key = k.Code
+                    child.icon = False
+                    child.children = Nothing
+                    children.Add(child)
+                    child.select = k.Flagged
+                    child.parenttitle = k.ParentName
+                    child.note = k.Global
+                Next
+            End If
+            Return children
+
+        End Function
+
+        <HttpGet> <[GET]("/api/brand/{codesite:int}/{codeuser:int}/{name?}")> _
+        Public Function GetBrand(codesite As Integer, _
+                              codeuser As Integer, _
+                              Optional name As String = "") As List(Of Models.TreeNode)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_Brands]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = -1
+                                .Parameters.Add("@CodeBrands", SqlDbType.NVarChar).Value = ""
+                                .Parameters.Add("@CodeListe", SqlDbType.Int).Value = -1
+
+                                If Not codeuser = -1 Then
+                                    '.Parameters.Add("@CodeUser", SqlDbType.Int).Value = codeuser
+                                End If
+
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim brands As New List(Of Models.GenericTree)
+                For Each r In ds.Tables(0).Rows
+                    brands.Add(New Models.GenericTree With {
+                                   .Code = GetInt(r("Code")), _
+                                   .Name = GetStr(r("Name")), _
+                                   .ParentCode = GetInt(r("ParentCode")), _
+                                   .ParentName = GetStr(r("ParentName")), _
+                                   .Flagged = GetBool(r("Flagged")), _
+                                   .Global = GetBool(r("Global")), _
+                                   .CanBeParent = GetBool(r("IsCanBeParent")), _
+                                   .Type = 0, _
+                                   .Note = ""})
+                Next
+
+                'If codeuser > 0 Then
+                '    Dim brandschildren As New List(Of Models.GenericTree)
+                '    Dim brandsresult As New List(Of Models.GenericTree)
+
+                '    For Each k In brands
+                '        Dim arrNote() = k.Note.Trim.Split("|")
+                '        If arrNote.Length > 0 Then
+                '            If GetInt(arrNote(0)) = codeuser Then ''And k.ParentCode > 0
+                '                If brandschildren.IndexOf(k) = -1 Then
+                '                    brandschildren.Add(k)
+                '                End If
+                '            End If
+                '        End If
+                '    Next
+
+                '    For Each kid In brandschildren
+                '        brandsresult.Add(kid)
+                '        Dim _currentParentCode As Integer = kid.ParentCode
+                '        While _currentParentCode > 0
+                '            Dim _currentParent As Models.GenericTree = GetParent(_currentParentCode, brands)
+                '            If brandsresult.IndexOf(_currentParent) = -1 Then
+                '                brandsresult.Add(_currentParent)
+                '            End If
+                '            _currentParentCode = _currentParent.ParentCode
+                '        End While
+                '    Next
+                '    brands = brandsresult
+                'End If
+
+                If name.Trim <> "" Then
+                    Dim brandschildren As New List(Of Models.GenericTree)
+                    Dim brandsresult As New List(Of Models.GenericTree)
+
+                    Dim arrNames() As String = name.Trim.Split(",")
+                    For Each word In arrNames
+                        For Each k In brands
+                            If k.Name.ToLower.Contains(Common.ReplaceSpecialCharacters(word.Trim.ToLower)) Then ''And k.ParentCode > 0
+                                If brandschildren.IndexOf(k) = -1 Then
+                                    brandschildren.Add(k)
+                                End If
+                            End If
+                        Next
+                    Next
+
+                    For Each kid In brandschildren
+                        brandsresult.Add(kid)
+                        Dim _currentParentCode As Integer = kid.ParentCode
+                        While _currentParentCode > 0
+                            Dim _currentParent As Models.GenericTree = GetParent(_currentParentCode, brands)
+                            If brandsresult.IndexOf(_currentParent) = -1 Then
+                                brandsresult.Add(_currentParent)
+                            End If
+                            _currentParentCode = _currentParent.ParentCode
+                        End While
+                    Next
+                    brands = brandsresult
+                End If
+
+                Dim branddata As New List(Of Models.TreeNode)
+                Dim parents = brands.Where(Function(obj) obj.ParentCode = Nothing Or obj.ParentCode = 0).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each p In parents
+                    Dim parent As New Models.TreeNode
+                    parent.title = p.Name
+                    parent.key = p.Code
+                    parent.icon = False
+                    parent.children = CreateChildren1(brands, p.Code, p.Name)
+                    parent.select = p.Flagged
+                    parent.selected = p.Flagged     'MKAM FancyTree uses "selected" property
+                    parent.parenttitle = p.ParentName
+                    parent.note = p.Note
+                    parent.CanBeParent = p.CanBeParent
+                    parent.Global = p.Global 'AGL 2015.04.04
+                    branddata.Add(parent)
+                Next
+
+                Return branddata
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        'START - Raqi Pinili 08.26.2015
+        <HttpPost> <[POST]("/api/brand/search")> _
+        Public Function GetBrand2(data As Models.ConfigurationcSearch) As List(Of Models.TreeNode)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_Brands]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.CodeSite
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = data.CodeTrans
+                                .Parameters.Add("@CodeBrands", SqlDbType.NVarChar).Value = ""
+                                .Parameters.Add("@CodeListe", SqlDbType.Int).Value = data.CodeListe
+                                .Parameters.Add("@CodeProperty", SqlDbType.Int).Value = data.CodeProperty 'jss CWA-20052 112515
+
+                                If Not data.CodeUser = -1 Then
+                                    '.Parameters.Add("@CodeUser", SqlDbType.Int).Value = codeuser
+                                End If
+
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim brands As New List(Of Models.GenericTree)
+                For Each r In ds.Tables(0).Rows
+                    brands.Add(New Models.GenericTree With {
+                                   .Code = GetInt(r("Code")), _
+                                   .Name = GetStr(r("Name")), _
+                                   .ParentCode = GetInt(r("ParentCode")), _
+                                   .ParentName = GetStr(r("ParentName")), _
+                                   .Flagged = GetBool(r("Flagged")), _
+                                   .Global = GetBool(r("Global")), _
+                                   .CanBeParent = GetBool(r("IsCanBeParent")), _
+                                   .Type = 0, _
+                                   .Note = ""})
+                Next
+
+                'If codeuser > 0 Then
+                '    Dim brandschildren As New List(Of Models.GenericTree)
+                '    Dim brandsresult As New List(Of Models.GenericTree)
+
+                '    For Each k In brands
+                '        Dim arrNote() = k.Note.Trim.Split("|")
+                '        If arrNote.Length > 0 Then
+                '            If GetInt(arrNote(0)) = codeuser Then ''And k.ParentCode > 0
+                '                If brandschildren.IndexOf(k) = -1 Then
+                '                    brandschildren.Add(k)
+                '                End If
+                '            End If
+                '        End If
+                '    Next
+
+                '    For Each kid In brandschildren
+                '        brandsresult.Add(kid)
+                '        Dim _currentParentCode As Integer = kid.ParentCode
+                '        While _currentParentCode > 0
+                '            Dim _currentParent As Models.GenericTree = GetParent(_currentParentCode, brands)
+                '            If brandsresult.IndexOf(_currentParent) = -1 Then
+                '                brandsresult.Add(_currentParent)
+                '            End If
+                '            _currentParentCode = _currentParent.ParentCode
+                '        End While
+                '    Next
+                '    brands = brandsresult
+                'End If
+
+                If data.Name.Trim <> "" Then
+                    Dim brandschildren As New List(Of Models.GenericTree)
+                    Dim brandsresult As New List(Of Models.GenericTree)
+
+                    Dim arrNames() As String = data.Name.Trim.Split(",")
+                    For Each word In arrNames
+                        For Each k In brands
+                            If k.Name.ToLower.Contains(Common.ReplaceSpecialCharacters(word.Trim.ToLower)) Then ''And k.ParentCode > 0
+                                If brandschildren.IndexOf(k) = -1 Then
+                                    brandschildren.Add(k)
+                                End If
+                            End If
+                        Next
+                    Next
+
+                    For Each kid In brandschildren
+                        brandsresult.Add(kid)
+                        Dim _currentParentCode As Integer = kid.ParentCode
+                        While _currentParentCode > 0
+                            Dim _currentParent As Models.GenericTree = GetParent(_currentParentCode, brands)
+                            If brandsresult.IndexOf(_currentParent) = -1 Then
+                                brandsresult.Add(_currentParent)
+                            End If
+                            _currentParentCode = _currentParent.ParentCode
+                        End While
+                    Next
+                    brands = brandsresult
+                End If
+
+                Dim branddata As New List(Of Models.TreeNode)
+                Dim parents = brands.Where(Function(obj) obj.ParentCode = Nothing Or obj.ParentCode = 0).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each p In parents
+                    Dim parent As New Models.TreeNode
+                    parent.title = p.Name
+                    parent.key = p.Code
+                    parent.icon = False
+                    parent.children = CreateChildren1(brands, p.Code, p.Name)
+                    parent.select = p.Flagged
+                    parent.selected = p.Flagged     'MKAM FancyTree uses "selected" property
+                    parent.parenttitle = p.ParentName
+                    parent.note = p.Note
+                    parent.CanBeParent = p.CanBeParent
+                    parent.Global = p.Global 'AGL 2015.04.04
+                    branddata.Add(parent)
+                Next
+
+                Return branddata
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+        'END - Raqi Pinili 08.26.2015
+
+        Private Function CreateChildren1(_keyworddata As List(Of Models.GenericTree), _code As Integer, _parentname As String) As List(Of Models.TreeNode)
+
+            Dim children As New List(Of Models.TreeNode)
+
+            If _keyworddata IsNot Nothing Then
+                Dim kids = _keyworddata.Where(Function(obj) obj.Code <> _code And obj.ParentCode = _code And _code > 0).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each k In kids
+                    Dim child As New Models.TreeNode
+                    child.title = k.Name
+                    child.key = k.Code
+                    child.icon = False
+                    child.children = CreateChildren1(_keyworddata, k.Code, k.Name)
+                    children.Add(child)
+                    child.select = k.Flagged
+                    child.selected = k.Flagged
+                    child.parenttitle = _parentname ''k.ParentName
+                    child.ParentCode = k.ParentCode
+                    child.note = k.Note
+                    child.CanBeParent = k.CanBeParent
+                Next
+            End If
+
+            Return children
+
+        End Function
+
+        Private Function GetParent(ByVal _parentcode As Integer, ByVal _keywords As List(Of Models.GenericTree)) As Models.GenericTree
+            Return _keywords.Where(Function(obj) obj.Code = _parentcode).Single()
+        End Function
+
+        <HttpGet> <[GET]("/api/brandlist/{codesite:int}/{code:int}/{codetrans:int}/{parentOnly:bool?}")> _
+        Public Function GetBrandParent(codesite As Integer, code As Integer, codetrans As Integer, Optional parentOnly As Boolean = False) As List(Of Models.GenericList)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_Brands]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@CodeBrands", SqlDbType.Int).Value = code
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans
+                                .Parameters.Add("@CodeListe", SqlDbType.Int).Value = -1
+                                .Parameters.Add("@ParentOnly", SqlDbType.Bit).Value = parentOnly
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim cookbooks As New List(Of Models.GenericList)
+                For Each r In ds.Tables(0).Rows
+                    cookbooks.Add(New Models.GenericList With {
+                                  .Code = GetInt(r("Code")), _
+                                  .Value = GetStr(r("Name"))})
+                Next
+
+                Return cookbooks
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpGet> <[GET]("/api/brandkiosk/{codesite:int}/{codebrand:int}")> _
+        Public Function GetBrandKiosk(codesite As Integer, _
+                              codebrand As Integer) As List(Of Models.TreeNode)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_MANAGE_Generic]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = 1
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@Status", SqlDbType.Int).Value = 1
+                                .Parameters.Add("@TableName", SqlDbType.NVarChar, 200).Value = "BRANDSITE"
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim keywords As New List(Of Models.GenericTree)
+                For Each r In ds.Tables(0).Rows
+                    keywords.Add(New Models.GenericTree With {
+                                        .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name")), _
+                                    .ParentCode = 0, _
+                                    .ParentName = ""})
+                Next
+
+                Dim keywordsdata As New List(Of Models.TreeNode)
+
+
+                Dim parents = keywords.Where(Function(obj) obj.ParentCode = 0).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each p In parents
+                    If keywordsdata.Where(Function(obj) obj.key = p.Code).Count = 0 Then
+                        Dim parent As New Models.TreeNode
+                        parent.title = p.Name
+                        parent.key = p.Code
+                        parent.icon = False
+                        parent.select = CheckifSelected(codebrand, p.Code)
+                        parent.children = CreateChildren1(keywords, codebrand, p.Name)
+                        parent.parenttitle = p.ParentName
+                        keywordsdata.Add(parent)
+                    End If
+                Next
+
+                Return keywordsdata
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpPost> <POST("api/brand")> _
+        Public Function SaveBrand(data As Models.BrandData) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim resultCode As Integer
+            Dim _trans As SqlTransaction = Nothing
+            Dim strName As String = data.Info.Name
+
+
+            strName = strName.Replace("[r]", "®")
+            strName = strName.Replace("[tm]", "™")
+            strName = strName.Replace("[c]", "©")
+            strName = strName.Replace("[R]", "®")
+            strName = strName.Replace("[TM]", "™")
+            strName = strName.Replace("[C]", "©")
+
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + JsonConvert.SerializeObject(data, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+                Using cmd As New SqlCommand
+                    Dim arrSharing As New ArrayList
+                    For Each sh In data.Sharing
+                        If arrSharing.IndexOf(sh.Code) = -1 Then arrSharing.Add(sh.Code)
+                    Next
+                    Dim _codeSiteList As String = Common.Join(arrSharing, "(", ")", ",")
+                    Dim tran As Integer
+                    If data.Info.Code = -1 Then
+                        tran = 1
+                    ElseIf data.Info.Code = -2 Then
+                        tran = 1
+                    Else
+                        tran = 2
+                    End If
+
+                    Dim arrmergelist As New ArrayList
+                    For Each sh In data.MergeList
+                        If arrmergelist.IndexOf(sh) = -1 Then arrmergelist.Add(sh)
+                    Next
+                    Dim _mergelist As String = Common.Join(arrmergelist, "(", ")", ",")
+
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+
+                                .CommandText = "[MANAGE_BRANDUPDATE]"
+                                .Parameters.Clear()
+
+                                .Parameters.Add("@retval", SqlDbType.Int)
+                                .Parameters.Add("@Code", SqlDbType.Int).Value = data.Info.Code
+                                .Parameters.Add("@Name", SqlDbType.NVarChar, 150).Value = strName
+                                .Parameters.Add("@ListeType", SqlDbType.Int).Value = 2
+                                .Parameters.Add("@IsGlobal", SqlDbType.Bit).Value = data.Info.Global
+                                .Parameters.Add("@CodeSiteList", SqlDbType.VarChar, 8000).Value = _codeSiteList
+                                .Parameters.Add("@CodeUser", SqlDbType.Int).Value = data.Info.CodeUser
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.Info.CodeSite
+                                .Parameters.Add("@CodeParent", SqlDbType.Int).Value = data.Info.ParentCode
+                                .Parameters.Add("@IsCanBeParent", SqlDbType.Bit).Value = data.Info.CanBeParent
+                                .Parameters.Add("@MergeList", SqlDbType.NVarChar).Value = _mergelist 'AGL 2015.06.27
+                                .Parameters("@retval").Direction = ParameterDirection.ReturnValue
+                                .Parameters("@Code").Direction = ParameterDirection.InputOutput
+
+                                cn.Open()
+                                _trans = cn.BeginTransaction
+                                .Transaction = _trans
+                                .ExecuteNonQuery()
+                                Dim codeBrand As Integer = GetInt(.Parameters("@Code").Value, -1)
+                                resultCode = GetInt(.Parameters("@retval").Value, -1)
+                                If resultCode <> 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Save brand failed", resultCode))
+                                End If
+
+
+                                If codeBrand <> -1 Then
+
+                                    For Each t In data.Translation
+                                        With cmd
+                                            .Connection = cn
+                                            .CommandText = "sp_EgswItemTranslationUpdate"
+                                            .CommandType = CommandType.StoredProcedure
+                                            .Parameters.Clear()
+                                            .Parameters.Add("@intCode", SqlDbType.Int).Value = codeBrand
+                                            .Parameters.Add("@nvcName", SqlDbType.NVarChar, 260).Value = t.Name
+                                            .Parameters.Add("@intCodeTrans", SqlDbType.Int).Value = t.CodeTrans
+                                            .Parameters.Add("@tntListType", SqlDbType.Int).Value = 14
+                                            .Parameters.Add("@intCodeUser", SqlDbType.Int).Value = data.Profile.Code
+                                            .Parameters.Add("@retval", SqlDbType.Int).Direction = ParameterDirection.ReturnValue
+                                            .ExecuteNonQuery()
+                                            resultCode = GetInt(.Parameters("@retval").Value, -1)
+                                            If resultCode <> 0 Then
+                                                Throw New DatabaseException(String.Format("[{0}] Update brand translation failed", resultCode))
+                                            End If
+                                        End With
+                                    Next
+
+
+                                    For Each kiosk In data.KioskList
+                                        With cmd
+                                            .Connection = cn
+                                            .CommandType = CommandType.StoredProcedure
+                                            .CommandText = "DELETE_BrandBrandSite"
+
+                                            .Parameters.Clear()
+                                            .Parameters.Add("@Brand", SqlDbType.Int, 4).Value = codeBrand
+                                            .Parameters.Add("@BrandSite", SqlDbType.Int, 4).Value = kiosk.Code
+
+                                            .ExecuteNonQuery()
+
+
+                                        End With
+
+                                        With cmd
+                                            .Connection = cn
+                                            .CommandType = CommandType.StoredProcedure
+                                            .CommandText = "UPDATE_BrandBrandSite"
+
+                                            .Parameters.Clear()
+                                            .Parameters.Add("@Brand", SqlDbType.Int, 4).Value = codeBrand
+                                            .Parameters.Add("@BrandSite", SqlDbType.Int, 4).Value = kiosk.Code
+
+                                            .ExecuteNonQuery()
+
+
+                                        End With
+
+                                    Next
+
+                                    If data.KioskList.Count = 0 Then
+                                        With cmd
+                                            .Connection = cn
+                                            .CommandText = "DELETE FROM BrandToBrandSite WHERE Brand=" & codeBrand
+                                            .CommandType = CommandType.Text
+                                            .Parameters.Clear()
+                                            .ExecuteNonQuery()
+                                        End With
+                                    End If
+                                    _trans.Commit()
+
+                                End If
+
+
+                                If data.ActionType = 5 Then
+                                    If data.MergeList.Count > 0 Then
+                                        Dim arrSites As New ArrayList
+                                        For Each s As Integer In data.MergeList
+                                            If arrSites.IndexOf(s) = -1 Then arrSites.Add(s)
+                                        Next
+                                        Dim _SiteList As String = Common.Join(arrSites, "(", ")", ",")
+                                        Dim sql As New StringBuilder
+                                        sql.Append("Delete from EgswSharing WHERE Code IN" & _SiteList & "AND CodeEgswTable=18")
+                                        .CommandText = sql.ToString
+                                        .CommandType = CommandType.Text
+                                        .Parameters.Clear()
+                                        cmd.ExecuteNonQuery()
+
+                                        sql.Clear()
+                                        sql.Append("UPDATE EgswBrand SET Parent=@Code where Parent IN " & _SiteList)
+                                        .CommandText = sql.ToString
+                                        .CommandType = CommandType.Text
+                                        .Parameters.Clear()
+                                        .Parameters.Add("@Code", SqlDbType.Int).Value = codeBrand
+                                        .ExecuteNonQuery()
+
+                                        sql.Clear()
+                                        sql.Append("INSERT INTO EgswSharing ")
+                                        sql.Append("SELECT @Code,0,CodeUserSharedTo,1,18,0,1,0")
+                                        sql.Append("FROM EgswSharing ")
+                                        sql.Append("WHERE Code=@Code AND CodeEgswTable=18 AND [Status]=1 AND [Type] IN (1,5) ")
+                                        sql.Append("    AND CodeUserSharedTo NOT IN (")
+                                        sql.Append("    SELECT DISTINCT CodeUserSharedTo ")
+                                        sql.Append("    FROM EgswSharing  ")
+                                        sql.Append("    WHERE Code IN " & _SiteList & " AND CodeEgswTable=18 AND [Status]=1 AND [Type] IN (1,5)")
+                                        sql.Append("    ) ")
+                                        .CommandText = sql.ToString
+                                        .CommandType = CommandType.Text
+                                        .Parameters.Clear()
+                                        .Parameters.Add("@Code", SqlDbType.Int).Value = codeBrand
+                                        .ExecuteNonQuery()
+
+                                        'Dim arrMergeList As New ArrayList
+                                        'For Each sh In data.MergeList
+                                        '    If arrMergeList.IndexOf(sh) = -1 Then arrMergeList.Add(sh)
+                                        'Next
+                                        'Dim _mergeList As String = Common.Join(arrMergeList, "(", ")", ",")
+                                        'sql.Clear()
+                                        'sql.Append("UPDATE BrandToBrandSite ")
+                                        'sql.Append("SET Brand=@newBrandCode ")
+                                        'sql.Append(" WHERE Brand IN " & _mergeList)
+                                        '.CommandText = sql.ToString
+                                        '.CommandType = CommandType.Text
+                                        '.Parameters.Clear()
+                                        '.Parameters.Add("@newBrandCode", SqlDbType.Int).Value = codeBrand
+                                        'Dim rowsAffected As Integer
+                                        'rowsAffected = cmd.ExecuteNonQuery()
+
+
+
+                                        sql.Clear()
+                                        sql.Append("UPDATE EgswListe SET  Brand = " & codeBrand & " WHERE Brand IN " & _mergelist)
+                                        .CommandText = sql.ToString
+                                        .CommandType = CommandType.Text
+                                        .Parameters.Clear()
+                                        cmd.ExecuteNonQuery()
+
+                                        sql.Clear()
+                                        sql.Append("UPDATE EgswBrand SET  Parent = " & data.Info.ParentCode & " WHERE Code IN " & _mergelist)
+                                        .CommandText = sql.ToString
+                                        .CommandType = CommandType.Text
+                                        .Parameters.Clear()
+                                        cmd.ExecuteNonQuery()
+
+                                        'RDTC 2015.08.11 
+                                        'delete the entries that will be cause a duplicate
+
+                                        sql.Clear()
+                                        sql.Append("DELETE RecipeBrand WHERE CodeListe IN ")
+                                        sql.Append(" (select CodeListe from RecipeBrand where brand in " & _mergelist & " group by codeliste having count(codeliste) > 1)")
+                                        sql.Append(" AND Brand  <> (select min(brand) from RecipeBrand where brand in " & _mergelist & "	group by codeliste  having count(codeliste) > 1 )")
+                                        .CommandText = sql.ToString
+                                        .CommandType = CommandType.Text
+                                        .Parameters.Clear()
+                                        cmd.ExecuteNonQuery()
+
+
+                                        sql.Clear()
+                                        sql.Append("UPDATE RecipeBrand SET  Brand = " & codeBrand & " WHERE Brand IN " & _mergelist)
+                                        .CommandText = sql.ToString
+                                        .CommandType = CommandType.Text
+                                        .Parameters.Clear()
+                                        cmd.ExecuteNonQuery()
+
+                                        sql.Clear()
+                                        sql.Append("DELETE FROM BrandToBrandSite WHERE BRAND IN " & _mergelist)
+                                        .CommandText = sql.ToString
+                                        .CommandType = CommandType.Text
+                                        .Parameters.Clear()
+                                        cmd.ExecuteNonQuery()
+
+                                        .CommandText = "API_DELETE_Generic"
+                                        .CommandType = CommandType.StoredProcedure
+                                        For Each code In arrSites
+                                            .Parameters.Clear()
+                                            .Parameters.Add("@CodeList", SqlDbType.VarChar, 4000).Value = GetInt(code)
+                                            .Parameters.Add("@TableName", SqlDbType.VarChar, 200).Value = "EGSWBRAND"
+                                            .Parameters.Add("@CodeUser", SqlDbType.Int).Value = data.Profile.Code
+                                            .Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.Profile.CodeSite
+                                            .Parameters.Add("@ForceDelete", SqlDbType.Bit).Value = False
+                                            .Parameters.Add("@SkipList", SqlDbType.NVarChar, 4000).Direction = ParameterDirection.Output
+                                            .Parameters.Add("@Return", SqlDbType.Int)
+                                            .Parameters("@Return").Direction = ParameterDirection.ReturnValue
+                                            .ExecuteNonQuery()
+                                            resultCode = GetInt(.Parameters("@Return").Value, -1) ' RBAJ-2014.01.14                               
+                                            If resultCode <> 0 Then
+                                                Throw New DatabaseException(String.Format("[{0}] Delete merged brand failed", resultCode))
+                                            End If
+                                        Next
+                                    End If
+                                End If
+
+
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = codeBrand
+                                response.Status = True
+
+
+
+
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                Try
+                                    _trans.Rollback()
+                                    If Not _trans Is Nothing Then
+                                        CType(_trans, IDisposable).Dispose()
+                                    End If
+                                Catch
+                                End Try
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.Status = False
+                                response.Message = "Save brand failed"
+                                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Brand")
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+
+                End Using
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Brand")
+            End Try
+            Return response
+        End Function
+
+        '<HttpGet> <[GET]("/api/brand/sharing/{codesite:int}/{codebrand:int}")> _
+        'Public Function GetBrandSharing(codesite As Integer,
+        '                          codebrand As Integer) As List(Of Models.TreeNode)
+        '    Try
+        '        Dim ds As New DataSet
+        '        Using cmd As New SqlCommand
+        '            With cmd
+        '                Using cn As New SqlConnection(ConnectionString)
+        '                    Try
+        '                        .Connection = cn
+        '                        .CommandType = CommandType.StoredProcedure
+        '                        .CommandText = "[dbo].[API_GET_SharingAll]"
+        '                        .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+        '                        .Parameters.Add("@Type", SqlDbType.Int).Value = 1
+        '                        .Parameters.Add("@Code", SqlDbType.Int).Value = codebrand
+        '                        .Parameters.Add("@CodeEgswTable", SqlDbType.Int).Value = 18
+        '                        cn.Open()
+        '                        Dim _da As New SqlDataAdapter(cmd)
+        '                        _da.Fill(ds)
+        '                    Finally
+        '                        If Not cn Is Nothing Then
+        '                            cn.Close()
+        '                            CType(cn, IDisposable).Dispose()
+        '                        End If
+        '                    End Try
+        '                End Using
+        '            End With
+        '        End Using
+
+        '        Dim sharings As New List(Of Models.GenericTree)
+        '        For Each r In ds.Tables(0).Rows
+        '            sharings.Add(New Models.GenericTree With {
+        '                            .Code = GetInt(r("Code")), _
+        '                            .Name = GetStr(r("Name")), _
+        '                            .ParentCode = GetInt(r("ParentCode")), _
+        '                            .ParentName = GetStr(r("ParentName")), _
+        '                            .Flagged = GetBool(r("Flagged")), _
+        '                            .Type = GetInt(r("Type")), _
+        '                            .Global = GetBool(r("Global"))})
+        '        Next
+
+        '        Dim sharingdata As New List(Of Models.TreeNode)
+
+        '        Dim parents = sharings.Where(Function(obj) obj.ParentCode = 0 And obj.Type = 1).OrderBy(Function(obj) obj.Name).ToList()
+
+        '        For Each p In parents
+        '            If sharingdata.Where(Function(obj) obj.key = p.Code).Count = 0 Then
+        '                Dim parent As New Models.TreeNode
+        '                parent.title = p.Name
+        '                parent.key = p.Code
+        '                parent.icon = False
+        '                parent.children = CreateChildren1(sharings, p.Code)
+        '                parent.select = p.Flagged
+        '                parent.parenttitle = p.ParentName
+        '                sharingdata.Add(parent)
+        '            End If
+        '        Next
+
+        '        Return sharingdata
+        '    Catch aex As ArgumentException
+        '        Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+        '        Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+        '    Catch hex As HttpResponseException
+        '        Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+        '        Throw hex
+        '    Catch ex As Exception
+        '        Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+        '        Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+        '    End Try
+        'End Function
+
+        <HttpGet> <[GET]("/api/brand/sharing/{codesite:int}/{codebrand:int}")> _
+        Public Function GetBrandSharing(codesite As Integer,
+                                  codebrand As Integer) As List(Of Models.TreeNode)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_SharingAll]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = 1
+                                .Parameters.Add("@Code", SqlDbType.Int).Value = codebrand
+                                .Parameters.Add("@CodeEgswTable", SqlDbType.Int).Value = 18
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim sharings As New List(Of Models.GenericTree)
+                For Each r In ds.Tables(0).Rows
+                    sharings.Add(New Models.GenericTree With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name")), _
+                                    .ParentCode = GetInt(r("ParentCode")), _
+                                    .ParentName = GetStr(r("ParentName")), _
+                                    .Flagged = GetBool(r("Flagged")), _
+                                    .Type = GetInt(r("Type")), _
+                                    .Global = GetBool(r("Global"))})
+                Next
+
+                Dim sharingdata As New List(Of Models.TreeNode)
+
+                Dim parents = sharings.Where(Function(obj) obj.ParentCode = 0 And obj.Type = 1).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each p In parents
+                    If sharingdata.Where(Function(obj) obj.key = p.Code).Count = 0 Then
+                        Dim parent As New Models.TreeNode
+                        parent.title = p.Name
+                        parent.key = p.Code
+                        parent.icon = False
+                        parent.children = CreateChildren(sharings, p.Code)
+                        parent.select = p.Flagged
+                        parent.parenttitle = p.ParentName
+                        sharingdata.Add(parent)
+                    End If
+                Next
+
+                Return sharingdata
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpGet> <[GET]("/api/brand/sharingMerge/{codesite:int}/{type:int}/{tree:int}/{codebrand?}")> _
+        Public Function GetBrandSharingMerge(codesite As Integer, _
+                                  type As Integer, _
+                                  tree As Integer, _
+                                  codebrand As String) As List(Of Models.TreeNode)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandText = "[dbo].[API_GET_SharingMerge]"
+                                .CommandType = CommandType.StoredProcedure
+                                .Parameters.Clear()
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = 2
+                                .Parameters.Add("@CodeCategory", SqlDbType.NVarChar, 50).Value = codebrand
+                                .Parameters.Add("@CodeEgswTable", SqlDbType.Int).Value = 18
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim sharings As New List(Of Models.GenericTree)
+                For Each r In ds.Tables(0).Rows
+                    sharings.Add(New Models.GenericTree With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name")), _
+                                    .ParentCode = GetInt(r("ParentCode")), _
+                                    .ParentName = GetStr(r("ParentName")), _
+                                    .Flagged = GetBool(r("Flagged")), _
+                                    .Type = GetInt(r("Type")), _
+                                    .Global = GetBool(r("Global"))})
+                Next
+
+                Dim sharingdata As New List(Of Models.TreeNode)
+
+                Dim parents = sharings.Where(Function(obj) obj.ParentCode = 0 And obj.Type = 1).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each p In parents
+                    Dim parent As New Models.TreeNode
+                    parent.title = p.Name
+                    parent.key = p.Code
+                    parent.icon = False
+                    parent.children = CreateChildrenSharing(sharings, p.Code)
+                    parent.select = p.Flagged
+                    parent.selected = p.Flagged
+                    parent.parenttitle = p.ParentName
+                    parent.groupLevel = GroupLevel.Property     'MKAM 2014.11.11
+                    If parent.children.Count > 0 Then sharingdata.Add(parent)
+                Next
+
+                Return sharingdata
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpGet> <[GET]("/api/brand/translation/{codekeyword:int}/{codesite:int}")> _
+        Public Function GetKeywordTranslation(codekeyword As Integer, _
+                                           codesite As Integer) As List(Of Models.RecipeTranslation)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "API_GET_BrandTranslation"
+                                .Parameters.Add("@CodeKeyword", SqlDbType.Int).Value = codekeyword
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim translations As New List(Of Models.RecipeTranslation)
+                For Each r In ds.Tables(0).Rows
+                    translations.Add(New Models.RecipeTranslation With {
+                                    .CodeTrans = GetInt(r("CodeTrans")), _
+                                    .TranslationName = GetStr(r("TranslationName")), _
+                                    .Name = GetStr(r("Name"))})
+                Next
+
+                Return translations.ToList
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+
+        Private Function CheckifSelected(codebrand As Integer, codebrandsite As Integer) As Boolean
+
+            Dim isSelected As Boolean
+
+            Dim sb As New System.Text.StringBuilder
+
+            sb.Append("Select @isSelected = CASE WHEN (COUNT(*)>0)  THEN 1 ELSE 0 END FROM BrandToBrandSite WHERE Brand =  @codebrand AND BrandSite = @codebrandsite")
+
+            Try
+                Using cn As SqlConnection = New SqlConnection(ConnectionString)
+                    Using cmd As SqlCommand = New SqlCommand(sb.ToString, cn)
+                        With cmd
+                            .CommandType = CommandType.Text
+                            .Parameters.Add("@codebrand", SqlDbType.Int).Value = codebrand
+                            .Parameters.Add("@codebrandsite", SqlDbType.Int).Value = codebrandsite
+                            .Parameters.Add("@isSelected", SqlDbType.Bit).Direction = ParameterDirection.Output
+                            .Connection.Open()
+                            .ExecuteNonQuery()
+                            .Connection.Close()
+
+                            isSelected = CBool(.Parameters("@isSelected").Value)
+
+                        End With
+                    End Using
+                End Using
+            Catch ex As Exception
+
+            End Try
+
+            Return isSelected
+        End Function
+
+        '<HttpPost> <POST("api/brand/delete")>
+        'Public Function DeleteBrand(data As Models.GenericDeleteData) As Models.ResponseCallBack
+        '    Dim response As New Models.ResponseCallBack
+        '    Dim resultCode As Integer
+        '    Try
+        '        If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + JsonConvert.SerializeObject(data, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+        '        Using cmd As New SqlCommand
+        '            Dim arrCategoryCodes As New ArrayList
+        '            For Each c In data.CodeList
+        '                If arrCategoryCodes.IndexOf(c.Code) = -1 Then arrCategoryCodes.Add(c.Code)
+        '            Next
+        '            ''  Dim _codeBrandList As String = Common.Join(arrCategoryCodes, "", "", ",")
+        '            Dim _codeBrandList As String = Common.Join(arrCategoryCodes, "(", ")", ",")
+        '            With cmd
+        '                Using cn = New SqlConnection(ConnectionString)
+        '                    Try
+        '                        .Connection = cn
+        '                        .CommandText = "sp_EgswBrandDelete"
+        '                        .CommandType = CommandType.StoredProcedure
+        '                        .Parameters.Clear()
+
+        '                        .Parameters.Add("@intCode", SqlDbType.Int).Value = 0
+        '                        .Parameters.Add("@IsGlobal", SqlDbType.Bit).Value = 0
+        '                        .Parameters.Add("@intCodeUser", SqlDbType.Int).Value = data.CodeUser
+        '                        .Parameters.Add("@intCodeSite", SqlDbType.Int).Value = data.CodeSite
+        '                        .Parameters.Add("@intCodeProperty", SqlDbType.Int).Value = -1
+        '                        .Parameters.Add("@tntTranMode", SqlDbType.TinyInt).Value = 7
+        '                        _codeBrandList.Trim()
+        '                        If _codeBrandList <> "" Then
+        '                            If Not (_codeBrandList.StartsWith("(") And _codeBrandList.EndsWith(")")) Then
+        '                                Throw New DatabaseException(String.Format("[{0}] Delete brand failed", resultCode))
+        '                            Else
+        '                                .Parameters.Add("@vchCodeList", SqlDbType.VarChar, 8000).Value = _codeBrandList
+        '                            End If
+        '                        End If
+
+        '                        .Parameters.Add("@retval", SqlDbType.Int)
+        '                        .Parameters("@retval").Direction = ParameterDirection.ReturnValue
+
+        '                        cn.Open()
+        '                        .ExecuteNonQuery()
+        '                        resultCode = GetInt(.Parameters("@retval").Value, -1)
+        '                        If resultCode <> 0 Then
+        '                            Throw New DatabaseException(String.Format("[{0}] Delete brand failed", resultCode))
+        '                        End If
+
+        '                        ' Done without errors
+        '                        response.Code = 0
+        '                        response.Message = "OK"
+        '                        response.ReturnValue = ""
+        '                        response.Status = True
+        '                    Catch ex As DatabaseException
+        '                        Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+        '                        If resultCode = 0 Then
+        '                            resultCode = 500
+        '                        End If
+        '                        response.Code = resultCode
+        '                        response.ReturnValue = ""
+        '                        response.Status = False
+        '                        response.Message = "Delete brand failed"
+        '                    Finally
+        '                        If Not cn Is Nothing Then
+        '                            cn.Close()
+        '                            CType(cn, IDisposable).Dispose()
+        '                        End If
+        '                    End Try
+        '                End Using
+        '            End With
+
+        '        End Using
+        '    Catch ex As Exception
+        '        Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+        '        response.Status = False
+        '        response.Message = "Unexpected error occured"
+        '        response.Code = 500
+        '    End Try
+        '    Return response
+        'End Function
+
+        <HttpPost> <POST("api/brand/delete")>
+        Public Function DeleteBrand(data As Models.GenericDeleteData) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim resultCode As Integer
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + JsonConvert.SerializeObject(data, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+                Using cmd As New SqlCommand
+                    Dim arrCategoryCodes As New ArrayList
+                    For Each c In data.CodeList
+                        If arrCategoryCodes.IndexOf(c.Code) = -1 Then arrCategoryCodes.Add(c.Code)
+                    Next
+                    Dim _codeCategoryList As String = Common.Join(arrCategoryCodes, "", "", ",")
+                    With cmd
+                        Using cn = New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandText = "API_DELETE_Generic"
+                                .CommandType = CommandType.StoredProcedure
+                                .Parameters.Clear()
+                                .Parameters.Add("@CodeList", SqlDbType.VarChar, 4000).Value = _codeCategoryList
+                                .Parameters.Add("@TableName", SqlDbType.VarChar, 200).Value = "EGSWBRAND"
+                                .Parameters.Add("@CodeUser", SqlDbType.Int).Value = data.CodeUser                    ''codeuser
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.CodeSite                    ''codesite                                                        
+                                .Parameters.Add("@ForceDelete", SqlDbType.Bit).Value = data.ForceDelete              ''force delete
+                                .Parameters.Add("@SkipList", SqlDbType.VarChar, 4000).Direction = ParameterDirection.Output
+                                .Parameters.Add("@Return", SqlDbType.Int)
+                                .Parameters("@Return").Direction = ParameterDirection.ReturnValue
+
+                                cn.Open()
+                                .ExecuteNonQuery()
+                                resultCode = GetInt(.Parameters("@Return").Value, -1) ' RBAJ-2014.01.14                               
+                                If resultCode <> 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Delete brand failed", resultCode))
+                                End If
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = GetStr(.Parameters("@SkipList").Value)
+                                response.Status = True
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.ReturnValue = GetStr(.Parameters("@SkipList").Value) ''JDO 1.21.2014
+                                response.Status = False
+                                response.Message = "Delete brand failed"
+                                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Brand")
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+
+                End Using
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Brand")
+            End Try
+            Return response
+        End Function
+
+    End Class
+End Namespace

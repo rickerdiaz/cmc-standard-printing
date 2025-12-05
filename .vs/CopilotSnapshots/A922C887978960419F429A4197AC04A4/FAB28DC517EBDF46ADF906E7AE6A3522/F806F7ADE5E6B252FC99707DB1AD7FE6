@@ -1,0 +1,1013 @@
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using System.Linq;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+
+namespace CalcmenuAPI_CMC_CoopGastro.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class BrandController : ControllerBase
+    {
+        private string ConnectionString => HttpContext.RequestServices.GetService<IConfiguration>()?.GetConnectionString("Default") ?? string.Empty;
+
+        [HttpGet("{codeliste:int}/{codetrans:int}")]
+        public ActionResult<List<Models.GenericList>> GetBrandByCode(int codeliste, int codetrans)
+        {
+            try
+            {
+                var ds = new DataSet();
+                using var cmd = new SqlCommand();
+                using var cn = new SqlConnection(ConnectionString);
+                cmd.Connection = cn;
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "[dbo].[GET_ListeIngredientsBrandList]";
+                cmd.Parameters.Add("@CodeListe", SqlDbType.Int).Value = codeliste;
+                cmd.Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans;
+                cn.Open();
+                using var da = new SqlDataAdapter(cmd);
+                da.Fill(ds);
+
+                var ingredientbrands = new List<Models.GenericList>();
+                foreach (DataRow r in ds.Tables[0].Rows)
+                {
+                    ingredientbrands.Add(new Models.GenericList
+                    {
+                        Code = GetInt(r["CodeBrand"]),
+                        Value = GetStr(r["NameBrand"]) 
+                    });
+                }
+                return Ok(ingredientbrands);
+            }
+            catch (ArgumentException)
+            {
+                return Problem(title: "Request failed", statusCode: 400);
+            }
+            catch (Exception)
+            {
+                return Problem(title: "Request failed", statusCode: 500);
+            }
+        }
+
+        [HttpGet("site/{codesite:int}/{codetrans:int}/{activeonly:bool?}/{tree:bool?}/{name?}")]
+        public ActionResult<object> GetBrandBySite(int codesite, int codetrans, string? name = "", bool activeonly = true, bool tree = true)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(name) || name == "null" || name == "undefined") name = null;
+                var ds = new DataSet();
+                using var cmd = new SqlCommand();
+                using var cn = new SqlConnection(ConnectionString);
+                cmd.Connection = cn;
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "[dbo].[GET_BRANDCODENAME]";
+                cmd.Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite;
+                cmd.Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans;
+                cmd.Parameters.Add("@ActiveOnly", SqlDbType.Bit).Value = activeonly;
+                cmd.Parameters.Add("@name", SqlDbType.VarChar).Value = (object?)name ?? DBNull.Value;
+                cn.Open();
+                using var da = new SqlDataAdapter(cmd);
+                da.Fill(ds);
+
+                var brands = new List<Models.Brand>();
+                foreach (DataRow r in ds.Tables[0].Rows)
+                {
+                    brands.Add(new Models.Brand
+                    {
+                        Code = GetInt(r["Code"]),
+                        Name = GetStr(r["Name"]),
+                        ParentCode = GetInt(r["ParentCode"]),
+                        ParentName = GetStr(r["ParentName"]),
+                        Flagged = false
+                    });
+                }
+
+                if (tree)
+                {
+                    var branddata = new List<Models.BrandTreeNode>();
+                    var parents = brands.Where(obj => obj.ParentCode == 0).OrderBy(obj => obj.Name).ToList();
+                    foreach (var p in parents)
+                    {
+                        var parent = new Models.BrandTreeNode
+                        {
+                            title = p.Name,
+                            key = p.Code,
+                            icon = false,
+                            children = CreateChildren1(brands, p.Code),
+                            select = p.Flagged,
+                            parenttitle = p.ParentName
+                        };
+                        branddata.Add(parent);
+                    }
+                    return Ok(branddata);
+                }
+                else
+                {
+                    return Ok(brands);
+                }
+            }
+            catch (ArgumentException)
+            {
+                return Problem(title: "Request failed", statusCode: 400);
+            }
+            catch (Exception)
+            {
+                return Problem(title: "Request failed", statusCode: 500);
+            }
+        }
+
+        [HttpGet("tree/{codesite:int}/{codetrans:int}/{codebrands}/{codeliste:int}/{brandclass:int}")]
+        public ActionResult<List<Models.BrandTreeNode>> GetBrandTree(int codesite, int codetrans, string codebrands, int codeliste, int brandclass)
+        {
+            try
+            {
+                var ds = new DataSet();
+                using var cmd = new SqlCommand();
+                using var cn = new SqlConnection(ConnectionString);
+                cmd.Connection = cn;
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "[dbo].[API_GET_Brands]";
+                cmd.Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite;
+                cmd.Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans;
+                cmd.Parameters.Add("@CodeBrands", SqlDbType.VarChar, 2000).Value = codebrands;
+                cmd.Parameters.Add("@CodeListe", SqlDbType.Int).Value = codeliste;
+                cn.Open();
+                using var da = new SqlDataAdapter(cmd);
+                da.Fill(ds);
+
+                var brands = new List<Models.Brand>();
+                foreach (DataRow r in ds.Tables[0].Rows)
+                {
+                    if (GetInt(r["IsIngredientbrand"]) == brandclass)
+                    {
+                        brands.Add(new Models.Brand
+                        {
+                            Code = GetInt(r["Code"]),
+                            Name = GetStr(r["Name"]),
+                            ParentCode = GetInt(r["ParentCode"]),
+                            ParentName = GetStr(r["ParentName"]),
+                            Flagged = GetBool(r["Flagged"]),
+                            Note = GetInt(r["IsIngredientbrand"]),
+                            Classification = GetInt(r["BrandClassification"]) 
+                        });
+                    }
+                }
+
+                var branddata = new List<Models.BrandTreeNode>();
+                var parents = brands.Where(obj => obj.ParentCode == 0).OrderBy(obj => obj.Name).ToList();
+                foreach (var p in parents)
+                {
+                    var parent = new Models.BrandTreeNode
+                    {
+                        title = p.Name,
+                        key = p.Code,
+                        icon = false,
+                        children = CreateChildren1(brands, p.Code),
+                        select = p.Flagged,
+                        parenttitle = p.ParentName,
+                        note = p.Note,
+                        classification = p.Classification
+                    };
+                    branddata.Add(parent);
+                }
+
+                return Ok(branddata);
+            }
+            catch (ArgumentException)
+            {
+                return Problem(title: "Request failed", statusCode: 400);
+            }
+            catch (Exception)
+            {
+                return Problem(title: "Request failed", statusCode: 500);
+            }
+        }
+
+        private static List<Models.BrandTreeNode> CreateChildren1(List<Models.Brand> data, int code)
+        {
+            var children = new List<Models.BrandTreeNode>();
+            var kids = data.Where(obj => obj.Code != code && obj.ParentCode == code && code > 0).OrderBy(obj => obj.Name).ToList();
+            foreach (var k in kids)
+            {
+                var child = new Models.BrandTreeNode
+                {
+                    title = k.Name,
+                    key = k.Code,
+                    icon = false,
+                    children = CreateChildren1(data, k.Code),
+                    select = k.Flagged,
+                    parenttitle = k.ParentName,
+                    classification = k.Classification,
+                    note = k.Note
+                };
+                children.Add(child);
+            }
+            return children;
+        }
+
+        private static List<Models.TreeNode> CreateChildren(List<Models.GenericTree> sharings, int code)
+        {
+            var children = new List<Models.TreeNode>();
+            var kids = sharings.Where(obj => obj.ParentCode == code && obj.Type == 2).OrderBy(obj => obj.Name).ToList();
+            foreach (var k in kids)
+            {
+                    var child = new Models.TreeNode
+                    {
+                        title = k.Name,
+                        key = k.Code,
+                        icon = false,
+                        children = null,
+                        select = k.Flagged,
+                        parenttitle = k.ParentName,
+                        note = k.Global ? "true" : "false"
+                    };
+                children.Add(child);
+            }
+            return children;
+        }
+
+        [HttpGet("brand/{codesite:int}/{codeuser:int}/{name?}")]
+        public ActionResult<List<Models.TreeNode>> GetBrand(int codesite, int codeuser, string? name = "")
+        {
+            try
+            {
+                var ds = new DataSet();
+                using var cmd = new SqlCommand();
+                using var cn = new SqlConnection(ConnectionString);
+                cmd.Connection = cn;
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "[dbo].[API_GET_BrANDS]";
+                cmd.Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite;
+                cmd.Parameters.Add("@CodeTrans", SqlDbType.Int).Value = -1;
+                cmd.Parameters.Add("@CodeBrands", SqlDbType.NVarChar).Value = "";
+                cmd.Parameters.Add("@CodeListe", SqlDbType.Int).Value = -1;
+                cn.Open();
+                using var da = new SqlDataAdapter(cmd);
+                da.Fill(ds);
+
+                var brands = new List<Models.GenericTree>();
+                foreach (DataRow r in ds.Tables[0].Rows)
+                {
+                    brands.Add(new Models.GenericTree
+                    {
+                        Code = GetInt(r["Code"]),
+                        Name = GetStr(r["Name"]),
+                        ParentCode = GetInt(r["ParentCode"]),
+                        ParentName = GetStr(r["ParentName"]),
+                        Flagged = GetBool(r["Flagged"]),
+                        Global = GetBool(r["Global"]),
+                        CanBeParent = GetBool(r["IsCanBeParent"]),
+                        Type = 0,
+                        Note = ""
+                    });
+                }
+
+                if (!string.IsNullOrWhiteSpace(name))
+                {
+                    var brandschildren = new List<Models.GenericTree>();
+                    var brandsresult = new List<Models.GenericTree>();
+                    foreach (var word in name.Trim().Split(','))
+                    {
+                        foreach (var k in brands)
+                        {
+                            if ((k.Name ?? string.Empty).ToLowerInvariant().Contains((word ?? string.Empty).Trim().ToLowerInvariant()))
+                            {
+                                if (!brandschildren.Contains(k)) brandschildren.Add(k);
+                            }
+                        }
+                    }
+                    foreach (var kid in brandschildren)
+                    {
+                        brandsresult.Add(kid);
+                        var currentParentCode = kid.ParentCode;
+                        while (currentParentCode > 0)
+                        {
+                            var currentParent = brands.Single(obj => obj.Code == currentParentCode);
+                            if (!brandsresult.Contains(currentParent)) brandsresult.Add(currentParent);
+                            currentParentCode = currentParent.ParentCode;
+                        }
+                    }
+                    brands = brandsresult;
+                }
+
+                var branddata = new List<Models.TreeNode>();
+                var parents = brands.Where(obj => obj.ParentCode == 0).OrderBy(obj => obj.Name).ToList();
+                foreach (var p in parents)
+                {
+                    var parent = new Models.TreeNode
+                    {
+                        title = p.Name,
+                        key = p.Code,
+                        icon = false,
+                        children = ConvertBrandTree(brands.Select(b => new Models.Brand { Code = b.Code, Name = b.Name, ParentCode = b.ParentCode, ParentName = b.ParentName, Flagged = b.Flagged, Classification = 0, Note = 0 }).ToList(), p.Code),
+                        select = p.Flagged,
+                        selected = p.Flagged,
+                        parenttitle = p.ParentName,
+                        note = p.Note,
+                        CanBeParent = p.CanBeParent,
+                        Global = p.Global
+                    };
+                    branddata.Add(parent);
+                }
+
+                return Ok(branddata);
+            }
+            catch (ArgumentException)
+            {
+                return Problem(title: "Request failed", statusCode: 400);
+            }
+            catch (Exception)
+            {
+                return Problem(title: "Request failed", statusCode: 500);
+            }
+        }
+
+        [HttpPost("brand/search")]
+        public ActionResult<List<Models.TreeNode>> GetBrand2([FromBody] Models.ConfigurationcSearch data)
+        {
+            try
+            {
+                var ds = new DataSet();
+                using var cmd = new SqlCommand();
+                using var cn = new SqlConnection(ConnectionString);
+                cmd.Connection = cn;
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.CommandText = "[dbo].[API_GET_Brands]";
+                    cmd.Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.CodeSite;
+                    cmd.Parameters.Add("@CodeTrans", SqlDbType.Int).Value = data.CodeTrans;
+                    cmd.Parameters.Add("@CodeBrands", SqlDbType.NVarChar).Value = "";
+                    cmd.Parameters.Add("@CodeListe", SqlDbType.Int).Value = data.CodeListe;
+                    cmd.Parameters.Add("@CodeProperty", SqlDbType.Int).Value = data.CodeProperty;
+                    cn.Open();
+                    using var da = new SqlDataAdapter(cmd);
+                    da.Fill(ds);
+
+                    var brands = new List<Models.GenericTree>();
+                    foreach (DataRow r in ds.Tables[0].Rows)
+                    {
+                        brands.Add(new Models.GenericTree
+                        {
+                            Code = GetInt(r["Code"]),
+                            Name = GetStr(r["Name"]),
+                            ParentCode = GetInt(r["ParentCode"]),
+                            ParentName = GetStr(r["ParentName"]),
+                            Flagged = GetBool(r["Flagged"]),
+                            Global = GetBool(r["Global"]),
+                            CanBeParent = GetBool(r["IsCanBeParent"]),
+                            Type = 0,
+                            Note = ""
+                        });
+                    }
+
+                    if (!string.IsNullOrWhiteSpace(data.Name))
+                    {
+                        var brandschildren = new List<Models.GenericTree>();
+                        var brandsresult = new List<Models.GenericTree>();
+                        foreach (var word in data.Name.Trim().Split(','))
+                        {
+                            foreach (var k in brands)
+                            {
+                                if ((k.Name ?? string.Empty).ToLowerInvariant().Contains((word ?? string.Empty).Trim().ToLowerInvariant()))
+                                {
+                                    if (!brandschildren.Contains(k)) brandschildren.Add(k);
+                                }
+                            }
+                        }
+                        foreach (var kid in brandschildren)
+                        {
+                            brandsresult.Add(kid);
+                            var currentParentCode = kid.ParentCode;
+                            while (currentParentCode > 0)
+                            {
+                                var currentParent = brands.Single(obj => obj.Code == currentParentCode);
+                                if (!brandsresult.Contains(currentParent)) brandsresult.Add(currentParent);
+                                currentParentCode = currentParent.ParentCode;
+                            }
+                        }
+                        brands = brandsresult;
+                    }
+
+                    var branddata = new List<Models.TreeNode>();
+                    var parents = brands.Where(obj => obj.ParentCode == 0).OrderBy(obj => obj.Name).ToList();
+                    foreach (var p in parents)
+                    {
+                        var parent = new Models.TreeNode
+                        {
+                            title = p.Name,
+                            key = p.Code,
+                            icon = false,
+                            children = ConvertBrandTree(brands.Select(b => new Models.Brand { Code = b.Code, Name = b.Name, ParentCode = b.ParentCode, ParentName = b.ParentName, Flagged = b.Flagged, Classification = 0, Note = 0 }).ToList(), p.Code),
+                            select = p.Flagged,
+                            selected = p.Flagged,
+                            parenttitle = p.ParentName,
+                            note = p.Note,
+                            CanBeParent = p.CanBeParent,
+                            Global = p.Global
+                        };
+                        branddata.Add(parent);
+                    }
+
+                    return Ok(branddata);
+                }
+                catch (ArgumentException)
+                {
+                    return Problem(title: "Request failed", statusCode: 400);
+                }
+                catch (Exception)
+                {
+                    return Problem(title: "Request failed", statusCode: 500);
+                }
+            }
+
+        [HttpGet("sharing/{codesite:int}/{codebrand:int}")]
+        public ActionResult<List<Models.TreeNode>> GetBrandSharing(int codesite, int codebrand)
+        {
+            try
+            {
+                var ds = new DataSet();
+                using var cmd = new SqlCommand();
+                using var cn = new SqlConnection(ConnectionString);
+                cmd.Connection = cn;
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "[dbo].[API_GET_SharingAll]";
+                cmd.Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite;
+                cmd.Parameters.Add("@Type", SqlDbType.Int).Value = 1;
+                cmd.Parameters.Add("@Code", SqlDbType.Int).Value = codebrand;
+                cmd.Parameters.Add("@CodeEgswTable", SqlDbType.Int).Value = 18;
+                cn.Open();
+                using var da = new SqlDataAdapter(cmd);
+                da.Fill(ds);
+
+                var sharings = new List<Models.GenericTree>();
+                foreach (DataRow r in ds.Tables[0].Rows)
+                {
+                    sharings.Add(new Models.GenericTree
+                    {
+                        Code = GetInt(r["Code"]),
+                        Name = GetStr(r["Name"]),
+                        ParentCode = GetInt(r["ParentCode"]),
+                        ParentName = GetStr(r["ParentName"]),
+                        Flagged = GetBool(r["Flagged"]),
+                        Type = GetInt(r["Type"]),
+                        Global = GetBool(r["Global"]) 
+                    });
+                }
+
+                var sharingdata = new List<Models.TreeNode>();
+                var parents = sharings.Where(obj => obj.ParentCode == 0 && obj.Type == 1).OrderBy(obj => obj.Name).ToList();
+                foreach (var p in parents)
+                {
+                    if (sharingdata.All(obj => obj.key != p.Code))
+                    {
+                        var parent = new Models.TreeNode
+                        {
+                            title = p.Name,
+                            key = p.Code,
+                            icon = false,
+                            children = CreateChildren(sharings, p.Code),
+                            select = p.Flagged,
+                            parenttitle = p.ParentName
+                        };
+                        sharingdata.Add(parent);
+                    }
+                }
+
+                return Ok(sharingdata);
+            }
+            catch (ArgumentException)
+            {
+                return Problem(title: "Request failed", statusCode: 400);
+            }
+            catch (Exception)
+            {
+                return Problem(title: "Request failed", statusCode: 500);
+            }
+        }
+
+        [HttpGet("sharingMerge/{codesite:int}/{type:int}/{tree:int}/{codebrand?}")]
+        public ActionResult<List<Models.TreeNode>> GetBrandSharingMerge(int codesite, int type, int tree, string? codebrand)
+        {
+            try
+            {
+                var ds = new DataSet();
+                using var cmd = new SqlCommand();
+                using var cn = new SqlConnection(ConnectionString);
+                cmd.Connection = cn;
+                cmd.CommandText = "[dbo].[API_GET_SharingMerge]";
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Clear();
+                cmd.Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite;
+                cmd.Parameters.Add("@Type", SqlDbType.Int).Value = 2;
+                cmd.Parameters.Add("@CodeCategory", SqlDbType.NVarChar, 50).Value = (object?)codebrand ?? DBNull.Value;
+                cmd.Parameters.Add("@CodeEgswTable", SqlDbType.Int).Value = 18;
+                cn.Open();
+                using var da = new SqlDataAdapter(cmd);
+                da.Fill(ds);
+
+                var sharings = new List<Models.GenericTree>();
+                foreach (DataRow r in ds.Tables[0].Rows)
+                {
+                    sharings.Add(new Models.GenericTree
+                    {
+                        Code = GetInt(r["Code"]),
+                        Name = GetStr(r["Name"]),
+                        ParentCode = GetInt(r["ParentCode"]),
+                        ParentName = GetStr(r["ParentName"]),
+                        Flagged = GetBool(r["Flagged"]),
+                        Type = GetInt(r["Type"]),
+                        Global = GetBool(r["Global"]) 
+                    });
+                }
+
+                var sharingdata = new List<Models.TreeNode>();
+                var parents = sharings.Where(obj => obj.ParentCode == 0 && obj.Type == 1).OrderBy(obj => obj.Name).ToList();
+                foreach (var p in parents)
+                {
+                    var parent = new Models.TreeNode
+                    {
+                        title = p.Name,
+                        key = p.Code,
+                        icon = false,
+                        children = CreateChildrenSharing(sharings, p.Code),
+                        select = p.Flagged,
+                        selected = p.Flagged,
+                        parenttitle = p.ParentName,
+                        groupLevel = Models.GroupLevel.Property
+                    };
+                    if (parent.children.Count > 0) sharingdata.Add(parent);
+                }
+
+                return Ok(sharingdata);
+            }
+            catch (ArgumentException)
+            {
+                return Problem(title: "Request failed", statusCode: 400);
+            }
+            catch (Exception)
+            {
+                return Problem(title: "Request failed", statusCode: 500);
+            }
+        }
+
+        [HttpGet("translation/{codekeyword:int}/{codesite:int}")]
+        public ActionResult<List<Models.RecipeTranslation>> GetKeywordTranslation(int codekeyword, int codesite)
+        {
+            try
+            {
+                var ds = new DataSet();
+                using var cmd = new SqlCommand();
+                using var cn = new SqlConnection(ConnectionString);
+                cmd.Connection = cn;
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "API_GET_BrandTranslation";
+                cmd.Parameters.Add("@CodeKeyword", SqlDbType.Int).Value = codekeyword;
+                cmd.Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite;
+                cn.Open();
+                using var da = new SqlDataAdapter(cmd);
+                da.Fill(ds);
+
+                var translations = new List<Models.RecipeTranslation>();
+                foreach (DataRow r in ds.Tables[0].Rows)
+                {
+                    translations.Add(new Models.RecipeTranslation
+                    {
+                        CodeTrans = GetInt(r["CodeTrans"]),
+                        TranslationName = GetStr(r["TranslationName"]),
+                        Name = GetStr(r["Name"]) 
+                    });
+                }
+                return Ok(translations);
+            }
+            catch (ArgumentException)
+            {
+                return Problem(title: "Request failed", statusCode: 400);
+            }
+            catch (Exception)
+            {
+                return Problem(title: "Request failed", statusCode: 500);
+            }
+        }
+
+        private static List<Models.TreeNode> CreateChildrenSharing(List<Models.GenericTree> sharings, int parentCode)
+        {
+            var children = sharings.Where(obj => obj.ParentCode == parentCode && obj.Type == 2).OrderBy(obj => obj.Name).ToList();
+            var result = new List<Models.TreeNode>();
+            foreach (var k in children)
+            {
+                var child = new Models.TreeNode
+                {
+                    title = k.Name,
+                    key = k.Code,
+                    icon = false,
+                    children = null,
+                    select = k.Flagged,
+                    parenttitle = k.ParentName,
+                    note = k.Global ? "true" : "false"
+                };
+                result.Add(child);
+            }
+            return result;
+        }
+
+        [HttpPost]
+        public ActionResult<Models.ResponseCallBack> SaveBrand([FromBody] Models.BrandData data)
+        {
+            var response = new Models.ResponseCallBack();
+            int resultCode = 0;
+            SqlTransaction? trans = null;
+            var strName = (data.Info.Name ?? string.Empty)
+                .Replace("[r]", "®").Replace("[tm]", "™").Replace("[c]", "©")
+                .Replace("[R]", "®").Replace("[TM]", "™").Replace("[C]", "©");
+
+            try
+            {
+                using var cmd = new SqlCommand();
+                using var cn = new SqlConnection(ConnectionString);
+
+                var arrSharing = new ArrayList();
+                foreach (var sh in data.Sharing) { if (!arrSharing.Contains(sh.Code)) arrSharing.Add(sh.Code); }
+                var codeSiteList = "(" + string.Join(",", arrSharing.Cast<object>()) + ")";
+
+                var tran = (data.Info.Code == -1 || data.Info.Code == -2) ? 1 : 2;
+                var arrMergeList = new ArrayList();
+                foreach (var sh in data.MergeList) { if (!arrMergeList.Contains(sh)) arrMergeList.Add(sh); }
+                var mergeList = "(" + string.Join(",", arrMergeList.Cast<object>()) + ")";
+
+                cmd.Connection = cn;
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "MANAGE_BRANDUPDATE";
+                cmd.Parameters.Clear();
+                var ret = cmd.Parameters.Add("@retval", SqlDbType.Int);
+                var pCode = cmd.Parameters.Add("@Code", SqlDbType.Int);
+                pCode.Value = data.Info.Code;
+                pCode.Direction = ParameterDirection.InputOutput;
+                cmd.Parameters.Add("@Name", SqlDbType.NVarChar, 150).Value = strName;
+                cmd.Parameters.Add("@ListeType", SqlDbType.Int).Value = 2;
+                cmd.Parameters.Add("@IsGlobal", SqlDbType.Bit).Value = data.Info.Global;
+                cmd.Parameters.Add("@CodeSiteList", SqlDbType.VarChar, 8000).Value = codeSiteList;
+                cmd.Parameters.Add("@CodeUser", SqlDbType.Int).Value = data.Info.CodeUser;
+                cmd.Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.Info.CodeSite;
+                cmd.Parameters.Add("@CodeParent", SqlDbType.Int).Value = data.Info.ParentCode;
+                cmd.Parameters.Add("@IsCanBeParent", SqlDbType.Bit).Value = data.Info.CanBeParent;
+                cmd.Parameters.Add("@MergeList", SqlDbType.NVarChar).Value = mergeList;
+                ret.Direction = ParameterDirection.ReturnValue;
+
+                cn.Open();
+                trans = cn.BeginTransaction();
+                cmd.Transaction = trans;
+                cmd.ExecuteNonQuery();
+                var codeBrand = GetInt(pCode.Value, -1);
+                resultCode = GetInt(ret.Value, -1);
+                if (resultCode != 0) throw new Exception($"[{resultCode}] Save brand failed");
+
+                if (codeBrand != -1)
+                {
+                    foreach (var t in data.Translation)
+                    {
+                        cmd.Connection = cn;
+                        cmd.CommandText = "sp_EgswItemTranslationUpdate";
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.Clear();
+                        cmd.Parameters.Add("@intCode", SqlDbType.Int).Value = codeBrand;
+                        cmd.Parameters.Add("@nvcName", SqlDbType.NVarChar, 260).Value = t.Name;
+                        cmd.Parameters.Add("@intCodeTrans", SqlDbType.Int).Value = t.CodeTrans;
+                        cmd.Parameters.Add("@tntListType", SqlDbType.Int).Value = 14;
+                        cmd.Parameters.Add("@intCodeUser", SqlDbType.Int).Value = data.Profile.Code;
+                        var ret2 = cmd.Parameters.Add("@retval", SqlDbType.Int);
+                        ret2.Direction = ParameterDirection.ReturnValue;
+                        cmd.ExecuteNonQuery();
+                        resultCode = GetInt(ret2.Value, -1);
+                        if (resultCode != 0) throw new Exception($"[{resultCode}] Update brand translation failed");
+                    }
+
+                    foreach (var kiosk in data.KioskList)
+                    {
+                        cmd.Connection = cn;
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.CommandText = "DELETE_BrandBrandSite";
+                        cmd.Parameters.Clear();
+                        cmd.Parameters.Add("@Brand", SqlDbType.Int, 4).Value = codeBrand;
+                        cmd.Parameters.Add("@BrandSite", SqlDbType.Int, 4).Value = kiosk.Code;
+                        cmd.ExecuteNonQuery();
+
+                        cmd.CommandText = "UPDATE_BrandBrandSite";
+                        cmd.Parameters.Clear();
+                        cmd.Parameters.Add("@Brand", SqlDbType.Int, 4).Value = codeBrand;
+                        cmd.Parameters.Add("@BrandSite", SqlDbType.Int, 4).Value = kiosk.Code;
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    if (data.KioskList.Count == 0)
+                    {
+                        cmd.Connection = cn;
+                        cmd.CommandText = $"DELETE FROM BrandToBrandSite WHERE Brand={codeBrand}";
+                        cmd.CommandType = CommandType.Text;
+                        cmd.Parameters.Clear();
+                        cmd.ExecuteNonQuery();
+                    }
+                    trans.Commit();
+                }
+
+                // Merge flow
+                if (data.ActionType == 5 && data.MergeList.Count > 0)
+                {
+                    var arrSites = new ArrayList();
+                    foreach (var s in data.MergeList) { if (!arrSites.Contains(s)) arrSites.Add(s); }
+                    var siteList = "(" + string.Join(",", arrSites.Cast<object>()) + ")";
+
+                    var sql = new System.Text.StringBuilder();
+                    cmd.CommandType = CommandType.Text;
+                    cmd.Parameters.Clear();
+
+                    sql.Clear();
+                    sql.Append($"Delete from EgswSharing WHERE Code IN{siteList} AND CodeEgswTable=18");
+                    cmd.CommandText = sql.ToString();
+                    cmd.ExecuteNonQuery();
+
+                    sql.Clear();
+                    sql.Append("UPDATE EgswBrand SET Parent=@Code where Parent IN " + siteList);
+                    cmd.CommandText = sql.ToString();
+                    cmd.Parameters.Clear();
+                    cmd.Parameters.Add("@Code", SqlDbType.Int).Value = codeBrand;
+                    cmd.ExecuteNonQuery();
+
+                    sql.Clear();
+                    sql.Append("INSERT INTO EgswSharing ");
+                    sql.Append("SELECT @Code,0,CodeUserSharedTo,1,18,0,1,0");
+                    sql.Append("FROM EgswSharing ");
+                    sql.Append("WHERE Code=@Code AND CodeEgswTable=18 AND [Status]=1 AND [Type] IN (1,5) ");
+                    sql.Append("    AND CodeUserSharedTo NOT IN (");
+                    sql.Append("    SELECT DISTINCT CodeUserSharedTo ");
+                    sql.Append("    FROM EgswSharing  ");
+                    sql.Append("    WHERE Code IN " + siteList + " AND CodeEgswTable=18 AND [Status]=1 AND [Type] IN (1,5)");
+                    sql.Append(") ");
+                    cmd.CommandText = sql.ToString();
+                    cmd.Parameters.Clear();
+                    cmd.Parameters.Add("@Code", SqlDbType.Int).Value = codeBrand;
+                    cmd.ExecuteNonQuery();
+
+                    sql.Clear();
+                    sql.Append("UPDATE EgswListe SET  Brand = " + codeBrand + " WHERE Brand IN " + mergeList);
+                    cmd.CommandText = sql.ToString();
+                    cmd.Parameters.Clear();
+                    cmd.ExecuteNonQuery();
+
+                    sql.Clear();
+                    sql.Append("UPDATE EgswBrand SET  Parent = " + data.Info.ParentCode + " WHERE Code IN " + mergeList);
+                    cmd.CommandText = sql.ToString();
+                    cmd.Parameters.Clear();
+                    cmd.ExecuteNonQuery();
+
+                    sql.Clear();
+                    sql.Append("DELETE RecipeBrand WHERE CodeListe IN ");
+                    sql.Append(" (select CodeListe from RecipeBrand where brand in " + mergeList + " group by codeliste having count(codeliste) > 1)");
+                    sql.Append(" AND Brand  <> (select min(brand) from RecipeBrand where brand in " + mergeList + "\tgroup by codeliste  having count(codeliste) > 1 )");
+                    cmd.CommandText = sql.ToString();
+                    cmd.Parameters.Clear();
+                    cmd.ExecuteNonQuery();
+
+                    sql.Clear();
+                    sql.Append("UPDATE RecipeBrand SET  Brand = " + codeBrand + " WHERE Brand IN " + mergeList);
+                    cmd.CommandText = sql.ToString();
+                    cmd.Parameters.Clear();
+                    cmd.ExecuteNonQuery();
+
+                    sql.Clear();
+                    sql.Append("DELETE FROM BrandToBrandSite WHERE BRAND IN " + mergeList);
+                    cmd.CommandText = sql.ToString();
+                    cmd.Parameters.Clear();
+                    cmd.ExecuteNonQuery();
+
+                    cmd.CommandText = "API_DELETE_Generic";
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    foreach (var code in arrSites.Cast<int>())
+                    {
+                        cmd.Parameters.Clear();
+                        cmd.Parameters.Add("@CodeList", SqlDbType.VarChar, 4000).Value = code;
+                        cmd.Parameters.Add("@TableName", SqlDbType.VarChar, 200).Value = "EGSWBRAND";
+                        cmd.Parameters.Add("@CodeUser", SqlDbType.Int).Value = data.Profile.Code;
+                        cmd.Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.Profile.CodeSite;
+                        cmd.Parameters.Add("@ForceDelete", SqlDbType.Bit).Value = false;
+                        var skip = cmd.Parameters.Add("@SkipList", SqlDbType.NVarChar, 4000);
+                        skip.Direction = ParameterDirection.Output;
+                        var retDel = cmd.Parameters.Add("@Return", SqlDbType.Int);
+                        retDel.Direction = ParameterDirection.ReturnValue;
+                        cmd.ExecuteNonQuery();
+                        resultCode = GetInt(retDel.Value, -1);
+                        if (resultCode != 0) throw new Exception($"[{resultCode}] Delete merged brand failed");
+                    }
+                }
+
+                response.Code = 0;
+                response.Message = "OK";
+                response.ReturnValue = "";
+                response.Status = true;
+            }
+            catch (Exception)
+            {
+                try { trans?.Rollback(); trans?.Dispose(); } catch { }
+                if (resultCode == 0) resultCode = 500;
+                response.Code = resultCode;
+                response.Status = false;
+                response.Message = "Save brand failed";
+                return StatusCode(500, response);
+            }
+            return Ok(response);
+        }
+
+        [HttpGet("kiosk/{codesite:int}/{codebrand:int}")]
+        public ActionResult<List<Models.TreeNode>> GetBrandKiosk(int codesite, int codebrand)
+        {
+            try
+            {
+                var ds = new DataSet();
+                using var cmd = new SqlCommand();
+                using var cn = new SqlConnection(ConnectionString);
+                cmd.Connection = cn;
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "[dbo].[API_MANAGE_Generic]";
+                cmd.Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite;
+                cmd.Parameters.Add("@Type", SqlDbType.Int).Value = 1;
+                cmd.Parameters.Add("@CodeTrans", SqlDbType.Int).Value = 0;
+                cmd.Parameters.Add("@Status", SqlDbType.Int).Value = 1;
+                cmd.Parameters.Add("@TableName", SqlDbType.NVarChar, 200).Value = "BRANDSITE";
+                cn.Open();
+                using var da = new SqlDataAdapter(cmd);
+                da.Fill(ds);
+
+                var keywords = new List<Models.GenericTree>();
+                foreach (DataRow r in ds.Tables[0].Rows)
+                {
+                    keywords.Add(new Models.GenericTree
+                    {
+                        Code = GetInt(r["Code"]),
+                        Name = GetStr(r["Name"]),
+                        ParentCode = 0,
+                        ParentName = ""
+                    });
+                }
+
+                var keywordsdata = new List<Models.TreeNode>();
+                var parents = keywords.Where(obj => obj.ParentCode == 0).OrderBy(obj => obj.Name).ToList();
+                foreach (var p in parents)
+                {
+                    if (keywordsdata.All(obj => obj.key != p.Code))
+                    {
+                        var parent = new Models.TreeNode
+                        {
+                            title = p.Name,
+                            key = p.Code,
+                            icon = false,
+                            select = CheckifSelected(codebrand, p.Code),
+                            children = CreateChildrenKiosk(keywords, codebrand, p.Name),
+                            parenttitle = p.ParentName
+                        };
+                        keywordsdata.Add(parent);
+                    }
+                }
+                return Ok(keywordsdata);
+            }
+            catch (ArgumentException)
+            {
+                return Problem(title: "Request failed", statusCode: 400);
+            }
+            catch (Exception)
+            {
+                return Problem(title: "Request failed", statusCode: 500);
+            }
+        }
+
+        private static List<Models.TreeNode> CreateChildrenKiosk(List<Models.GenericTree> keywords, int codebrand, string parentName)
+        {
+            var children = new List<Models.TreeNode>();
+            var kids = keywords.Where(obj => obj.ParentCode == 0).OrderBy(obj => obj.Name).ToList();
+            foreach (var k in kids)
+            {
+                var child = new Models.TreeNode
+                {
+                    title = k.Name,
+                    key = k.Code,
+                    icon = false,
+                    children = null,
+                    select = false,
+                    parenttitle = parentName
+                };
+                children.Add(child);
+            }
+            return children;
+        }
+
+        private bool CheckifSelected(int codebrand, int codebrandsite)
+        {
+            bool isSelected = false;
+            var sb = new System.Text.StringBuilder();
+            sb.Append("Select @isSelected = CASE WHEN (COUNT(*)>0)  THEN 1 ELSE 0 END FROM BrandToBrandSite WHERE Brand =  @codebrand AND BrandSite = @codebrandsite");
+            using var cn = new SqlConnection(ConnectionString);
+            using var cmd = new SqlCommand(sb.ToString(), cn);
+            cmd.CommandType = CommandType.Text;
+            cmd.Parameters.Add("@codebrand", SqlDbType.Int).Value = codebrand;
+            cmd.Parameters.Add("@codebrandsite", SqlDbType.Int).Value = codebrandsite;
+            var pSel = cmd.Parameters.Add("@isSelected", SqlDbType.Bit);
+            pSel.Direction = ParameterDirection.Output;
+            cn.Open();
+            cmd.ExecuteNonQuery();
+            isSelected = Convert.ToBoolean(pSel.Value);
+            return isSelected;
+        }
+
+        [HttpPost("brand/delete")]
+        public ActionResult<Models.ResponseCallBack> DeleteBrand([FromBody] Models.GenericDeleteData data)
+        {
+            var response = new Models.ResponseCallBack();
+            int resultCode = 0;
+            try
+            {
+                var arrCategoryCodes = new ArrayList();
+                foreach (var c in data.CodeList)
+                {
+                    if (!arrCategoryCodes.Contains(c.Code)) arrCategoryCodes.Add(c.Code);
+                }
+                var codeCategoryList = string.Join(",", arrCategoryCodes.Cast<object>().Select(x => Convert.ToString(x)));
+
+                using var cmd = new SqlCommand();
+                using var cn = new SqlConnection(ConnectionString);
+                cmd.Connection = cn;
+                cmd.CommandText = "API_DELETE_Generic";
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Clear();
+                cmd.Parameters.Add("@CodeList", SqlDbType.VarChar, 4000).Value = codeCategoryList;
+                cmd.Parameters.Add("@TableName", SqlDbType.VarChar, 200).Value = "EGSWBRAND";
+                cmd.Parameters.Add("@CodeUser", SqlDbType.Int).Value = data.CodeUser;
+                cmd.Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.CodeSite;
+                cmd.Parameters.Add("@ForceDelete", SqlDbType.Bit).Value = data.ForceDelete;
+                var skipList = cmd.Parameters.Add("@SkipList", SqlDbType.VarChar, 4000);
+                skipList.Direction = ParameterDirection.Output;
+                var ret = cmd.Parameters.Add("@Return", SqlDbType.Int);
+                ret.Direction = ParameterDirection.ReturnValue;
+
+                cn.Open();
+                cmd.ExecuteNonQuery();
+                resultCode = GetInt(ret.Value, -1);
+                if (resultCode != 0) throw new Exception($"[{resultCode}] Delete brand failed");
+
+                response.Code = 0;
+                response.Message = "OK";
+                response.ReturnValue = GetStr(skipList.Value);
+                response.Status = true;
+            }
+            catch (Exception)
+            {
+                if (resultCode == 0) resultCode = 500;
+                response.Code = resultCode;
+                response.ReturnValue = "";
+                response.Status = false;
+                response.Message = "Delete brand failed";
+                return StatusCode(500, response);
+            }
+            return Ok(response);
+        }
+
+        private static int GetInt(object? value, int fallback = 0)
+        {
+            if (value == null || value == DBNull.Value) return fallback;
+            if (int.TryParse(Convert.ToString(value), out var i)) return i;
+            try { return Convert.ToInt32(value); } catch { return fallback; }
+        }
+        private static string GetStr(object? value)
+        {
+            return value == null || value == DBNull.Value ? string.Empty : Convert.ToString(value) ?? string.Empty;
+        }
+        private static bool GetBool(object? value)
+        {
+            if (value == null || value == DBNull.Value) return false;
+            if (bool.TryParse(Convert.ToString(value), out var b)) return b;
+            try { return Convert.ToInt32(value) != 0; } catch { return false; }
+        }
+    }
+
+    // Placeholder models - replace with actual project models
+    namespace Models
+    {
+        public class GenericList { public int Code { get; set; } public string Value { get; set; } = string.Empty; }
+        public class Brand { public int Code { get; set; } public string Name { get; set; } = string.Empty; public int ParentCode { get; set; } public string ParentName { get; set; } = string.Empty; public bool Flagged { get; set; } public int Classification { get; set; } public int Note { get; set; } }
+        public class BrandTreeNode { public string title { get; set; } = string.Empty; public int key { get; set; } public bool icon { get; set; } public List<BrandTreeNode> children { get; set; } = new(); public bool select { get; set; } public string parenttitle { get; set; } = string.Empty; public int note { get; set; } public int classification { get; set; } }
+        public class GenericTree { public int Code { get; set; } public string Name { get; set; } = string.Empty; public int ParentCode { get; set; } public string ParentName { get; set; } = string.Empty; public bool Flagged { get; set; } public bool Global { get; set; } public bool CanBeParent { get; set; } public int Type { get; set; } public string Note { get; set; } = string.Empty; }
+        public class TreeNode { public string title { get; set; } = string.Empty; public int key { get; set; } public bool icon { get; set; } public List<TreeNode>? children { get; set; } public bool select { get; set; } public bool selected { get; set; } public string parenttitle { get; set; } = string.Empty; public string note { get; set; } = string.Empty; public bool CanBeParent { get; set; } public bool Global { get; set; } public GroupLevel groupLevel { get; set; } }
+        public class RecipeTranslation { public int CodeTrans { get; set; } public string TranslationName { get; set; } = string.Empty; public string Name { get; set; } = string.Empty; }
+        public class BrandData { public BrandInfo Info { get; set; } = new(); public List<BrandTranslation> Translation { get; set; } = new(); public Profile Profile { get; set; } = new(); public List<KioskItem> KioskList { get; set; } = new(); public int ActionType { get; set; } public List<int> MergeList { get; set; } = new(); public List<SharingItem> Sharing { get; set; } = new(); }
+        public class BrandInfo { public int Code { get; set; } public string Name { get; set; } = string.Empty; public bool Global { get; set; } public int CodeUser { get; set; } public int CodeSite { get; set; } public int ParentCode { get; set; } public bool CanBeParent { get; set; } }
+        public class BrandTranslation { public string Name { get; set; } = string.Empty; public int CodeTrans { get; set; } }
+        public class Profile { public int Code { get; set; } public int CodeSite { get; set; } }
+        public class KioskItem { public int Code { get; set; } }
+        public class SharingItem { public int Code { get; set; } }
+        public class ConfigurationcSearch { public int CodeSite { get; set; } public int CodeTrans { get; set; } public int CodeListe { get; set; } public int CodeProperty { get; set; } public string Name { get; set; } = string.Empty; }
+        public class GenericDeleteData { public List<DeleteCode> CodeList { get; set; } = new(); public int CodeUser { get; set; } public int CodeSite { get; set; } public bool ForceDelete { get; set; } }
+        public class DeleteCode { public int Code { get; set; } }
+        public enum GroupLevel { Property }
+        public class ResponseCallBack { public int Code { get; set; } public string Message { get; set; } = string.Empty; public object? ReturnValue { get; set; } public bool Status { get; set; } }
+    }
+}

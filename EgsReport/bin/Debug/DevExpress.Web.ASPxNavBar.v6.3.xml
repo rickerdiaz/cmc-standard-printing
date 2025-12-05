@@ -1,0 +1,2999 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>DevExpress.Web.ASPxNavBar.v6.3</name>
+    </assembly>
+    <members>
+        <member name="T:DevExpress.Web.ASPxNavBar.NavBarItemStyle.NavBarItemStyle">
+
+            <summary>
+                <para>Defines style settings for navbar items.
+</para>
+            </summary>
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarItemStyle.#ctor">
+            <summary>
+                <para>Initializes a new instance of the NavBarItemStyle class.
+</para>
+            </summary>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarItemStyle.#ctor(StateBag)">
+            <summary>
+                <para>Initializes a new instance of the NavBarItemStyle class with the specified state bag information. 
+</para>
+            </summary>
+            <param name="bag">
+		A <see cref="T:System.Web.UI.StateBag"/> that represents the state bag in which to store style information. 
+
+            </param>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarItemStyle.Height">
+            <summary>
+                <para>Gets or sets the item height.
+</para>
+            </summary>
+            <value>A <see cref="T:System.Web.UI.WebControls.Unit"/> value that specifies the height of items.
+</value>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxNavBar.NavBarItemTemplateContainer.NavBarItemTemplateContainer">
+
+            <summary>
+                <para>Represents a container for the templates used to render items.
+</para>
+            </summary>
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarItemTemplateContainer.#ctor(NavBarItem)">
+            <summary>
+                <para>Initializes a new instance of the NavBarItemTemplateContainer class with the specified setting.
+</para>
+            </summary>
+            <param name="item">
+		A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarItem"/> object specifying the navbar item which the current object belongs to.
+
+            </param>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarItemTemplateContainer.Item">
+            <summary>
+                <para>Gets an item for which the template's content is being instantiated.
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarItem"/> object representing the item being rendered. 
+</value>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxNavBar.NavBarItems.NavBarItems">
+
+            <summary>
+                <para>Represents a collection of all items within a navbar control.
+</para>
+            </summary>
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarItems.#ctor(ASPxNavBar)">
+            <summary>
+                <para>Initializes a new instance of the NavBarItems class with the specified owner.
+</para>
+            </summary>
+            <param name="navBar">
+		An <see cref="T:DevExpress.Web.ASPxNavBar.ASPxNavBar"/> object that represents the navbar to which the currently created collection belongs.
+
+            </param>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarItems.Count">
+            <summary>
+                <para>Gets the number of items contained in the NavBarItems collection.
+</para>
+            </summary>
+            <value>An integer value representing the number of items contained in the collection.
+</value>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarItems.FindByName(String)">
+            <summary>
+                <para>Returns an item object with the specified <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Name"/> property value.
+</para>
+            </summary>
+            <param name="name">
+		A <see cref="T:System.String"/> value representing the <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Name"/> property value of the required item.
+
+            </param>
+            <returns>A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarItem"/> object with a specific value of the <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Name"/> property.
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarItems.FindByText(String)">
+            <summary>
+                <para>Returns an item object with the specified <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Text"/> property value.
+</para>
+            </summary>
+            <param name="text">
+		A <see cref="T:System.String"/> value representing the <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Text"/> property value of the required item.
+
+            </param>
+            <returns>A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarItem"/> object with a specific value of the <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Text"/> property.
+</returns>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarItems.Item(Int32)">
+            <summary>
+                <para>Returns a <see cref="T:DevExpress.Web.ASPxNavBar.NavBarItem"/> object from the NavBarItems at the specified index.
+</para>
+            </summary>
+            <param name="index">
+		An integer value representing the zero-based index of the <see cref="T:DevExpress.Web.ASPxNavBar.NavBarItem"/> to retrieve from the NavBarItems. 
+
+            </param>
+            <value>A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarItem"/> object representing an item with the specified index.
+</value>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxNavBar.NavBarItemEventHandler.NavBarItemEventHandler">
+
+            <summary>
+                <para>Represents a method that will handle the events concerning the manipulations with items.  
+</para>
+            </summary>
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarItemEventHandler.Invoke(Object,NavBarItemEventArgs)">
+            <summary>
+                <para>Represents a method that will handle the events concerning the manipulations with items. 
+
+</para>
+            </summary>
+            <param name="source">
+		A <see cref="T:System.Object"/> representing the event source. Identifies the <see cref="T:DevExpress.Web.ASPxNavBar.ASPxNavBar"/> control that raised the event. 
+
+            </param>
+            <param name="e">
+		A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarItemEventArgs"/> object that contains event data. 
+
+            </param>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxNavBar.NavBarItemEventArgs.NavBarItemEventArgs">
+
+            <summary>
+                <para>Provides data for events which concern manipulations on items.
+</para>
+            </summary>
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarItemEventArgs.#ctor(NavBarItem)">
+            <summary>
+                <para>Initializes a new instance of the NavBarItemEventArgs class.
+
+</para>
+            </summary>
+            <param name="item">
+		A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarItem"/> object representing the item related to the generated event.
+
+
+            </param>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarItemEventArgs.Item">
+            <summary>
+                <para>Gets an item object related to the event.
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarItem"/> object, manipulations on which forced the event to be raised.
+</value>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxNavBar.NavBarItemCommandEventHandler.NavBarItemCommandEventHandler">
+
+            <summary>
+                <para>Represents a method that will handle specific command events concerning manipulations with items.  
+</para>
+            </summary>
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarItemCommandEventHandler.Invoke(Object,NavBarItemCommandEventArgs)">
+            <summary>
+                <para>Represents a method that will handle specific command events concerning manipulations with items. 
+</para>
+            </summary>
+            <param name="source">
+		A <see cref="T:System.Object"/> representing the event source. Identifies the <see cref="T:DevExpress.Web.ASPxNavBar.ASPxNavBar"/> control that raised the event. 
+
+            </param>
+            <param name="e">
+		A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarItemCommandEventArgs"/> object that contains event data. 
+
+            </param>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxNavBar.NavBarItemCommandEventArgs.NavBarItemCommandEventArgs">
+
+            <summary>
+                <para>Provides data for the events whose functionality relates to processing the <b>Command</b> event fired by a child control within a templated item.
+</para>
+            </summary>
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarItemCommandEventArgs.#ctor(NavBarItem,Object,CommandEventArgs)">
+            <summary>
+                <para>Initializes a new instance of the NavBarItemCommandEventArgs class.
+</para>
+            </summary>
+            <param name="item">
+		A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarItem"/> object representing an item related to the generated event.
+
+            </param>
+            <param name="commandSource">
+		A <see cref="T:System.Object"/> identifying the source of the command.
+
+            </param>
+            <param name="originalArgs">
+		A <see cref="T:System.Web.UI.WebControls.CommandEventArgs"/> object that contains the argument for the command.
+
+            </param>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarItemCommandEventArgs.#ctor(Object,CommandEventArgs)">
+            <summary>
+                <para>Initializes a new instance of the NavBarItemCommandEventArgs class.
+</para>
+            </summary>
+            <param name="commandSource">
+		A <see cref="T:System.Object"/> identifying the source of the command.
+
+            </param>
+            <param name="originalArgs">
+		A <see cref="T:System.Web.UI.WebControls.CommandEventArgs"/> object that contains the argument for the command.
+
+            </param>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarItemCommandEventArgs.CommandSource">
+            <summary>
+                <para>Gets an object representing the control which forced a postback. 
+</para>
+            </summary>
+            <value>A <see cref="T:System.Object"/> representing the control which forced a postback.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarItemCommandEventArgs.Item">
+            <summary>
+                <para>Gets an item object related to the event.
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarItem"/> object, manipulations on which forced the event to be raised.
+</value>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxNavBar.NavBarItemCollection.NavBarItemCollection">
+
+            <summary>
+                <para>Represents a collection of items within a group.
+</para>
+            </summary>
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarItemCollection.#ctor">
+            <summary>
+                <para>Initializes a new instance of the NavBarItemCollection class.
+</para>
+            </summary>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarItemCollection.#ctor(NavBarGroup)">
+            <summary>
+                <para>Initializes a new instance of the NavBarItemCollectionclass specifying its owner. 
+</para>
+            </summary>
+            <param name="group">
+		A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarGroup"/> object specifying the navbar group that will own the collection. 
+
+            </param>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarItemCollection.Add(NavBarItem)">
+            <summary>
+                <para>Adds the specified item to the collection.
+</para>
+            </summary>
+            <param name="item">
+		A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarItem"/> object to add to the collection.
+
+            </param>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarItemCollection.Add(String,String,String)">
+            <summary>
+                <para>Adds a new item to the collection and specifies the item's display text, name and associated image.
+</para>
+            </summary>
+            <param name="text">
+		A <see cref="T:System.String"/> value specifying the item's display text. Initializes the item's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Text"/> property.
+
+            </param>
+            <param name="name">
+		A <see cref="T:System.String"/> value specifying the name which indentifies the created item. Initializes the item's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Name"/> property.
+
+            </param>
+            <param name="imageUrl">
+		A <see cref="T:System.String"/> value specifying the path to the image displayed by the item. Initializes the <see cref="P:DevExpress.Web.ASPxClasses.ImageProperties.Url"/> property of the item's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Image"/>.
+
+            </param>
+            <returns>A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarItem"/> object representing the newly created item.
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarItemCollection.Add(String,String,String,String)">
+            <summary>
+                <para>Adds a new item to the collection and specifies the item's display text, name, associated image and URL.
+</para>
+            </summary>
+            <param name="text">
+		A <see cref="T:System.String"/> value specifying the item's display text. Initializes the item's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Text"/> property.
+
+            </param>
+            <param name="name">
+		A <see cref="T:System.String"/> value specifying the name which indentifies the created item. Initializes the item's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Name"/> property.
+
+            </param>
+            <param name="imageUrl">
+		A <see cref="T:System.String"/> value specifying the path to the image displayed by the item. Initializes the <see cref="P:DevExpress.Web.ASPxClasses.ImageProperties.Url"/> property of the item's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Image"/>.
+
+            </param>
+            <param name="navigateUrl">
+		A <see cref="T:System.String"/> value specifying the URL to which the browser navigates when the item is clicked. Initializes the item's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.NavigateUrl"/> property.
+
+            </param>
+            <returns>A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarItem"/> object representing the newly created item.
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarItemCollection.Add(String,String,String,String,String)">
+            <summary>
+                <para>Adds a new item to the collection and specifies the item's display text, name, associated image and URL as well as the target of the URL content.
+
+</para>
+            </summary>
+            <param name="text">
+		A <see cref="T:System.String"/> value specifying the item's display text. Initializes the item's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Text"/> property.
+
+            </param>
+            <param name="name">
+		A <see cref="T:System.String"/> value specifying the name which indentifies the created item. Initializes the item's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Name"/> property.
+
+            </param>
+            <param name="imageUrl">
+		A <see cref="T:System.String"/> value specifying the path to the image displayed by the item. Initializes the <see cref="P:DevExpress.Web.ASPxClasses.ImageProperties.Url"/> property of the item's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Image"/>.
+
+            </param>
+            <param name="navigateUrl">
+		A <see cref="T:System.String"/> value specifying the URL to which the browser navigates when the item is clicked. Initializes the item's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.NavigateUrl"/> property.
+
+            </param>
+            <param name="target">
+		A <see cref="T:System.String"/> value which identifies the window or frame at which to target URL content when the item is clicked. Initializes the item's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Target"/> property.
+
+            </param>
+            <returns>A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarItem"/> object representing the newly created item.
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarItemCollection.Add">
+            <summary>
+                <para>Adds a new item to the end of the collection and returns the newly created object.
+</para>
+            </summary>
+            <returns>A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarItem"/> object representing the newly created item.
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarItemCollection.Add(String)">
+            <summary>
+                <para>Adds a new item to the collection and specifies the item's display text.
+</para>
+            </summary>
+            <param name="text">
+		A <see cref="T:System.String"/> value specifying the item's display text. Initializes the item's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Text"/> property.
+
+            </param>
+            <returns>A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarItem"/> object representing the newly created item.
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarItemCollection.Add(String,String)">
+            <summary>
+                <para>Adds a new item to the collection and specifies the item's display text and name.
+</para>
+            </summary>
+            <param name="text">
+		A <see cref="T:System.String"/> value specifying the item's display text. Initializes the item's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Text"/> property.
+
+            </param>
+            <param name="name">
+		A <see cref="T:System.String"/> value specifying the name which indentifies the created item. Initializes the item's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Name"/> property.
+
+            </param>
+            <returns>A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarItem"/> object representing the newly created item.
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarItemCollection.FindByName(String)">
+            <summary>
+                <para>Returns an item object with the specified <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Name"/> property value.
+
+</para>
+            </summary>
+            <param name="name">
+		A <see cref="T:System.String"/> value representing the <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Name"/> property value of the required item.
+
+
+            </param>
+            <returns>A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarItem"/> object with a specific value of the <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Name"/> property.
+
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarItemCollection.FindByText(String)">
+            <summary>
+                <para>Returns an item object with the specified <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Text"/> property value.
+
+</para>
+            </summary>
+            <param name="text">
+		A <see cref="T:System.String"/> value representing the <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Text"/> property value of the required item.
+
+
+            </param>
+            <returns>A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarItem"/> object with a specific value of the <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Text"/> property.
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarItemCollection.GetVisibleItem(Int32)">
+            <summary>
+                <para>Gets an item by its visible index.
+</para>
+            </summary>
+            <param name="index">
+		An integer value representing the visible index of the item to be returned.
+
+
+            </param>
+            <returns>A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarItem"/> object which represents the required visible item.
+
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarItemCollection.GetVisibleItemCount">
+            <summary>
+                <para>Returns the number of visible items in a group's item collection.
+</para>
+            </summary>
+            <returns>An integer value representing the number of visible items in a group.
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarItemCollection.IndexOf(NavBarItem)">
+            <summary>
+                <para>Searches for the specified item object and returns the zero-based index of the first occurrence within the item collection.
+
+</para>
+            </summary>
+            <param name="item">
+		A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarItem"/> object representing the item to locate in the collection.
+
+
+            </param>
+            <returns>The zero-based index of the first occurrence of the specified item within the item collection, if found; otherwise, the negative one (<B>-1</B>).
+
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarItemCollection.IndexOfName(String)">
+            <summary>
+                <para>Searches for an item object specified by the value of its <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Name"/> property and returns the zero-based index of the first occurrence within the item collection.
+
+</para>
+            </summary>
+            <param name="name">
+		A <see cref="T:System.String"/> value representing the <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Name"/> property value of the required item.
+
+
+            </param>
+            <returns>The zero-based index of the first occurrence of the specified item within the item collection, if found; otherwise, the negative one (<B>-1</B>).
+
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarItemCollection.IndexOfText(String)">
+            <summary>
+                <para>Searches for an item object specified by the value of its <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Text"/> property and returns the zero-based index of the first occurrence within the item collection.
+
+</para>
+            </summary>
+            <param name="text">
+		A <see cref="T:System.String"/> value representing the <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Text"/> property value of the required item.
+
+
+            </param>
+            <returns>The zero-based index of the first occurrence of the specified item within the item collection, if found; otherwise, the negative one (<B>-1</B>).
+
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarItemCollection.Insert(Int32,NavBarItem)">
+            <summary>
+                <para>Inserts the specified item object into the collection at the specified index.
+
+</para>
+            </summary>
+            <param name="index">
+		The zero-based index location where a specific item object should be inserted. 
+
+
+            </param>
+            <param name="item">
+		A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarItem"/> object representing the item to insert into the item collection. 
+
+            </param>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarItemCollection.Item(Int32)">
+            <summary>
+                <para>Provides indexed access to individual items within the NavBarItemCollection.
+
+</para>
+            </summary>
+            <param name="index">
+		An integer value specifying the zero-based index of the item to be accessed.
+
+            </param>
+            <value>A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarItem"/> object representing the item located at the specified index within the collection.
+
+</value>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarItemCollection.Remove(NavBarItem)">
+            <summary>
+                <para>Removes an item object from the item collection.
+</para>
+            </summary>
+            <param name="item">
+		A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarItem"/> object specifying the item to remove from the item collection. 
+
+            </param>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxNavBar.NavBarItem.NavBarItem">
+
+            <summary>
+                <para>Represents an individual item within the <see cref="T:DevExpress.Web.ASPxNavBar.ASPxNavBar"/> control.
+
+</para>
+            </summary>
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarItem.#ctor(String,String)">
+            <summary>
+                <para>Initializes a new instance of the NavBarItem class with the specified settings.  
+
+</para>
+            </summary>
+            <param name="text">
+		A <see cref="T:System.String"/> value specifying the item's display text. Initializes the item's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Text"/> property.
+
+
+            </param>
+            <param name="imageUrl">
+		A <see cref="T:System.String"/> value specifying the path to the image displayed by the item. Initializes the <see cref="P:DevExpress.Web.ASPxClasses.ImageProperties.Url"/> property of the item's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Image"/>.
+
+            </param>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarItem.#ctor(String)">
+            <summary>
+                <para>Initializes a new instance of the NavBarItem class using the specified display text. 
+
+</para>
+            </summary>
+            <param name="text">
+		A <see cref="T:System.String"/> value specifying the item's display text. Initializes the item's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Text"/> property.
+
+
+            </param>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarItem.#ctor">
+            <summary>
+                <para>Initializes a new instance of the NavBarItem class. 
+</para>
+            </summary>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarItem.#ctor(String,String,String,String)">
+            <summary>
+                <para>Initializes a new instance of the NavBarItem class with the specified settings.  
+
+</para>
+            </summary>
+            <param name="text">
+		A <see cref="T:System.String"/> value specifying the item's display text. Initializes the item's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Text"/> property.
+
+
+            </param>
+            <param name="imageUrl">
+		A <see cref="T:System.String"/> value specifying the path to the image displayed by the item. Initializes the <see cref="P:DevExpress.Web.ASPxClasses.ImageProperties.Url"/> property of the item's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Image"/>.
+
+
+            </param>
+            <param name="navigateUrl">
+		A <see cref="T:System.String"/> value specifying the URL to which the browser navigates when the item is clicked. Initializes the item's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.NavigateUrl"/> property.
+
+
+            </param>
+            <param name="target">
+		A <see cref="T:System.String"/> value which identifies the window or frame at which to target URL content when the item is clicked. Initializes the item's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Target"/> property.
+
+            </param>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarItem.#ctor(String,String,String)">
+            <summary>
+                <para>Initializes a new instance of the NavBarItem class with the specified settings.  
+
+</para>
+            </summary>
+            <param name="text">
+		A <see cref="T:System.String"/> value specifying the item's display text. Initializes the item's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Text"/> property.
+
+
+            </param>
+            <param name="imageUrl">
+		A <see cref="T:System.String"/> value specifying the path to the image displayed by the item. Initializes the <see cref="P:DevExpress.Web.ASPxClasses.ImageProperties.Url"/> property of the item's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Image"/>.
+
+
+            </param>
+            <param name="navigateUrl">
+		A <see cref="T:System.String"/> value specifying the URL to which the browser navigates when the item is clicked. Initializes the item's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.NavigateUrl"/> property.
+
+
+            </param>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarItem.#ctor(String,String,String,String,String)">
+            <summary>
+                <para>Initializes a new instance of the NavBarItem class with the specified settings.  
+</para>
+            </summary>
+            <param name="text">
+		A <see cref="T:System.String"/> value specifying the item's display text. Initializes the item's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Text"/> property.
+
+            </param>
+            <param name="name">
+		A <see cref="T:System.String"/> value specifying the name which indentifies the created item. Initializes the item's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Name"/> property.
+
+            </param>
+            <param name="imageUrl">
+		A <see cref="T:System.String"/> value specifying the path to the image displayed by the item. Initializes the <see cref="P:DevExpress.Web.ASPxClasses.ImageProperties.Url"/> property of the item's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Image"/>.
+
+            </param>
+            <param name="navigateUrl">
+		A <see cref="T:System.String"/> value specifying the URL to which the browser navigates when the item is clicked. Initializes the item's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.NavigateUrl"/> property.
+
+            </param>
+            <param name="target">
+		A <see cref="T:System.String"/> value which identifies the window or frame at which to target URL content when the item is clicked. Initializes the item's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Target"/> property.
+
+            </param>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarItem.Assign(CollectionItem)">
+            <summary>
+                <para>Copies the settings from the specified <see cref="T:DevExpress.Web.ASPxClasses.CollectionItem"/> object to the current object.
+</para>
+            </summary>
+            <param name="source">
+		A <see cref="T:DevExpress.Web.ASPxClasses.CollectionItem"/> object whose settings are assigned to the current object.
+
+            </param>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarItem.DataItem">
+            <summary>
+                <para>Gets the data item that is bound to the navbar item. 
+</para>
+            </summary>
+            <value>A <see cref="T:System.Object"/> that represents the data item that is bound to the navbar item. 
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarItem.DataPath">
+            <summary>
+                <para>Gets the path to the data that is bound to the navbar item. 
+</para>
+            </summary>
+            <value>The path to the data that is bound to the item. This value comes from the hierarchical data source control to which the navbar control is bound.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarItem.Enabled">
+            <summary>
+                <para>Gets or sets a value that indicates whether the item is enabled, allowing the item to response to end-user interactions.
+
+</para>
+            </summary>
+            <value><b>true</b> if the item is enabled; otherwise, <b>false</b>. 
+</value>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarItem.FindControl(String)">
+            <summary>
+                <para>Searches the current naming container for a server control with the specified <i>id</i> parameter. 
+
+</para>
+            </summary>
+            <param name="id">
+		The identifier for the control to be found.
+
+            </param>
+            <returns>A <see cref="T:System.Web.UI.Control"/> object representing the specified control, or the <B>null</B> reference (<B>Nothing</B> in Visual Basic) if the specified control does not exist.
+
+</returns>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarItem.Group">
+            <summary>
+                <para>Gets the group to which the current item belongs.
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarGroup"/> object representing the group that contains the item.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarItem.Image">
+            <summary>
+                <para>Gets the settings of an image which is displayed by the item.
+
+</para>
+            </summary>
+            <value>An <see cref="T:DevExpress.Web.ASPxClasses.ImageProperties"/> object that contains image settings.
+
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarItem.Name">
+            <summary>
+                <para>Gets or sets the unique identifier name for the current item. 
+
+</para>
+            </summary>
+            <value>A string value that specifies the item's unique identifier name.
+
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarItem.NavBar">
+            <summary>
+                <para>Gets the navbar object to which the current item belongs.
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxNavBar.ASPxNavBar"/> object representing the navbar that contains the current item.
+
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarItem.NavigateUrl">
+            <summary>
+                <para>Gets or sets an URL which defines the navigation location.
+</para>
+            </summary>
+            <value>A string value which represents an URL where the client web browser will navigate.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarItem.Selected">
+            <summary>
+                <para>Gets or sets a value that specifies whether the item is selected.
+</para>
+            </summary>
+            <value><b>true</b> if the item is selected; otherwise, <b>false</b>.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarItem.Target">
+            <summary>
+                <para>Gets or sets the window or frame at which to target the contents of the URL associated with the current item.
+</para>
+            </summary>
+            <value>A string which identifies the window or frame at which to target the URL content.
+
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarItem.Template">
+            <summary>
+                <para>Gets or sets a template used for displaying the content of the item.
+</para>
+            </summary>
+            <value>An object supporting the <b>System.Web.UI.ITemplate</b> interface which contains the template used for displaying the item's content.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarItem.Text">
+            <summary>
+                <para>Gets or sets the text content of the current item.
+
+</para>
+            </summary>
+            <value>A string value that specifies the text content of the NavBarItem.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarItem.TextTemplate">
+            <summary>
+                <para>Gets or sets a template used for displaying the text content of the item. 
+</para>
+            </summary>
+            <value>An object supporting the <see cref="T:System.Web.UI.ITemplate"/> interface which contains the template used for displaying the item's text content.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarItem.ToolTip">
+            <summary>
+                <para>Gets or sets the current item's tooltip text.
+
+</para>
+            </summary>
+            <value>A string which specifies the text content of the current item's tooltip.
+
+</value>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarItem.ToString">
+            <summary>
+                <para>Returns the textual representation of the NavBarItem object.
+</para>
+            </summary>
+            <returns>A string that represents the <see cref="P:DevExpress.Web.ASPxNavBar.NavBarItem.Text"/> property's value or, if it's empty, the type name of the NavBarItem.
+
+</returns>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarItem.Visible">
+            <summary>
+                <para>Gets or sets a value specifying the visibility of the current item. 
+
+</para>
+            </summary>
+            <value><b>true</b> if the item is visible; otherwise <b>false</b>.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarItem.VisibleIndex">
+            <summary>
+                <para>Gets or sets a value specifying the position of the current item amongst the visible items in a group.
+
+</para>
+            </summary>
+            <value>An integer value specifying the zero-based index of the NavBarItem amongst a group's visible items. <B>-1</B> if the item is invisible.
+
+</value>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxNavBar.NavBarGroupTemplateContainer.NavBarGroupTemplateContainer">
+
+            <summary>
+                <para>Represents a container for the templates used to render elements of a group - such as the group's header and the content of the group.
+</para>
+            </summary>
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroupTemplateContainer.#ctor(NavBarGroup)">
+            <summary>
+                <para>Initializes a new instance of the NavBarGroupTemplateContainer class with the specified value.
+</para>
+            </summary>
+            <param name="group">
+		A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarGroup"/> object specifying the group which the created object belongs to.
+
+
+            </param>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroupTemplateContainer.Group">
+            <summary>
+                <para>Gets a group for which the template's content is being instantiated.
+
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarGroup"/> object representing the group being rendered. 
+
+</value>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxNavBar.NavBarGroupEventHandler.NavBarGroupEventHandler">
+
+            <summary>
+                <para>Represents a method that will handle the events concerning manipulations with groups.  
+</para>
+            </summary>
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroupEventHandler.Invoke(Object,NavBarGroupEventArgs)">
+            <summary>
+                <para>Represents a method that will handle the events concerning manipulations with groups. 
+</para>
+            </summary>
+            <param name="source">
+		A <see cref="T:System.Object"/> representing the event source. Identifies the <see cref="T:DevExpress.Web.ASPxNavBar.ASPxNavBar"/> control that raised the event. 
+
+
+            </param>
+            <param name="e">
+		A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarGroupEventArgs"/> object that contains event data. 
+
+
+            </param>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxNavBar.NavBarGroupEventArgs.NavBarGroupEventArgs">
+
+            <summary>
+                <para>Provides data for events which concern manipulations on groups.
+</para>
+            </summary>
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroupEventArgs.#ctor(NavBarGroup)">
+            <summary>
+                <para>Initializes a new instance of the NavBarGroupEventArgs class.
+</para>
+            </summary>
+            <param name="group">
+		A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarGroup"/> object representing the group related to the generated event.
+
+            </param>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroupEventArgs.Group">
+            <summary>
+                <para>Gets a group object related to the event.
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarGroup"/> object, manipulations on which forced the event to be raised.
+</value>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxNavBar.NavBarGroupCommandEventHandler.NavBarGroupCommandEventHandler">
+
+            <summary>
+                <para>Represents a method that will handle specific command events concerning manipulations with groups.  
+</para>
+            </summary>
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroupCommandEventHandler.Invoke(Object,NavBarGroupCommandEventArgs)">
+            <summary>
+                <para>Represents a method that will handle specific command events concerning manipulations with groups. 
+</para>
+            </summary>
+            <param name="source">
+		A <see cref="T:System.Object"/> representing the event source. Identifies the <see cref="T:DevExpress.Web.ASPxNavBar.ASPxNavBar"/> control that raised the event. 
+
+            </param>
+            <param name="e">
+		A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarGroupCommandEventArgs"/> object that contains event data. 
+
+            </param>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxNavBar.NavBarGroupCommandEventArgs.NavBarGroupCommandEventArgs">
+
+            <summary>
+                <para>Provides data for the events whose functionality relates to processing the <b>Command</b> event fired by a child control within a templated group.
+</para>
+            </summary>
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroupCommandEventArgs.#ctor(NavBarGroup,Object,CommandEventArgs)">
+            <summary>
+                <para>Initializes a new instance of the NavBarGroupCommandEventArgs class.
+</para>
+            </summary>
+            <param name="group">
+		A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarGroup"/> object representing a group related to the generated event.
+
+
+            </param>
+            <param name="commandSource">
+		A <see cref="T:System.Object"/> identifying the source of the command.
+
+            </param>
+            <param name="originalArgs">
+		A <see cref="T:System.Web.UI.WebControls.CommandEventArgs"/> object that contains the argument for the command.
+
+            </param>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroupCommandEventArgs.#ctor(Object,CommandEventArgs)">
+            <summary>
+                <para>Initializes a new instance of the NavBarGroupCommandEventArgs class.
+</para>
+            </summary>
+            <param name="commandSource">
+		A <see cref="T:System.Object"/> identifying the source of the command.
+
+            </param>
+            <param name="originalArgs">
+		A <see cref="T:System.Web.UI.WebControls.CommandEventArgs"/> object that contains the argument for the command.
+
+            </param>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroupCommandEventArgs.CommandSource">
+            <summary>
+                <para>Gets an object representing the control which forced a postback. 
+</para>
+            </summary>
+            <value>A <see cref="T:System.Object"/> representing the control which forced a postback.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroupCommandEventArgs.Group">
+            <summary>
+                <para>Gets a group object related to the event.
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarGroup"/> object, manipulations on which forced the event to be raised.
+
+</value>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxNavBar.NavBarGroupCollection.NavBarGroupCollection">
+
+            <summary>
+                <para>Represents a collection of groups within the navbar control.
+</para>
+            </summary>
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroupCollection.#ctor">
+            <summary>
+                <para>Initializes a new instance of the NavBarGroupCollection class.
+</para>
+            </summary>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroupCollection.#ctor(ASPxNavBar)">
+            <summary>
+                <para>Initializes a new instance of the NavBarGroupCollectionclass specifying its owner. 
+</para>
+            </summary>
+            <param name="navBar">
+		A <see cref="T:DevExpress.Web.ASPxNavBar.ASPxNavBar"/> object specifying the navbar control that will own the collection. 
+
+            </param>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroupCollection.Add(NavBarGroup)">
+            <summary>
+                <para>Adds the specified group to the collection.
+</para>
+            </summary>
+            <param name="group">
+		A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarGroup"/> object to add to the collection.
+
+            </param>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroupCollection.Add(String,String,String)">
+            <summary>
+                <para>Adds a new group to the collection and specifies the group's display text, name and associated image.
+</para>
+            </summary>
+            <param name="text">
+		A <see cref="T:System.String"/> value specifying the group's display text. Initializes the group's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.Text"/> property.
+
+            </param>
+            <param name="name">
+		A <see cref="T:System.String"/> value specifying the name which indentifies the created group. Initializes the group's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.Name"/> property.
+
+            </param>
+            <param name="imageUrl">
+		A <see cref="T:System.String"/> value specifying the path to the image displayed by the group's header. Initializes the <see cref="P:DevExpress.Web.ASPxClasses.ImageProperties.Url"/> property of the group's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.HeaderImage"/>.
+
+
+            </param>
+            <returns>A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarGroup"/> object representing the newly created group.
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroupCollection.Add(String,String,String,String)">
+            <summary>
+                <para>Adds a new group to the collection and specifies the group's display text, name, associated image and URL.
+</para>
+            </summary>
+            <param name="text">
+		A <see cref="T:System.String"/> value specifying the group's display text. Initializes the group's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.Text"/> property.
+
+            </param>
+            <param name="name">
+		A <see cref="T:System.String"/> value specifying the name which indentifies the created group. Initializes the group's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.Name"/> property.
+
+            </param>
+            <param name="imageUrl">
+		A <see cref="T:System.String"/> value specifying the path to the image displayed by the group's header. Initializes the <see cref="P:DevExpress.Web.ASPxClasses.ImageProperties.Url"/> property of the group's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.HeaderImage"/>.
+
+            </param>
+            <param name="navigateUrl">
+		A <see cref="T:System.String"/> value specifying the URL to which the browser navigates when the group's text or associated image is clicked. Initializes the group's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.NavigateUrl"/> property.
+
+            </param>
+            <returns>A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarGroup"/> object representing the newly created group.
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroupCollection.Add(String,String,String,String,String)">
+            <summary>
+                <para>Adds a new group to the collection and specifies the group's display text, name, associated image and URL as well as the target of the URL content.
+
+
+</para>
+            </summary>
+            <param name="text">
+		A <see cref="T:System.String"/> value specifying the group's display text. Initializes the group's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.Text"/> property.
+
+            </param>
+            <param name="name">
+		A <see cref="T:System.String"/> value specifying the name which indentifies the created group. Initializes the group's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.Name"/> property.
+
+            </param>
+            <param name="imageUrl">
+		A <see cref="T:System.String"/> value specifying the path to the image displayed by the group's header. Initializes the <see cref="P:DevExpress.Web.ASPxClasses.ImageProperties.Url"/> property of the group's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.HeaderImage"/>.
+
+            </param>
+            <param name="navigateUrl">
+		A <see cref="T:System.String"/> value specifying the URL to which the browser navigates when the group's text or associated image is clicked. Initializes the group's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.NavigateUrl"/> property.
+
+            </param>
+            <param name="target">
+		A <see cref="T:System.String"/> value which identifies the window or frame at which to target URL content when the group's text or associated image is clicked. Initializes the group's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.Target"/> property.
+
+            </param>
+            <returns>A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarGroup"/> object representing the newly created group.
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroupCollection.Add">
+            <summary>
+                <para>Adds a new group to the end of the collection and returns the newly created object.
+</para>
+            </summary>
+            <returns>A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarGroup"/> object representing the newly created group.
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroupCollection.Add(String)">
+            <summary>
+                <para>Adds a new group to the collection and specifies the group's display text.
+</para>
+            </summary>
+            <param name="text">
+		A <see cref="T:System.String"/> value specifying the group's display text. Initializes the group's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.Text"/> property.
+
+            </param>
+            <returns>A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarGroup"/> object representing the newly created group.
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroupCollection.Add(String,String)">
+            <summary>
+                <para>Adds a new group to the collection and specifies the group's display text and name.
+</para>
+            </summary>
+            <param name="text">
+		A <see cref="T:System.String"/> value specifying the group's display text. Initializes the group's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.Text"/> property.
+
+            </param>
+            <param name="name">
+		A <see cref="T:System.String"/> value specifying the name which indentifies the created group. Initializes the group's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.Name"/> property.
+
+            </param>
+            <returns>A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarGroup"/> object representing the newly created group.
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroupCollection.CollapseAll">
+            <summary>
+                <para>Collapses all groups that belong to the collection.
+</para>
+            </summary>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroupCollection.CollapseAll(NavBarGroup)">
+            <summary>
+                <para>Collapses all groups but the specified one.
+</para>
+            </summary>
+            <param name="exceptGroup">
+		A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarGroup"/> object representing the group whose expansion state should not be changed.
+
+
+            </param>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroupCollection.ExpandAll">
+            <summary>
+                <para>Expands all groups which belong to the current collection.
+</para>
+            </summary>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroupCollection.FindByName(String)">
+            <summary>
+                <para>Returns a group object with the specified <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.Name"/> property value.
+</para>
+            </summary>
+            <param name="name">
+		A <see cref="T:System.String"/> value representing the <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.Name"/> property value of the required group.
+
+            </param>
+            <returns>A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarGroup"/> object with a specific value of the <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.Name"/> property.
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroupCollection.FindByText(String)">
+            <summary>
+                <para>Returns a group object with the specified <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.Text"/> property value.
+
+</para>
+            </summary>
+            <param name="text">
+		A <see cref="T:System.String"/> value representing the <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.Text"/> property value of the required group.
+
+            </param>
+            <returns>A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarGroup"/> object with a specific value of the <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.Text"/> property.
+
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroupCollection.GetVisibleGroup(Int32)">
+            <summary>
+                <para>Gets a group by its visible index.
+</para>
+            </summary>
+            <param name="index">
+		An integer value representing the visible index of the group to be returned.
+
+            </param>
+            <returns>A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarGroup"/> object which represents the required visible column.
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroupCollection.GetVisibleGroupCount">
+            <summary>
+                <para>Returns the number of visible groups in the navbar.
+</para>
+            </summary>
+            <returns>An integer value representing the number of visible groups in the navbar.
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroupCollection.IndexOf(NavBarGroup)">
+            <summary>
+                <para>Searches for the specified group object and returns the zero-based index of the first occurrence within the group collection.
+
+</para>
+            </summary>
+            <param name="group">
+		A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarGroup"/> object representing the group to locate in the collection.
+
+
+            </param>
+            <returns>The zero-based index of the first occurrence of the specified group within the group collection, if found; otherwise, the negative one (<B>-1</B>).
+
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroupCollection.IndexOfName(String)">
+            <summary>
+                <para>Searches for a group object specified by the value of its <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.Name"/> property and returns the zero-based index of the first occurrence within the group collection.
+</para>
+            </summary>
+            <param name="name">
+		A <see cref="T:System.String"/> value representing the <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.Name"/> property value of the required group.
+
+            </param>
+            <returns>The zero-based index of the first occurrence of the specified group within the group collection, if found; otherwise, the negative one (<B>-1</B>).
+
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroupCollection.IndexOfText(String)">
+            <summary>
+                <para>Searches for a group object specified by the value of its <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.Text"/> property and returns the zero-based index of the first occurrence within the group collection.
+
+</para>
+            </summary>
+            <param name="text">
+		A <see cref="T:System.String"/> value representing the <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.Text"/> property value of the required group.
+
+            </param>
+            <returns>The zero-based index of the first occurrence of the specified group within the group collection, if found; otherwise, the negative one (<B>-1</B>).
+
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroupCollection.Insert(Int32,NavBarGroup)">
+            <summary>
+                <para>Inserts the specified group object into the collection at the specified index.
+
+</para>
+            </summary>
+            <param name="index">
+		The zero-based index location where a specific group object should be inserted. 
+
+            </param>
+            <param name="group">
+		A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarGroup"/> object representing the group to insert into the group collection. 
+
+            </param>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroupCollection.Item(Int32)">
+            <summary>
+                <para>Provides indexed access to individual groups within the NavBarGroupCollection.
+</para>
+            </summary>
+            <param name="index">
+		An integer value specifying the zero-based index of the group to be accessed.
+
+
+            </param>
+            <value>A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarGroup"/> object representing the group located at the specified index within the collection.
+
+</value>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroupCollection.Remove(NavBarGroup)">
+            <summary>
+                <para>Removes a group object from the group collection.
+</para>
+            </summary>
+            <param name="group">
+		A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarGroup"/> object specifying the group to remove from the group collection. 
+
+            </param>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxNavBar.NavBarGroupCancelEventHandler.NavBarGroupCancelEventHandler">
+
+            <summary>
+                <para>Represents a method that will handle the cancelable events concerning manipulations with groups.  
+</para>
+            </summary>
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroupCancelEventHandler.Invoke(Object,NavBarGroupCancelEventArgs)">
+            <summary>
+                <para>Represents a method that will handle the cancelable events concerning manipulations with groups. 
+</para>
+            </summary>
+            <param name="source">
+		A <see cref="T:System.Object"/> representing the event source. Identifies the <see cref="T:DevExpress.Web.ASPxNavBar.ASPxNavBar"/> control that raised the event. 
+
+
+            </param>
+            <param name="e">
+		A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarGroupCancelEventArgs"/> object that contains event data. 
+
+            </param>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxNavBar.NavBarGroupCancelEventArgs.NavBarGroupCancelEventArgs">
+
+            <summary>
+                <para>Provides data for cancellable events which concern manipulations on groups.
+</para>
+            </summary>
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroupCancelEventArgs.#ctor(NavBarGroup)">
+            <summary>
+                <para>Initializes a new instance of the NavBarGroupCancelEventArgs class.
+</para>
+            </summary>
+            <param name="group">
+		A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarGroup"/> object representing the group related to the generated event.
+
+            </param>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroupCancelEventArgs.Cancel">
+            <summary>
+                <para>Gets or sets a value indicating whether the command which raised an event should be canceled. 
+</para>
+            </summary>
+            <value><B>true</B> if the operation raising the event should be canceled; otherwise, <B>false</B>.
+</value>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxNavBar.NavBarGroup.NavBarGroup">
+
+            <summary>
+                <para>Represents an individual group within the <see cref="T:DevExpress.Web.ASPxNavBar.ASPxNavBar"/> control.
+
+</para>
+            </summary>
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroup.#ctor(String,String)">
+            <summary>
+                <para>Initializes a new instance of the NavBarGroup class with the specified settings.  
+
+</para>
+            </summary>
+            <param name="text">
+		A <see cref="T:System.String"/> value specifying the group's display text. Initializes the group's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.Text"/> property.
+
+
+            </param>
+            <param name="imageUrl">
+		A <see cref="T:System.String"/> value specifying the path to the image displayed by the group's header. Initializes the <see cref="P:DevExpress.Web.ASPxClasses.ImageProperties.Url"/> property of the group's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.HeaderImage"/>.
+
+
+            </param>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroup.#ctor(String)">
+            <summary>
+                <para>Initializes a new instance of the NavBarGroup class using the specified display text. 
+
+</para>
+            </summary>
+            <param name="text">
+		A <see cref="T:System.String"/> value specifying the group's display text. Initializes the group's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.Text"/> property.
+
+
+            </param>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroup.Visible">
+            <summary>
+                <para>Gets or sets a value specifying the visibility of the group. 
+</para>
+            </summary>
+            <value><b>true</b> if the group is visible; otherwise <b>false</b>.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroup.VisibleIndex">
+            <summary>
+                <para>Gets or sets a value specifying the position of the group amongst the visible groups in the navbar control.
+</para>
+            </summary>
+            <value>An integer value specifying the zero-based index of the NavBarGroup amongst the navbar's visible groups. <B>-1</B> if the group is invisible.
+</value>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroup.#ctor">
+            <summary>
+                <para>Initializes a new instance of the NavBarGroup class.
+</para>
+            </summary>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroup.#ctor(String,String,String,String)">
+            <summary>
+                <para>Initializes a new instance of the NavBarGroup class with the specified settings.  
+</para>
+            </summary>
+            <param name="text">
+		A <see cref="T:System.String"/> value specifying the group's display text. Initializes the group's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.Text"/> property.
+
+            </param>
+            <param name="imageUrl">
+		A <see cref="T:System.String"/> value specifying the path to the image displayed by the group's header. Initializes the <see cref="P:DevExpress.Web.ASPxClasses.ImageProperties.Url"/> property of the group's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.HeaderImage"/>.
+
+
+            </param>
+            <param name="navigateUrl">
+		A <see cref="T:System.String"/> value specifying the URL to which the browser navigates when the group's text or associated image is clicked. Initializes the group's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.NavigateUrl"/> property.
+
+
+            </param>
+            <param name="target">
+		A <see cref="T:System.String"/> value which identifies the window or frame at which to target URL content when the group's text or associated image is clicked. Initializes the group's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.Target"/> property.
+
+            </param>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroup.#ctor(String,String,String)">
+            <summary>
+                <para>Initializes a new instance of the NavBarGroup class with the specified settings.  
+</para>
+            </summary>
+            <param name="text">
+		A <see cref="T:System.String"/> value specifying the group's display text. Initializes the group's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.Text"/> property.
+
+
+            </param>
+            <param name="imageUrl">
+		A <see cref="T:System.String"/> value specifying the path to the image displayed by the group's header. Initializes the <see cref="P:DevExpress.Web.ASPxClasses.ImageProperties.Url"/> property of the group's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.HeaderImage"/>.
+
+
+            </param>
+            <param name="navigateUrl">
+		A <see cref="T:System.String"/> value specifying the URL to which the browser navigates when the group's text or associated image is clicked. It initializes the group's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.NavigateUrl"/> property.
+
+
+            </param>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroup.#ctor(String,String,String,String,String)">
+            <summary>
+                <para>Initializes a new instance of the NavBarGroup class with the specified settings.  
+</para>
+            </summary>
+            <param name="text">
+		A <see cref="T:System.String"/> value specifying the group's display text. Initializes the group's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.Text"/> property.
+
+
+            </param>
+            <param name="name">
+		A <see cref="T:System.String"/> value specifying the name which indentifies the created group. Initializes the group's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.Name"/> property.
+
+
+            </param>
+            <param name="imageUrl">
+		A <see cref="T:System.String"/> value specifying the path to the image displayed by the group's header. Initializes the <see cref="P:DevExpress.Web.ASPxClasses.ImageProperties.Url"/> property of the group's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.HeaderImage"/>.
+
+
+            </param>
+            <param name="navigateUrl">
+		A <see cref="T:System.String"/> value specifying the URL to which the browser navigates when the group's text or associated image is clicked. Initializes the group's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.NavigateUrl"/> property.
+
+            </param>
+            <param name="target">
+		A <see cref="T:System.String"/> value which identifies the window or frame at which to target URL content when the group's text or associated image is clicked. Initializes the group's <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.Target"/> property.
+
+            </param>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroup.AllowDragging">
+            <summary>
+                <para>Reserved for future use.
+</para>
+            </summary>
+            <value> 
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroup.AllowExpanding">
+            <summary>
+                <para>Gets or sets a value that specifies whether the group's expansion state can be changed via an end-user's interaction.
+
+</para>
+            </summary>
+            <value><b>true</b> if the group's expansion state can be changed; otherwise, <b>false</b>.
+
+</value>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroup.Assign(CollectionItem)">
+            <summary>
+                <para>Copies the settings from the specified <see cref="T:DevExpress.Web.ASPxClasses.CollectionItem"/> object to the current object.
+</para>
+            </summary>
+            <param name="source">
+		A <see cref="T:DevExpress.Web.ASPxClasses.CollectionItem"/> object whose settings are assigned to the current object.
+
+            </param>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroup.CollapseImage">
+            <summary>
+                <para>Gets an image a click on which collapses the group.
+</para>
+            </summary>
+            <value>An <see cref="T:DevExpress.Web.ASPxClasses.ImageProperties"/> object that contains image settings.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroup.ContentStyle">
+            <summary>
+                <para>Gets the style settings for the group's client region.
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxNavBar.GroupContentStyle"/> object that contains the style settings for the group's client region.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroup.ContentTemplate">
+            <summary>
+                <para>Gets or sets a template used for displaying the client region's content of the current group.
+</para>
+            </summary>
+            <value>An object supporting the <b>System.Web.UI.ITemplate</b> interface which contains the template used for displaying the group's client region.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroup.DataItem">
+            <summary>
+                <para>Gets the data item that is bound to the navbar group. 
+</para>
+            </summary>
+            <value>A <see cref="T:System.Object"/> that represents the data item that is bound to the navbar group. 
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroup.DataPath">
+            <summary>
+                <para>Gets the path to the data that is bound to the navbar group. 
+</para>
+            </summary>
+            <value>The path to the data that is bound to the group. This value comes from the hierarchical data source control to which the navbar control is bound.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroup.Enabled">
+            <summary>
+                <para>Gets or sets a value that indicates whether the group is enabled, allowing the group to response to end-user interactions.
+
+</para>
+            </summary>
+            <value><b>true</b> if the group is enabled; otherwise, <b>false</b>. 
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroup.ExpandButtonPosition">
+            <summary>
+                <para>Gets or sets a value that specifies the position at which the expand button is displayed within the group's header.
+
+</para>
+            </summary>
+            <value>One of the <see cref="T:DevExpress.Web.ASPxNavBar.ExpandButtonPosition"/> values.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroup.Expanded">
+            <summary>
+                <para>Gets or sets a value specifying whether the group is expanded.
+</para>
+            </summary>
+            <value><B>true</B> if the group is expanded, otherwise <B>false</B>.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroup.ExpandImage">
+            <summary>
+                <para>Gets an image a click on which expands the group.
+</para>
+            </summary>
+            <value>An <see cref="T:DevExpress.Web.ASPxClasses.ImageProperties"/> object that contains image settings.
+</value>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroup.FindControl(String)">
+            <summary>
+                <para>Searches the current naming container for a server control with the specified <i>id</i> parameter. 
+</para>
+            </summary>
+            <param name="id">
+		The identifier for the control to be found.
+
+            </param>
+            <returns>A <see cref="T:System.Web.UI.Control"/> object representing the specified control, or the <B>null</B> reference (<B>Nothing</B> in Visual Basic) if the specified control does not exist.
+
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroup.HasVisibleItems">
+            <summary>
+                <para>Returns a value that indicates whether the group has visible items.
+</para>
+            </summary>
+            <returns><b>true</b> if the group contains any visible item; <b>false</b> if no item is visible within the group (or the group doesn't have items at all).
+</returns>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroup.HeaderImage">
+            <summary>
+                <para>Gets the settings of a group header image which is displayed within the group's header.
+</para>
+            </summary>
+            <value>An <see cref="T:DevExpress.Web.ASPxClasses.ImageProperties"/> object that contains image settings.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroup.HeaderImageCollapsed">
+            <summary>
+                <para>Gets the settings of a group header image which is displayed within the group's header when the group is collapsed.
+</para>
+            </summary>
+            <value>An <see cref="T:DevExpress.Web.ASPxClasses.ImageProperties"/> object that contains image settings.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroup.HeaderStyle">
+            <summary>
+                <para>Gets the style settings for the group's header.
+
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxNavBar.GroupHeaderStyle"/> object that contains the style settings for the group's header.
+
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroup.HeaderStyleCollapsed">
+            <summary>
+                <para>Gets the header style of the group which is in collapsed state.
+
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxNavBar.GroupHeaderStyle"/> object that contains the style settings for the collapsed group's header.
+
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroup.HeaderTemplate">
+            <summary>
+                <para>Gets or sets a template used for displaying the content of the group's header.
+</para>
+            </summary>
+            <value>An object supporting the <b>System.Web.UI.ITemplate</b> interface which contains the template used for displaying the content of the group's header.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroup.HeaderTemplateCollapsed">
+            <summary>
+                <para>Gets or sets a template used for displaying the content of the group's header when the group is in a collapsed state.
+
+</para>
+            </summary>
+            <value>An object supporting the <b>System.Web.UI.ITemplate</b> interface which contains the template used for displaying the content of the collapsed group's header.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroup.ItemBulletStyle">
+            <summary>
+                <para>Gets or sets the bullet style for the group's items.
+</para>
+            </summary>
+            <value>One of the <see cref="T:DevExpress.Web.ASPxNavBar.ItemBulletStyle"/> values.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroup.ItemImage">
+            <summary>
+                <para>Gets the settings of an image which is displayed by all the items within the group.
+</para>
+            </summary>
+            <value>An <see cref="T:DevExpress.Web.ASPxClasses.ImageProperties"/> object that contains image settings.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroup.ItemImagePosition">
+            <summary>
+                <para>Gets or sets a value that specifies how item images are positioned within the group's items.
+
+</para>
+            </summary>
+            <value>One of the <see cref="T:DevExpress.Web.ASPxClasses.ItemImagePosition"/> enumeration values.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroup.ItemLinkMode">
+            <summary>
+                <para>Gets or sets a value that specifies how items are represented as links within the group.
+</para>
+            </summary>
+            <value>One of the <see cref="T:DevExpress.Web.ASPxNavBar.GroupItemLinkMode"/> enumeration values.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroup.Items">
+            <summary>
+                <para>Gets the collection of items within the group and provides indexed access to them.
+
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarItemCollection"/> object representing the collection of the group's items.
+
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroup.ItemStyle">
+            <summary>
+                <para>Gets the style settings for the group's items.
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarItemStyle"/> object that contains the style settings for the group's items.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroup.ItemTemplate">
+            <summary>
+                <para>Gets or sets a template used for displaying the content of the group's items.
+
+</para>
+            </summary>
+            <value>An object supporting the <b>System.Web.UI.ITemplate</b> interface which contains the template used for displaying the content of items within the group.
+
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroup.ItemTextTemplate">
+            <summary>
+                <para>Gets or sets a template used for displaying the text content of the group's items. 
+</para>
+            </summary>
+            <value>An object supporting the <see cref="T:System.Web.UI.ITemplate"/> interface which contains the template used for displaying the text content of items within the group.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroup.Name">
+            <summary>
+                <para>Gets or sets the unique identifier name for the group. 
+
+</para>
+            </summary>
+            <value>A string value that specifies the group's unique identifier name.
+
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroup.NavBar">
+            <summary>
+                <para>Gets the navbar object to which the current group belongs.
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxNavBar.ASPxNavBar"/> object representing the navbar that contains the group.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroup.NavigateUrl">
+            <summary>
+                <para>Gets or sets an URL which defines the navigation location.
+</para>
+            </summary>
+            <value>A string value which represents an URL where the client's web browser will navigate.
+
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroup.Target">
+            <summary>
+                <para>Gets or sets the window or frame at which to target the contents of the URL associated with the group's caption.
+
+</para>
+            </summary>
+            <value>A string which identifies the window or frame at which to target the URL content.
+
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroup.Text">
+            <summary>
+                <para>Gets or sets the group's caption (the text content of the group's header).
+</para>
+            </summary>
+            <value>A string value that specifies the group's caption text.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarGroup.ToolTip">
+            <summary>
+                <para>Gets or sets the tooltip text for the group's header.
+</para>
+            </summary>
+            <value>A string which specifies the text content of the group header's tooltip.
+</value>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarGroup.ToString">
+            <summary>
+                <para>Returns the textual representation of the NavBarGroup object.
+</para>
+            </summary>
+            <returns>A string that represents the <see cref="P:DevExpress.Web.ASPxNavBar.NavBarGroup.Text"/> property's value or, if it's empty, the type name of the NavBarGroup.
+</returns>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxNavBar.NavBarClientSideEvents.NavBarClientSideEvents">
+
+            <summary>
+                <para>Contains a list of the client-side events available for the navbar control.
+</para>
+            </summary>
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarClientSideEvents.#ctor">
+            <summary>
+                <para>Initializes a new instance of the NavBarClientSideEvents class. For internal use only.
+
+</para>
+            </summary>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarClientSideEvents.Assign(ClientSideEvents)">
+            <summary>
+                <para>Copies the public properties from the specified <see cref="T:DevExpress.Web.ASPxClasses.ClientSideEvents"/> instance to the current object.
+</para>
+            </summary>
+            <param name="source">
+		A <see cref="T:DevExpress.Web.ASPxClasses.ClientSideEvents"/> instance whose properties are copied to the current object.
+
+            </param>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarClientSideEvents.ExpandedChanged">
+            <summary>
+                <para>Gets or sets the name of the JavaScript function or the entire code which will handle a client navbar's <see cref="E:DevExpress.Web.ASPxNavBar.Scripts.ASPxClientNavBar.ExpandedChanged"/> event.
+</para>
+            </summary>
+            <value>A string that represents either the name of a JavaScript function or the entire JavaScript function code used to handle an event.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarClientSideEvents.ExpandedChanging">
+            <summary>
+                <para>Gets or sets the name of the JavaScript function or the entire code which will handle a client navbar's <see cref="E:DevExpress.Web.ASPxNavBar.Scripts.ASPxClientNavBar.ExpandedChanging"/> event.
+</para>
+            </summary>
+            <value>A string that represents either the name of a JavaScript function or the entire JavaScript function code used to handle an event.
+</value>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarClientSideEvents.GetStartupScript(String)">
+            <summary>
+                <para>For internal use only.
+</para>
+            </summary>
+            <param name="objectVarName">
+		 
+
+            </param>
+            <returns> 
+</returns>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarClientSideEvents.HeaderClick">
+            <summary>
+                <para>Gets or sets the name of the JavaScript function or the entire code which will handle a client navbar's <see cref="E:DevExpress.Web.ASPxNavBar.Scripts.ASPxClientNavBar.HeaderClick"/> event.
+</para>
+            </summary>
+            <value>A string that represents either the name of a JavaScript function or the entire JavaScript function code used to handle an event.
+</value>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.NavBarClientSideEvents.IsEmpty">
+            <summary>
+                <para>Returns a value that indicates whether there isn't any handler assigned to the available client events.
+
+</para>
+            </summary>
+            <returns><b>true</b> if no client event is handled; otherwise, <b>false</b>.
+</returns>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.NavBarClientSideEvents.ItemClick">
+            <summary>
+                <para>Gets or sets the name of the JavaScript function or the entire code which will handle a client navbar's <see cref="E:DevExpress.Web.ASPxNavBar.Scripts.ASPxClientNavBar.ItemClick"/> event.
+</para>
+            </summary>
+            <value>A string that represents either the name of a JavaScript function or the entire JavaScript function code used to handle an event.
+</value>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxNavBar.GroupHeaderStyle.GroupHeaderStyle">
+
+            <summary>
+                <para>Defines style settings for group headers.
+</para>
+            </summary>
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.GroupHeaderStyle.#ctor">
+            <summary>
+                <para>Initializes a new instance of the GroupHeaderStyle class.
+</para>
+            </summary>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.GroupHeaderStyle.#ctor(StateBag)">
+            <summary>
+                <para>Initializes a new instance of the GroupHeaderStyle class with the specified state bag information. 
+</para>
+            </summary>
+            <param name="bag">
+		A <see cref="T:System.Web.UI.StateBag"/> that represents the state bag in which to store style information. 
+
+            </param>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.GroupHeaderStyle.Height">
+            <summary>
+                <para>Gets or sets the group header height.
+</para>
+            </summary>
+            <value>A <see cref="T:System.Web.UI.WebControls.Unit"/> value that specifies the height of group headers.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.GroupHeaderStyle.Spacing">
+            <summary>
+                <para>Gets or sets the spacing between the elements in the corresponding object which the current style applies to.
+This property is not in effect for group header style objects. Use the <see cref="P:DevExpress.Web.ASPxNavBar.GroupContentStyle.ImageSpacing"/> property instead.
+
+
+</para>
+            </summary>
+            <value>A <see cref="T:System.Web.UI.WebControls.Unit"/> that represents the spacing value.
+</value>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxNavBar.GroupContentStyle.GroupContentStyle">
+
+            <summary>
+                <para>Defines style settings for the client regions of groups.
+</para>
+            </summary>
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.GroupContentStyle.#ctor">
+            <summary>
+                <para>Initializes a new instance of the GroupContentStyle class.
+</para>
+            </summary>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.GroupContentStyle.#ctor(StateBag)">
+            <summary>
+                <para>Initializes a new instance of the GroupContentStyle class with the specified state bag information. 
+</para>
+            </summary>
+            <param name="bag">
+		A <see cref="T:System.Web.UI.StateBag"/> that represents the state bag in which to store style information. 
+
+            </param>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.GroupContentStyle.HoverStyle">
+            <summary>
+                <para>This property is not in effect for the GroupContentStyle class.
+</para>
+            </summary>
+            <value> 
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.GroupContentStyle.ImageSpacing">
+            <summary>
+                <para>This property is not in effect for the GroupContentStyle class.
+</para>
+            </summary>
+            <value> 
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.GroupContentStyle.ItemSpacing">
+            <summary>
+                <para>Gets or sets the vertical spacing between the items in a group which the current style applies to.
+
+</para>
+            </summary>
+            <value>A <see cref="T:System.Web.UI.WebControls.Unit"/> that represents the spacing value.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.GroupContentStyle.Spacing">
+            <summary>
+                <para>This property is not in effect for the GroupContentStyle class.
+</para>
+            </summary>
+            <value> 
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.GroupContentStyle.VerticalAlign">
+            <summary>
+                <para>This property is not in effect for the GroupContentStyle class.
+</para>
+            </summary>
+            <value> 
+</value>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxNavBar.ASPxNavBar.ASPxNavBar">
+
+            <summary>
+                <para>Represents the web navigation bar control.
+</para>
+            </summary>
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.ASPxNavBar.#ctor">
+            <summary>
+                <para>Initializes a new instance of the ASPxNavBar class.
+</para>
+            </summary>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.ActiveGroup">
+            <summary>
+                <para>Gets or sets the active group within the navbar control.
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarGroup"/> object that represents the active group.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.LinkStyle">
+            <summary>
+                <para>Gets an object that contains style settings to be applied to links in the navbar control.
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxClasses.LinkStyle"/> object that contains the style settings of links.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.LoadingPanelImage">
+            <summary>
+                <para>Gets the settings of an image to be displayed within a specific  while waiting for a callback response.
+</para>
+            </summary>
+            <value>An <see cref="T:DevExpress.Web.ASPxClasses.ImageProperties"/> object that contains the image's settings.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.LoadingPanelImagePosition">
+            <summary>
+                <para>Gets or sets the position of  an image displayed within a  with respect to the panel's text content.
+</para>
+            </summary>
+            <value>One of the <see cref="T:DevExpress.Web.ASPxClasses.ItemImagePosition"/> enumeration values.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.LoadingPanelStyle">
+            <summary>
+                <para>Gets the style settings of a specific  displayed as a group's content while waiting for a callback response.
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxClasses.LoadingPanelStyle"/> object that contains style settings for a loading panel.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.LoadingPanelText">
+            <summary>
+                <para>Gets or sets the text to be displayed within a specific  while waiting for a callback response.
+</para>
+            </summary>
+            <value>A string that specifies the descriptive text displayed within a loading panel.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.Paddings">
+            <summary>
+                <para>Gets the padding settings of the navbar control.
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxClasses.Paddings"/> object that contains padding settings.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.SaveStateToCookies">
+            <summary>
+                <para>Gets or sets a value that specifies whether cookies are used to persist the expansion state of the navbar's groups. 
+
+
+</para>
+            </summary>
+            <value><b>true</b> if the expansion state of groups is persisted in cookies; otherwise, <b>false</b>.
+
+
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.SaveStateToCookiesID">
+            <summary>
+                <para>Gets or sets the name (identifier) of the cookie in which the navbar's state is persisted.
+
+</para>
+            </summary>
+            <value>A string value specifying a cookie's name.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.SelectedItem">
+            <summary>
+                <para>Gets or sets the selected item within the navbar control.
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarItem"/> object representing the selected item.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.ShowExpandButtons">
+            <summary>
+                <para>Gets or sets a value that specifies whether group expand buttons are displayed within the navbar's group headers.
+
+</para>
+            </summary>
+            <value><b>true</b> if group expand buttons are displayed; otherwise, <b>false</b>.
+
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.ShowGroupHeaders">
+            <summary>
+                <para>Gets or sets a value that specifies whether  are displayed within the navbar control.
+</para>
+            </summary>
+            <value><b>true</b> if group headers are displayed; otherwise, <b>false</b>.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.ShowLoadingPanelImage">
+            <summary>
+                <para>Gets or sets a value that specifies the visibility of an image within a specific  displayed while waiting for a callback response.
+</para>
+            </summary>
+            <value><b>true</b> if an image is displayed within a ; otherwise, <b>false</b>.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.SyncSelectionWithCurrentPath">
+            <summary>
+                <para>Gets or sets a value that specifies whether the navbar item whose navigation location points to the currently browsed web page is automatically selected.
+</para>
+            </summary>
+            <value><b>true</b> if a navbar's selected item is automatically synchonized with the currently displayed page's path; otherwise, <b>false</b>.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.Target">
+            <summary>
+                <para>Gets or sets the window or frame at which to target the contents of the URLs associated with links within the navbar control.
+</para>
+            </summary>
+            <value>A string which identifies the window or frame at which to target the URL content.
+
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.AllowExpanding">
+            <summary>
+                <para>Gets or sets a value that specifies whether the expansion state of the navbar's groups can be changed via an end-user's interaction.
+
+</para>
+            </summary>
+            <value><b>true</b> if the expansion state of groups can be changed; otherwise, <b>false</b>.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.AllowSelectItem">
+            <summary>
+                <para>Gets or sets a value specifying whether items can be selected within the navbar control.
+</para>
+            </summary>
+            <value><B>true</B> if items can be selected; otherwise <B>false</B>.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.AutoCollapse">
+            <summary>
+                <para>Gets or sets a value specifying whether only one group can be expanded at a time within the navbar control.
+</para>
+            </summary>
+            <value><b>true</b> if only one group can be expanded within the navbar control; <b>false</b> if the navbar can have multiple groups expanded simultaneously.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.AutoPostBack">
+            <summary>
+                <para>Gets or sets a value that specifies whether server-side processing is required for specific predefined user actions.
+
+</para>
+            </summary>
+            <value><B>true</B>, if server-side processing is required, otherwise, <B>false</B>.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.ClientSideEvents">
+            <summary>
+                <para>Gets an object that lists the client-side events specific to the navbar.
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarClientSideEvents"/> object which allows to assign handlers to the client-side events available to the navbar.
+
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.CollapseImage">
+            <summary>
+                <para>Gets an image a click on which collapses a group within the navbar.
+
+</para>
+            </summary>
+            <value>An <see cref="T:DevExpress.Web.ASPxClasses.ImageProperties"/> object that contains image settings.
+
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.EnableAnimation">
+            <summary>
+                <para>Gets or sets a value that specifies whether a specific animation effect is used when expanding/collapsing groups.
+</para>
+            </summary>
+            <value><b>true</b> if a specific animation effect is used; otherwise, <b>false</b>.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.EnableCallBacks">
+            <summary>
+                <para>Gets or sets a value that specifies whether the callback or postback technology is used to manage round trips to the server.
+
+</para>
+            </summary>
+            <value><b>true</b> if round trips to the server are performed using callbacks; <b>false</b> if postbacks are used.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.EnableClientSideAPI">
+            <summary>
+                <para>Gets or sets a value that specifies whether the navbar control can be manipulated on the client side via code.
+</para>
+            </summary>
+            <value><b>true</b> if the navbar's client object model is fully available; <b>false</b> if no programmatic interface is available for the navbar on the client side.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.EnableHotTrack">
+            <summary>
+                <para>Gets or sets a value that specifies whether specific elements of the navbar control (such as items or headers) can visually respond to mouse hovering.
+
+</para>
+            </summary>
+            <value><b>true</b> if the navbar's specific elements can be hot-tracked; otherwise, <b>false</b>.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.ExpandButtonPosition">
+            <summary>
+                <para>Gets or sets a value that specifies the position at which the expand button is displayed within all the groups of the navbar control.
+
+</para>
+            </summary>
+            <value>One of the <see cref="T:DevExpress.Web.ASPxNavBar.ExpandButtonPosition"/> values.
+</value>
+
+
+        </member>
+        <member name="E:DevExpress.Web.ASPxNavBar.ASPxNavBar.ExpandedChanged">
+            <summary>
+                <para>Fires on the server side after a group's expansion state has been changed.
+
+</para>
+            </summary>
+
+
+        </member>
+        <member name="E:DevExpress.Web.ASPxNavBar.ASPxNavBar.ExpandedChanging">
+            <summary>
+                <para>Fires on the server side before the expansion state of a group is changed.
+</para>
+            </summary>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.ExpandImage">
+            <summary>
+                <para>Gets an image a click on which expands a group within the navbar.
+</para>
+            </summary>
+            <value>An <see cref="T:DevExpress.Web.ASPxClasses.ImageProperties"/> object that contains image settings.
+</value>
+
+
+        </member>
+        <member name="E:DevExpress.Web.ASPxNavBar.ASPxNavBar.GroupCommand">
+            <summary>
+                <para>Fires when a control contained within a templated area of a group raises the <B>Command</B> event.
+
+</para>
+            </summary>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.GroupContentStyle">
+            <summary>
+                <para>Gets the style settings for the client regions of all groups within the navbar control.
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxNavBar.GroupContentStyle"/> object that contains the style settings for the group client regions.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.GroupContentTemplate">
+            <summary>
+                <para>Gets or sets a common template used for displaying the client region's content of all groups within the navbar control.
+</para>
+            </summary>
+            <value>An object supporting the <b>System.Web.UI.ITemplate</b> interface which contains the template used for displaying the client regions of all groups within the navbar.
+</value>
+
+
+        </member>
+        <member name="E:DevExpress.Web.ASPxNavBar.ASPxNavBar.GroupDataBound">
+            <summary>
+                <para>Occurs after a group has been bound to a data source.
+</para>
+            </summary>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.GroupHeaderImage">
+            <summary>
+                <para>Gets the settings of a common group header image image which is displayed by all the group headers within the navbar control.
+</para>
+            </summary>
+            <value>An <see cref="T:DevExpress.Web.ASPxClasses.ImageProperties"/> object that contains image settings.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.GroupHeaderImageCollapsed">
+            <summary>
+                <para>Gets the settings of a common group header image image which is displayed by the headers of all the collapsed groups within the navbar control.
+</para>
+            </summary>
+            <value>An <see cref="T:DevExpress.Web.ASPxClasses.ImageProperties"/> object that contains image settings.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.GroupHeaderStyle">
+            <summary>
+                <para>Gets the style settings for all group headers within the navbar control.
+
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxNavBar.GroupHeaderStyle"/> object that contains the style settings for the group headers.
+
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.GroupHeaderStyleCollapsed">
+            <summary>
+                <para>Gets the style settings for the headers of all collapsed groups within the navbar control.
+
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxNavBar.GroupHeaderStyle"/> object that contains the style settings for the group headers.
+
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.GroupHeaderTemplate">
+            <summary>
+                <para>Gets or sets a common template used for displaying the content of all group headers within the navbar control.
+</para>
+            </summary>
+            <value>An object supporting the <b>System.Web.UI.ITemplate</b> interface which contains the template used for displaying the content of all group headers within the navbar.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.GroupHeaderTemplateCollapsed">
+            <summary>
+                <para>Gets or sets a common template used for displaying the content of the headers of all collapsed groups within the navbar control.
+
+</para>
+            </summary>
+            <value>An object supporting the <b>System.Web.UI.ITemplate</b> interface which contains the template used for displaying the content of all collapsed group headers within the navbar.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.Groups">
+            <summary>
+                <para>Gets the collection of groups in the navbar control.
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarGroupCollection"/> object which represents the collection of groups within the navbar.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.GroupSpacing">
+            <summary>
+                <para>Gets or sets the vertical spacing between the groups in the navbar control.
+</para>
+            </summary>
+            <value>A <see cref="T:System.Web.UI.WebControls.Unit"/> that represents the spacing value.
+</value>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.ASPxNavBar.HasVisibleGroups">
+            <summary>
+                <para>Returns a value that indicates whether the navbar has visible groups.
+</para>
+            </summary>
+            <returns><b>true</b> if the navbar contains any visible group; <b>false</b> if no group is visible (or there is no group in the navbar at all).
+</returns>
+
+
+        </member>
+        <member name="E:DevExpress.Web.ASPxNavBar.ASPxNavBar.HeaderClick">
+            <summary>
+                <para>Fires when a group header is clicked.
+</para>
+            </summary>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.ASPxNavBar.IsClientSideAPIEnabled">
+            <summary>
+                <para> 
+</para>
+            </summary>
+            <returns> 
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxNavBar.ASPxNavBar.IsClientSideEventsAssigned">
+            <summary>
+                <para> 
+</para>
+            </summary>
+            <returns> 
+</returns>
+
+
+        </member>
+        <member name="E:DevExpress.Web.ASPxNavBar.ASPxNavBar.ItemClick">
+            <summary>
+                <para>Fires after an item has been clicked.
+</para>
+            </summary>
+
+
+        </member>
+        <member name="E:DevExpress.Web.ASPxNavBar.ASPxNavBar.ItemCommand">
+            <summary>
+                <para>Fires when a control contained within a templated item raises the <B>Command</B> event.
+
+</para>
+            </summary>
+
+
+        </member>
+        <member name="E:DevExpress.Web.ASPxNavBar.ASPxNavBar.ItemDataBound">
+            <summary>
+                <para>Occurs after an item has been bound to a data source.
+</para>
+            </summary>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.ItemImage">
+            <summary>
+                <para>Gets the settings of a common image which is displayed by all the items within the navbar control.
+
+</para>
+            </summary>
+            <value>An <see cref="T:DevExpress.Web.ASPxClasses.ImageProperties"/> object that contains image settings.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.ItemLinkMode">
+            <summary>
+                <para>Gets or sets a value that specifies how items are represented as links within the navbar control.
+</para>
+            </summary>
+            <value>One of the <see cref="T:DevExpress.Web.ASPxNavBar.GroupItemLinkMode"/> enumeration values.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.Items">
+            <summary>
+                <para>Gets the collection of items within the navbar control.
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarItems"/> object representing the collection of all the items within the navbar.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.ItemStyle">
+            <summary>
+                <para>Gets the style settings for all items within the navbar control.
+
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxNavBar.NavBarItemStyle"/> object that contains the style settings for the navbar's items.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.ItemTemplate">
+            <summary>
+                <para>Gets or sets a common template used for displaying the content of all items within the navbar control.
+
+</para>
+            </summary>
+            <value>An object supporting the <b>System.Web.UI.ITemplate</b> interface which contains the template used for displaying the content of all items within the navbar.
+
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.ItemTextTemplate">
+            <summary>
+                <para>Gets or sets a common template used for displaying the text content of all items within the navbar control. 
+</para>
+            </summary>
+            <value>An object supporting the <see cref="T:System.Web.UI.ITemplate"/> interface which contains the template used for displaying the text content of all items within the navbar.
+</value>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxNavBar.ItemBulletStyle.ItemBulletStyle">
+
+            <summary>
+                <para>Specifies the bullet style for the group's items.
+</para>
+            </summary>
+
+        </member>
+        <member name="F:DevExpress.Web.ASPxNavBar.ItemBulletStyle.Circle">
+            <summary>
+                <para>The bullet style is an empty circle shape. 
+</para>
+            </summary>
+
+
+        </member>
+        <member name="F:DevExpress.Web.ASPxNavBar.ItemBulletStyle.Decimal">
+            <summary>
+                <para>The bullet style is a number (1, 2, 3, ...). 
+</para>
+            </summary>
+
+
+        </member>
+        <member name="F:DevExpress.Web.ASPxNavBar.ItemBulletStyle.Disc">
+            <summary>
+                <para>The bullet style is a filled circle shape. 
+</para>
+            </summary>
+
+
+        </member>
+        <member name="F:DevExpress.Web.ASPxNavBar.ItemBulletStyle.LowerAlpha">
+            <summary>
+                <para>The bullet style is a lowercase letter (a, b, c, ...). 
+</para>
+            </summary>
+
+
+        </member>
+        <member name="F:DevExpress.Web.ASPxNavBar.ItemBulletStyle.LowerRoman">
+            <summary>
+                <para>The bullet style is a lowercase Roman numeral (i, ii, iii, ...). 
+</para>
+            </summary>
+
+
+        </member>
+        <member name="F:DevExpress.Web.ASPxNavBar.ItemBulletStyle.None">
+            <summary>
+                <para>The bullet style is not applied to group items. 
+</para>
+            </summary>
+
+
+        </member>
+        <member name="F:DevExpress.Web.ASPxNavBar.ItemBulletStyle.Square">
+            <summary>
+                <para>The bullet style is a filled square shape. 
+</para>
+            </summary>
+
+
+        </member>
+        <member name="F:DevExpress.Web.ASPxNavBar.ItemBulletStyle.UpperAlpha">
+            <summary>
+                <para>The bullet style is an uppercase letter (A, B, C, ...). 
+</para>
+            </summary>
+
+
+        </member>
+        <member name="F:DevExpress.Web.ASPxNavBar.ItemBulletStyle.UpperRoman">
+            <summary>
+                <para>The bullet style is an uppercase Roman numeral (I, II, III, ...). 
+</para>
+            </summary>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxNavBar.GroupItemLinkMode.GroupItemLinkMode">
+
+            <summary>
+                <para>Lists the values that specify how to represent items as links within groups.
+
+</para>
+            </summary>
+
+        </member>
+        <member name="F:DevExpress.Web.ASPxNavBar.GroupItemLinkMode.ContentBounds">
+            <summary>
+                <para>Specifies that an item is represented by both the text and image (if any), and the item's clickable content extends to the width of the group's boundaries. 
+
+
+</para>
+            </summary>
+
+
+        </member>
+        <member name="F:DevExpress.Web.ASPxNavBar.GroupItemLinkMode.Default">
+            <summary>
+                <para>Specifies that the group's settings are taken from the navbar level's <see cref="P:DevExpress.Web.ASPxNavBar.ASPxNavBar.ItemLinkMode"/> property.
+
+</para>
+            </summary>
+
+
+        </member>
+        <member name="F:DevExpress.Web.ASPxNavBar.GroupItemLinkMode.TextAndImage">
+            <summary>
+                <para>Specifies that an item is represented by both the text and image (if any), and the item's clickable content is bounded by the total size of the text and image.
+
+</para>
+            </summary>
+
+
+        </member>
+        <member name="F:DevExpress.Web.ASPxNavBar.GroupItemLinkMode.TextOnly">
+            <summary>
+                <para>Specifies that an item is represented only by its text, and the item's clickable content is bounded by the text length. 
+</para>
+            </summary>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxNavBar.ExpandButtonPosition.ExpandButtonPosition">
+
+            <summary>
+                <para>Lists the values that specify the position of expand buttons within groups.
+
+</para>
+            </summary>
+
+        </member>
+        <member name="F:DevExpress.Web.ASPxNavBar.ExpandButtonPosition.Default">
+            <summary>
+                <para> [To be supplied] </para>
+            </summary>
+
+
+        </member>
+        <member name="F:DevExpress.Web.ASPxNavBar.ExpandButtonPosition.Left">
+            <summary>
+                <para>The expand button is displayed at the left of a group's header.
+</para>
+            </summary>
+
+
+        </member>
+        <member name="F:DevExpress.Web.ASPxNavBar.ExpandButtonPosition.Right">
+            <summary>
+                <para>The expand button is displayed at the right of a group's header.
+</para>
+            </summary>
+
+
+        </member>
+    </members>
+</doc>

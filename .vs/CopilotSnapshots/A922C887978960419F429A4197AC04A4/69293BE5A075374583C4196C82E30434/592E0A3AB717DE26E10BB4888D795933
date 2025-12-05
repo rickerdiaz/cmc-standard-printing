@@ -1,0 +1,139 @@
+﻿Imports System
+Imports System.Web
+Imports System.Collections.Generic
+Imports System.Linq
+Imports AttributeRouting.Web.Http
+Imports System.Data.SqlClient
+Imports System.Web.Script.Serialization
+Imports log4net
+Imports System.Net
+Imports Newtonsoft.Json
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace CalcmenuAPI
+    Public Class ConfigurationController
+        Inherits ControllerBase
+
+        Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType)
+
+        '<HttpGet> <[GET]("/api/config")> _
+        'Public Function GetConfig(Optional ByVal codeuser As Integer = -1, Optional ByVal numero As String = "", Optional ByVal codegroup As Integer = -1, Optional ByVal strReturnDefaultString As String = "") As List(Of Models.Config)
+        '    Try
+        '        Dim resultCode As Integer = 0
+        '        Dim result As New List(Of Models.Config)
+        '        Dim numeros As String() = Nothing
+        '        Dim ds As New DataSet
+        '        Using cmd As New SqlCommand
+        '            With cmd
+        '                .Connection = New SqlConnection(ConnectionString)
+        '                .Connection.Open()
+
+        '                If Not numero Is Nothing Then
+        '                    numero = ProxyDecode(numero)
+        '                    numeros = numero.Split("_")
+        '                End If
+
+        '                If Not numeros Is Nothing Then
+        '                    If numeros.Length > 0 Then
+        '                        For ctr As Integer = 0 To numeros.Length - 1
+        '                            If numeros(ctr).Trim.Length > 0 Then
+        '                                .CommandText = "sp_egswConfigGetItem"
+        '                                .CommandType = CommandType.StoredProcedure
+        '                                .Parameters.Clear()
+        '                                .Parameters.Add("@intCodeUser", SqlDbType.Int).Value = codeuser
+        '                                .Parameters.Add("@intNumero", SqlDbType.Int).Value = GetInt(numeros(ctr))
+        '                                .Parameters.Add("@intcodeGroup", SqlDbType.Int).Value = codegroup
+        '                                .Parameters.Add("@string", SqlDbType.VarChar, 50).Direction = ParameterDirection.Output
+
+        '                                .ExecuteNonQuery()
+
+        '                                Dim strResult As String = CStr(.Parameters("@string").Value)
+
+        '                                Select Case strResult.ToUpper
+        '                                    Case "!B=1"
+        '                                        strResult = CStr(True).ToLower
+        '                                    Case "!B=0"
+        '                                        strResult = CStr(False).ToLower
+        '                                End Select
+
+        '                                result.Add(New Models.Config With {
+        '                                           .Code = GetInt(numeros(ctr)), _
+        '                                           .Value = strResult
+        '                                           })
+        '                                If resultCode <> 0 Then
+        '                                    Throw New DatabaseException(String.Format("[{0}] Config failed", resultCode))
+        '                                End If
+
+        '                            End If
+        '                        Next
+        '                    End If
+        '                End If
+        '                Return result
+        '                .Connection.Close()
+        '            End With
+        '        End Using
+
+        '    Catch aex As ArgumentException
+        '        Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+        '        Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+        '    Catch hex As HttpResponseException
+        '        Throw hex
+        '    Catch ex As Exception
+        '        Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+        '        Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+        '    End Try
+        'End Function
+
+
+        <HttpGet> <[GET]("/api/config/{codeuser?}/{id?}")> _
+        Public Function GetConfig(codeuser As Integer, Optional id As Integer = -1) As List(Of Models.GenericList)
+            Dim config As New List(Of Models.GenericList)
+            Try
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = Common.SP_API_GET_Config
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = -1
+                                .Parameters.Add("@Code", SqlDbType.Int).Value = GetInt(codeuser)
+                                .Parameters.Add("@ID", SqlDbType.Int).Value = GetInt(id, -1)
+                                cn.Open()
+                                Using dr As SqlDataReader = cmd.ExecuteReader()
+                                    While dr.Read
+                                        config.Add(New Models.GenericList With {
+                                                   .Code = GetInt(dr("Code")), _
+                                                   .Value = IIf(GetStr(dr("Value")).ToUpper = "!B=1", CStr(True).ToLower, IIf(GetStr(dr("Value")).ToUpper = "!B=0", CStr(False).ToLower, GetStr(dr("Value"))))
+                                        })
+                                    End While
+                                    dr.Close()
+                                End Using
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Return config.ToList
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+
+      
+
+    End Class
+End Namespace

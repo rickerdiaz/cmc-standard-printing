@@ -1,0 +1,115 @@
+2015-10-13 11:16:33,892 [5] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2015-10-13 11:16:34,193 [5] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2015-10-13 11:16:34,208 [5] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2015-10-13 11:16:34,306 [6] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2015-10-13 11:16:34,306 [6] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2015-10-13 11:16:57,549 [8] ERROR CalcmenuAPI.Global_asax - The HTTP verb POST used to access path '/calcmenuapi/api/search/recipe' is not allowed.
+2015-10-13 11:16:57,549 [8] ERROR CalcmenuAPI.Global_asax -    at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2015-10-13 11:19:16,819 [18] ERROR CalcmenuAPI.Global_asax - The HTTP verb POST used to access path '/calcmenuapi/api/search/recipe' is not allowed.
+2015-10-13 11:19:16,819 [18] ERROR CalcmenuAPI.Global_asax -    at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2015-10-13 11:34:45,580 [21] ERROR CalcmenuAPI.CalcmenuAPI.SearchController - SearchRecipeData: Unexpected error occured
+System.Data.SqlClient.SqlException (0x80131904): Invalid locale ID was specified. Please verify that the locale ID is correct and corresponding language resource has been installed.
+Invalid locale ID was specified. Please verify that the locale ID is correct and corresponding language resource has been installed.
+Invalid locale ID was specified. Please verify that the locale ID is correct and corresponding language resource has been installed.
+   at System.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at System.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection, Action`1 wrapCloseInAction)
+   at System.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj, Boolean callerHasConnectionLock, Boolean asyncClose)
+   at System.Data.SqlClient.TdsParser.TryRun(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj, Boolean& dataReady)
+   at System.Data.SqlClient.SqlDataReader.TryConsumeMetaData()
+   at System.Data.SqlClient.SqlDataReader.get_MetaData()
+   at System.Data.SqlClient.SqlCommand.FinishExecuteReader(SqlDataReader ds, RunBehavior runBehavior, String resetOptionsString)
+   at System.Data.SqlClient.SqlCommand.RunExecuteReaderTds(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, Boolean async, Int32 timeout, Task& task, Boolean asyncWrite, SqlDataReader ds)
+   at System.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method, TaskCompletionSource`1 completion, Int32 timeout, Task& task, Boolean asyncWrite)
+   at System.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method)
+   at System.Data.SqlClient.SqlCommand.ExecuteReader(CommandBehavior behavior, String method)
+   at System.Data.SqlClient.SqlCommand.ExecuteReader()
+   at CalcmenuAPI.CalcmenuAPI.SearchController.SearchRecipeData(Searchee data) in D:\Data\Projects\ASPNET\MVC\CalcmenuAPI\Controllers\SearchController.vb:line 410
+ClientConnectionId:e2ba85d6-0ad3-4616-8c91-e60502e2a810
+2015-10-13 11:34:49,106 [14] ERROR CalcmenuAPI.Global_asax - Object '/7ee0b63a_6f56_4137_9689_e6cd568046cb/by_wesg2tl5bct71k25zykvy_21.rem' has been disconnected or does not exist at the server.
+2015-10-13 11:34:49,106 [14] ERROR CalcmenuAPI.Global_asax -    at System.Web.Http.WebHost.HttpControllerHandler.EndProcessRequest(IAsyncResult result)
+   at System.Web.Http.WebHost.HttpControllerHandler.System.Web.IHttpAsyncHandler.EndProcessRequest(IAsyncResult result)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.OnAsyncHandlerCompletion(IAsyncResult ar)
+2015-10-13 17:09:35,885 [120] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2015-10-13 17:09:36,112 [120] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2015-10-13 17:09:36,112 [120] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2015-10-13 17:09:57,320 [118] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2015-10-13 17:09:57,320 [118] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2015-10-13 17:11:53,764 [128] ERROR CalcmenuAPI.CalcmenuAPI.RecipeController - GetRecipe: Unexpected error occured
+System.InvalidCastException: Conversion from string "MM/dd/yyyy" to type 'Integer' is not valid. ---> System.FormatException: Input string was not in a correct format.
+   at Microsoft.VisualBasic.CompilerServices.Conversions.ParseDouble(String Value, NumberFormatInfo NumberFormat)
+   at Microsoft.VisualBasic.CompilerServices.Conversions.ToInteger(String Value)
+   --- End of inner exception stack trace ---
+   at Microsoft.VisualBasic.CompilerServices.Conversions.ToInteger(String Value)
+   at CalcmenuAPI.CalcmenuAPI.RecipeController.GetRecipe(Int32 codeliste, Int32 codesite, Int32 codetrans, Int32 codesetprice, Int32 codenutrientset, Int32 codeuser, Int32 rolelevel) in D:\Data\Projects\ASPNET\MVC\CalcmenuAPI\Controllers\RecipeController.vb:line 104
+2015-10-13 17:12:07,241 [123] ERROR CalcmenuAPI.CalcmenuAPI.RecipeController - GetRecipe: Unexpected error occured
+System.InvalidCastException: Conversion from string "MM/dd/yyyy" to type 'Integer' is not valid. ---> System.FormatException: Input string was not in a correct format.
+   at Microsoft.VisualBasic.CompilerServices.Conversions.ParseDouble(String Value, NumberFormatInfo NumberFormat)
+   at Microsoft.VisualBasic.CompilerServices.Conversions.ToInteger(String Value)
+   --- End of inner exception stack trace ---
+   at Microsoft.VisualBasic.CompilerServices.Conversions.ToInteger(String Value)
+   at CalcmenuAPI.CalcmenuAPI.RecipeController.GetRecipe(Int32 codeliste, Int32 codesite, Int32 codetrans, Int32 codesetprice, Int32 codenutrientset, Int32 codeuser, Int32 rolelevel) in D:\Data\Projects\ASPNET\MVC\CalcmenuAPI\Controllers\RecipeController.vb:line 104
+2015-10-13 17:12:07,242 [130] ERROR CalcmenuAPI.CalcmenuAPI.RecipeController - GetRecipe: Unexpected error occured
+System.InvalidCastException: Conversion from string "MM/dd/yyyy" to type 'Integer' is not valid. ---> System.FormatException: Input string was not in a correct format.
+   at Microsoft.VisualBasic.CompilerServices.Conversions.ParseDouble(String Value, NumberFormatInfo NumberFormat)
+   at Microsoft.VisualBasic.CompilerServices.Conversions.ToInteger(String Value)
+   --- End of inner exception stack trace ---
+   at Microsoft.VisualBasic.CompilerServices.Conversions.ToInteger(String Value)
+   at CalcmenuAPI.CalcmenuAPI.RecipeController.GetRecipe(Int32 codeliste, Int32 codesite, Int32 codetrans, Int32 codesetprice, Int32 codenutrientset, Int32 codeuser, Int32 rolelevel) in D:\Data\Projects\ASPNET\MVC\CalcmenuAPI\Controllers\RecipeController.vb:line 104
+2015-10-13 17:12:26,303 [6] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2015-10-13 17:12:26,358 [6] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2015-10-13 17:12:26,360 [6] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2015-10-13 17:12:26,389 [5] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2015-10-13 17:12:26,389 [5] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2015-10-13 17:38:24,704 [5] ERROR CalcmenuAPI.CalcmenuAPI.RecipeController - GetRecipe: Unexpected error occured
+System.InvalidCastException: Conversion from string "MM/dd/yyyy" to type 'Integer' is not valid. ---> System.FormatException: Input string was not in a correct format.
+   at Microsoft.VisualBasic.CompilerServices.Conversions.ParseDouble(String Value, NumberFormatInfo NumberFormat)
+   at Microsoft.VisualBasic.CompilerServices.Conversions.ToInteger(String Value)
+   --- End of inner exception stack trace ---
+   at Microsoft.VisualBasic.CompilerServices.Conversions.ToInteger(String Value)
+   at CalcmenuAPI.CalcmenuAPI.RecipeController.GetRecipe(Int32 codeliste, Int32 codesite, Int32 codetrans, Int32 codesetprice, Int32 codenutrientset, Int32 codeuser, Int32 rolelevel) in D:\Data\Projects\ASPNET\MVC\CalcmenuAPI\Controllers\RecipeController.vb:line 341
+2015-10-13 17:38:26,129 [19] ERROR CalcmenuAPI.Global_asax - Object '/2fc20cf9_c9cb_43e9_884a_10818e8d0465/jbdfsc6n1ojupt788asjshnn_15.rem' has been disconnected or does not exist at the server.
+2015-10-13 17:38:26,129 [19] ERROR CalcmenuAPI.Global_asax -    at System.Web.Http.WebHost.HttpControllerHandler.EndProcessRequest(IAsyncResult result)
+   at System.Web.Http.WebHost.HttpControllerHandler.System.Web.IHttpAsyncHandler.EndProcessRequest(IAsyncResult result)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.OnAsyncHandlerCompletion(IAsyncResult ar)
+2015-10-13 17:39:30,524 [17] ERROR CalcmenuAPI.CalcmenuAPI.RecipeController - GetRecipe: Unexpected error occured
+System.InvalidCastException: Conversion from string "MM/dd/yyyy" to type 'Integer' is not valid. ---> System.FormatException: Input string was not in a correct format.
+   at Microsoft.VisualBasic.CompilerServices.Conversions.ParseDouble(String Value, NumberFormatInfo NumberFormat)
+   at Microsoft.VisualBasic.CompilerServices.Conversions.ToInteger(String Value)
+   --- End of inner exception stack trace ---
+   at Microsoft.VisualBasic.CompilerServices.Conversions.ToInteger(String Value)
+   at CalcmenuAPI.CalcmenuAPI.RecipeController.GetRecipe(Int32 codeliste, Int32 codesite, Int32 codetrans, Int32 codesetprice, Int32 codenutrientset, Int32 codeuser, Int32 rolelevel) in D:\Data\Projects\ASPNET\MVC\CalcmenuAPI\Controllers\RecipeController.vb:line 341
+2015-10-13 17:40:22,706 [5] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2015-10-13 17:40:22,742 [5] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2015-10-13 17:40:22,742 [5] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)

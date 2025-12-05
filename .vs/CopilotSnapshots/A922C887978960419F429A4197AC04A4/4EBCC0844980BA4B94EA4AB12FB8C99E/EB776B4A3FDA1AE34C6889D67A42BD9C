@@ -1,0 +1,533 @@
+﻿Imports System
+Imports System.Web
+Imports System.Collections.Generic
+Imports System.Linq
+Imports AttributeRouting.Web.Http
+Imports System.Data.SqlClient
+Imports System.Web.Script.Serialization
+Imports log4net
+Imports System.Net
+Imports Newtonsoft.Json
+Imports System.Text
+Imports System.Threading
+Imports System.IO
+Imports EgsReport
+Imports EgsData.modGlobalDeclarations
+Imports EgsData.modFunctions
+Imports DevExpress.XtraReports.UI  ' Use XtraReport directly (no Web viewer needed)
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace CalcmenuAPI
+    Public Class PrinterController
+        Inherits ControllerBase
+
+        Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType)
+
+        Public Class InputData
+            Public Property IntCodePrintList As String
+            Public Property userLocale As String
+            Public Property strSelectedCodeListe As String
+            Public Property CodeUser As Integer
+            Public Property intCodeTrans As Integer
+            Public Property strExcelFilename As String
+            Public Property ImagePath As String
+        End Class
+
+#Region "Display & Search of Printer Configuration"
+        <HttpPost> <[POST]("/api/print/search")>
+        Public Function GetPrinterConfigByName(data As Models.ConfigurationcSearch) As List(Of Models.Printer)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_MANAGE_Generic]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.CodeSite
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = 1
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = 1
+                                .Parameters.Add("@Status", SqlDbType.Int).Value = 1
+                                .Parameters.Add("@TableName", SqlDbType.NVarChar, 200).Value = "EGSWPRINTERCONFIG"
+                                .Parameters.Add("@CodeProperty", SqlDbType.Int).Value = data.CodeProperty
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If cn IsNot Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim printer As New List(Of Models.Printer)
+                For Each r In ds.Tables(0).Rows
+                    printer.Add(New Models.Printer With {
+                                    .Code = GetInt(r("ID")),
+                                    .Name = GetStr(r("Name")),
+                                    .IsGlobal = GetBool(r("IsGlobal")),
+                                    .CodeSaleSite = GetInt(r("CodeSaleSite")),
+                                    .SaleSiteName = GetStr(r("SaleSiteName")),
+                                    .Status = GetInt(r("Status"))
+                                })
+                Next
+
+                If data.Name.Trim <> "" Then
+                    Dim printerresult As New List(Of Models.Printer)
+                    Dim arrNames() As String = data.Name.Trim.Split(","c)
+                    For Each word In arrNames
+                        If word IsNot Nothing AndAlso word.Trim().Length > 0 Then
+                            For Each s In printer
+                                If s.Name.ToLower().Contains(Common.ReplaceSpecialCharacters(word.Trim().ToLower())) Then
+                                    printerresult.Add(s)
+                                End If
+                            Next
+                        End If
+                    Next
+                    printer = printerresult
+                End If
+
+                ' NOTE: Removed legacy DevExpress.XtraReports.Web.ReportViewer usage.
+                ' If you need to generate a report here, create the XtraReport and export directly with ExportToPdf(path).
+                ' Example:
+                ' Dim cReport As New clsReport
+                ' Dim rpt As XtraReport = cReport.CreateReport(ds, New structUser With {.Code = 1}, "", "PDF", "", "", False, False)
+                ' Dim tmpPath As String = Path.Combine(Path.GetTempPath(), "printer_search_preview.pdf")
+                ' rpt.ExportToPdf(tmpPath)
+
+                Return printer.ToList()
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+#End Region
+
+#Region "Display Printer Sharing"
+        <HttpGet> <[GET]("/api/printer/sharing/{codesite:int}/{tree:int}/{codecategory:int}")>
+        Public Function GetPrinterSharing(codesite As Integer,
+                                  tree As Integer,
+                                  codecategory As Integer) As List(Of Models.TreeNode)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandText = "[dbo].[API_GET_SharingPrinter]"
+                                .CommandType = CommandType.StoredProcedure
+                                .Parameters.Clear()
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@CodeCategory", SqlDbType.Int).Value = codecategory
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If cn IsNot Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim sharings As New List(Of Models.GenericTree)
+                For Each r In ds.Tables(0).Rows
+                    sharings.Add(New Models.GenericTree With {
+                                    .Code = GetInt(r("Code")),
+                                    .Name = GetStr(r("Name")),
+                                    .ParentCode = GetInt(r("ParentCode")),
+                                    .ParentName = GetStr(r("ParentName")),
+                                    .Flagged = GetBool(r("Flagged")),
+                                    .Type = GetInt(r("Type")),
+                                    .Global = GetBool(r("Global"))})
+                Next
+
+                Dim sharingdata As New List(Of Models.TreeNode)
+
+                Dim parents = sharings.Where(Function(obj) obj.ParentCode = 0 AndAlso obj.Type = 1).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each p In parents
+                    Dim parent As New Models.TreeNode
+                    parent.title = p.Name
+                    parent.key = p.Code
+                    parent.icon = False
+                    parent.children = CreateChildrenSharing(sharings, p.Code)
+                    parent.select = p.Flagged
+                    parent.selected = p.Flagged
+                    parent.parenttitle = p.ParentName
+                    parent.groupLevel = GroupLevel.Property
+                    If parent.children IsNot Nothing AndAlso parent.children.Count > 0 Then sharingdata.Add(parent)
+                Next
+
+                Return sharingdata
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+#End Region
+
+#Region "Save and Update Printer Configuration"
+        <HttpPost> <POST("api/printer")>
+        Public Function SavePrinter(data As Models.PrinterData) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim resultCode As Integer = 0
+            Dim _trans As SqlTransaction = Nothing
+
+            Try
+                If DebugEnabled Then
+                    Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" +
+                             JsonConvert.SerializeObject(
+                                 data,
+                                 Newtonsoft.Json.Formatting.None,
+                                 New Newtonsoft.Json.JsonSerializerSettings() With {.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore}
+                             ))
+                End If
+
+                Dim arrSharing As New ArrayList
+                For Each sh In data.Sharing
+                    If arrSharing.IndexOf(sh.Code) = -1 Then arrSharing.Add(sh.Code)
+                Next
+                Dim _codeSiteList As String = Common.Join(arrSharing, "(", ")", ",")
+
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[MANAGE_PRINTERCONFIGUPDATE]"
+                                .Parameters.Clear()
+                                .Parameters.Add("@Code", SqlDbType.Int).Value = data.Info.Code
+                                .Parameters.Add("@CodeGroup", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@Name", SqlDbType.NVarChar, 150).Value = data.Info.Name
+                                .Parameters.Add("@Status", SqlDbType.Int).Value = data.Info.Status
+                                .Parameters.Add("@CodeAcct", SqlDbType.NVarChar, 25).Value = ""
+                                .Parameters.Add("@IsGlobal", SqlDbType.Bit).Value = data.Info.IsGlobal
+                                .Parameters.Add("@CodeSiteList", SqlDbType.NVarChar, 2000).Value = _codeSiteList
+                                .Parameters.Add("@CodeUser", SqlDbType.Int).Value = data.Profile.Code
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.Profile.CodeSite
+                                .Parameters.Add("@CodeSaleSite", SqlDbType.Int).Value = data.Info.CodeSaleSite
+                                .Parameters.Add("@retval", SqlDbType.Int).Direction = ParameterDirection.ReturnValue
+                                .Parameters("@Code").Direction = ParameterDirection.InputOutput
+
+                                cn.Open()
+                                _trans = cn.BeginTransaction
+                                .Transaction = _trans
+
+                                .ExecuteNonQuery()
+                                resultCode = GetInt(.Parameters("@retval").Value, -1)
+                                If resultCode <> 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Save printer failed", resultCode))
+                                End If
+
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = resultCode
+                                response.Status = True
+                                _trans.Commit()
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                Try
+                                    _trans.Rollback()
+                                    If _trans IsNot Nothing Then
+                                        CType(_trans, IDisposable).Dispose()
+                                    End If
+                                Catch
+                                End Try
+                                If resultCode = 0 Then resultCode = 500
+                                response.Code = resultCode
+                                response.Status = False
+                                response.Message = "Save printer configuration failed"
+                                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Printer")
+                            Finally
+                                If cn IsNot Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                response.Code = 400
+                response.Message = "Missing or invalid parameters"
+                response.Parameters = New List(Of Models.param) From {
+                    New Models.param With {.name = "data", .value = "RecipeData"}
+                }
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), aex.Message.ToString(), aex.StackTrace.ToString(), "Printer")
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), hex.Message.ToString(), hex.StackTrace.ToString(), "Printer")
+                Throw
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Printer")
+            End Try
+            Return response
+        End Function
+#End Region
+
+#Region "Delete Printer Configuration"
+        <HttpPost> <POST("api/printer/delete")>
+        Public Function DeleteCategory(data As Models.GenericDeleteData) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim resultCode As Integer = 0
+            Try
+                If DebugEnabled Then
+                    Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" +
+                             JsonConvert.SerializeObject(
+                                 data,
+                                 Newtonsoft.Json.Formatting.None,
+                                 New Newtonsoft.Json.JsonSerializerSettings() With {.NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore}
+                             ))
+                End If
+
+                Dim arrPrinterCodes As New ArrayList
+                For Each c In data.CodeList
+                    If arrPrinterCodes.IndexOf(c.Code) = -1 Then arrPrinterCodes.Add(c.Code)
+                Next
+                Dim _codePrinterList As String = Common.Join(arrPrinterCodes, "", "", ",")
+
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandText = "API_DELETE_Generic"
+                                .CommandType = CommandType.StoredProcedure
+                                .Parameters.Clear()
+                                .Parameters.Add("@CodeList", SqlDbType.VarChar, 4000).Value = _codePrinterList
+                                .Parameters.Add("@TableName", SqlDbType.VarChar, 200).Value = "EGSWPRINTERCONFIG"
+                                .Parameters.Add("@CodeUser", SqlDbType.Int).Value = data.CodeUser
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.CodeSite
+                                .Parameters.Add("@ForceDelete", SqlDbType.Bit).Value = data.ForceDelete
+                                .Parameters.Add("@SkipList", SqlDbType.NVarChar, 4000).Direction = ParameterDirection.Output
+                                .Parameters.Add("@Return", SqlDbType.Int)
+                                .Parameters("@Return").Direction = ParameterDirection.ReturnValue
+
+                                cn.Open()
+                                .ExecuteNonQuery()
+                                resultCode = GetInt(.Parameters("@Return").Value, -1)
+                                If resultCode <> 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Delete category failed", resultCode))
+                                End If
+
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = GetStr(.Parameters("@SkipList").Value)
+                                response.Status = True
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                If resultCode = 0 Then resultCode = 500
+                                response.Code = resultCode
+                                response.Status = False
+                                response.ReturnValue = GetStr(.Parameters("@SkipList").Value)
+                                response.Message = "Delete category failed"
+                                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Printer")
+                            Finally
+                                If cn IsNot Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                response.Code = 400
+                response.Message = "Missing or invalid parameters"
+                response.Parameters = New List(Of Models.param) From {
+                    New Models.param With {.name = "data", .value = "RecipeData"}
+                }
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), aex.Message.ToString(), aex.StackTrace.ToString(), "Printer")
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), hex.Message.ToString(), hex.StackTrace.ToString(), "Printer")
+                Throw
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Printer")
+            End Try
+            Return response
+        End Function
+#End Region
+
+#Region "Populate the Sales Site "
+        <HttpGet> <[GET]("/api/printer/getsalesite")>
+        Public Function GetCodeSaleSite() As List(Of Models.GenericList)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_PrinterSaleSite]"
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If cn IsNot Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim UserAccounts As New List(Of Models.GenericList)
+                For Each r In ds.Tables(0).Rows
+                    UserAccounts.Add(New Models.GenericList With {
+                                    .Code = GetInt(r("Code")),
+                                    .Name = GetStr(r("Name"))
+                                })
+                Next
+
+                Return UserAccounts
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+#End Region
+
+        <HttpPost> <[POST]("/api/standardprinting")>
+        Public Function standardPrinting(inputData As InputData) As Object
+            Try
+                Log.Info("standardPrinting started")
+
+                ' Strongly type inputs
+                Dim intCodePrintList As Integer = CInt(inputData.IntCodePrintList)
+                Dim codeUser As Integer = CInt(inputData.CodeUser)
+                Dim userLocale As String = If(String.IsNullOrWhiteSpace(inputData.userLocale), "en-US", inputData.userLocale)
+
+                ' Get the per-user connection string (decrypted via your helper)
+                Dim userConnectionString As String = GetUserConnectionString(codeUser)
+
+                Dim cReport As New clsReport
+
+                Dim FolderPath As String = System.Configuration.ConfigurationManager.AppSettings("ReportFolder")
+                Dim FolderURL As String = System.Configuration.ConfigurationManager.AppSettings("ReportURL")
+                Dim PicNormal As String = If(inputData.ImagePath, String.Empty) 'System.Configuration.ConfigurationManager.AppSettings("PicNormal")
+
+                ' Fetch data using the per-user connection string
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    Using cn As New SqlConnection(userConnectionString)
+                        Try
+                            cmd.Connection = cn
+                            cmd.CommandText = "[dbo].[sp_EgswPrintListGetListDetails]"
+                            cmd.CommandType = CommandType.StoredProcedure
+                            cmd.CommandTimeout = 600 ' seconds
+                            cmd.Parameters.Clear()
+                            cmd.Parameters.Add("@intCodePrintList", SqlDbType.Int).Value = intCodePrintList
+                            cmd.Parameters.Add("@blnDeleteAfterFetch", SqlDbType.Bit).Value = False
+                            cmd.Parameters.Add("@blnBestUnitConversion", SqlDbType.Bit).Value = False
+                            cmd.Parameters.Add("@intPictureList", SqlDbType.Int).Value = 0
+                            cmd.Parameters.Add("@intNutCodeSet", SqlDbType.Int).Value = 0
+
+                            cn.Open()
+                            Using _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            End Using
+                        Finally
+                            If cn IsNot Nothing Then
+                                cn.Close()
+                                CType(cn, IDisposable).Dispose()
+                            End If
+                        End Try
+                    End Using
+                End Using
+
+                Dim hasData As Boolean = (ds IsNot Nothing AndAlso ds.Tables.Count > 0)
+
+                If hasData Then
+                    Dim strFilename As String = subGetFileName()
+                    Dim outputPath As String = Path.Combine(FolderPath, strFilename)
+
+                    ' Ensure the output folder exists
+                    Dim outDir As String = Path.GetDirectoryName(outputPath)
+                    If Not Directory.Exists(outDir) Then
+                        Directory.CreateDirectory(outDir)
+                    End If
+
+                    ' Build the report and export directly to PDF (no Web viewer)
+                    Dim report As XtraReport = cReport.CreateReport_CMC(
+                        ds,
+                        userConnectionString,
+                        1,
+                        PicNormal,
+                        "",
+                        "",
+                        "",
+                        False,
+                        False,
+                        intFoodlaw:=2,
+                        CodePrintList:=intCodePrintList,
+                        userLocale:=userLocale,
+                        codeUser:=codeUser
+                    )
+
+                    ' DevExpress v25: ExportToPdf replaces legacy CreatePdfDocument
+                    report.ExportToPdf(outputPath)
+
+                    FolderURL = FolderURL & "/" & strFilename
+                    Log.Info("FolderPath: " & outputPath)
+                    Log.Info("FolderURL: " & FolderURL)
+
+                    Return FolderURL
+                Else
+                    Log.Warn("standardPrinting: dataset is empty; skipping report generation.")
+                    Return ""
+                End If
+
+            Catch ex As Exception
+                Log.Info(ex.Message.ToString())
+                Throw
+            End Try
+        End Function
+
+        Private Function subGetFileName() As String
+            Dim m_strTime As String = Now.ToFileTimeUtc().ToString()
+            Dim strFileName As String = "Export_" & m_strTime & ".pdf"
+            Return strFileName
+        End Function
+    End Class
+End Namespace

@@ -1,0 +1,23 @@
+﻿using Microsoft.AspNetCore.Mvc;
+
+namespace CalcmenuAPI.Core.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class PrinterController : ControllerBase
+    {
+        [HttpPost("print")] 
+        public IActionResult Print()
+        {
+            // TODO: port logic from VB PrinterController
+            return Ok(new { message = "Print job accepted" });
+        }
+
+        [HttpGet("status")] 
+        public IActionResult Status()
+        {
+            // TODO: port logic from VB PrinterController
+            return Ok(new { status = "ready" });
+        }
+    }
+}

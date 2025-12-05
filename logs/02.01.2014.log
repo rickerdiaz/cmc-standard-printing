@@ -1,0 +1,4 @@
+2014-01-02 13:14:23,320 [7] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2014-01-02 13:15:24,574 [18] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2014-01-02 13:38:05,920 [49] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2014-01-02 13:38:16,282 [55] INFO  CalcmenuAPI.Common - Calling CheckOut(data)(CalcmenuAPI.CalcmenuAPI.Models.RecipeCheckout)

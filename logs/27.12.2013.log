@@ -1,0 +1,13 @@
+2013-12-27 09:57:33,995 [225] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2013-12-27 13:44:01,582 [237] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2013-12-27 16:22:58,671 [224] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2013-12-27 16:28:18,546 [51] INFO  CalcmenuAPI.Common - Calling GetIngredients(codesite;codetrans;codesetprice;name;skip;take;searchtype;category;sharetype)(1;1;1;agazaway;0;10;0;-1;0)
+2013-12-27 16:29:08,046 [251] INFO  CalcmenuAPI.Common - Calling GetIngredients(codesite;codetrans;codesetprice;name;skip;take;searchtype;category;sharetype)(1;1;1;agazaway;0;10;0;-1;0)
+2013-12-27 16:29:15,450 [214] INFO  CalcmenuAPI.Common - Calling GetIngredients(codesite;codetrans;codesetprice;name;skip;take;searchtype;category;sharetype)(1;1;1;agazaway;0;10;0;-1;0)
+2013-12-27 16:29:25,907 [48] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2013-12-27 16:29:46,389 [51] INFO  CalcmenuAPI.Common - Calling GetIngredients(codesite;codetrans;codesetprice;name;skip;take;searchtype;category;sharetype)(2;1;1;agazaway;0;10;0;-1;0)
+2013-12-27 16:45:35,531 [267] INFO  CalcmenuAPI.Common - Calling GetIngredients(codesite;codetrans;codesetprice;name;skip;take;searchtype;category;sharetype)(1;1;1;agazaway;0;10;0;-1;0)
+2013-12-27 16:47:12,166 [21] INFO  CalcmenuAPI.Common - Calling GetIngredients(codesite;codetrans;codesetprice;name;skip;take;searchtype;category;sharetype)(1;1;1;agazaway;0;10;0;-1;0)
+2013-12-27 16:52:55,599 [260] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2013-12-27 16:53:27,910 [260] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2013-12-27 16:53:52,077 [54] INFO  CalcmenuAPI.Common - Calling GetIngredients(codesite;codetrans;codesetprice;name;skip;take;searchtype;category;sharetype)(2;1;1;agazaway;0;10;0;-1;0)

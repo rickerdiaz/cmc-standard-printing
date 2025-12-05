@@ -1,0 +1,8 @@
+2015-09-21 14:42:53,786 [33] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2015-09-21 14:42:53,919 [33] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2015-09-21 14:42:53,921 [33] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2015-09-21 14:44:33,729 [42] INFO  CalcmenuAPI.CalcmenuAPI.KioskController - Calling DeleteKiosk:{"CodeUser":42,"CodeSite":4,"CodeProperty":2,"Type":8,"CodeList":[{"Code":0}],"ForceDelete":false}

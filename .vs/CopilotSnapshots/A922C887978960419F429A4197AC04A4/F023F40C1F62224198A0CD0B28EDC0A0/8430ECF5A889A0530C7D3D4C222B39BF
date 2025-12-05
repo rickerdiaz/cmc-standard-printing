@@ -1,0 +1,366 @@
+﻿Imports System
+Imports System.Web
+Imports System.Collections.Generic
+Imports System.Linq
+Imports AttributeRouting.Web.Http
+Imports System.Data.SqlClient
+Imports System.Web.Script.Serialization
+Imports log4net
+Imports System.Net
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace CalcmenuAPI
+    Public Class NutrientController
+        Inherits ControllerBase
+
+        Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType)
+
+        Private NutrientDBCache As New DataTable
+        Private pDog As String
+        <HttpGet> <[GET]("/api/nutrientdb/{codesite:int}/{codeset:int}/{codetrans:int}/{page:int}/{searchstring?}")> _
+        Public Function GetNutrientTest(codesite As Integer, codeset As Integer, codetrans As Integer, page As Integer, Optional searchstring As String = "") As DataSet
+            Dim nutrition As New Models.RecipeNutrition
+            Dim pageCount As Integer = 25
+            Try
+                Dim ds As New DataSet
+                Dim ds2 As New DataSet
+                Using cmd As New SqlCommand()
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[GetNutrientDataPerSet]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@CodeSet", SqlDbType.Int).Value = codeset
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans
+                                .Parameters.Add("@nvcSearchString", SqlDbType.NVarChar).Value = searchstring
+                                .Parameters.Add("@intFilterType", SqlDbType.Int).Value = 3
+                                cn.Open()
+
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+
+
+                            Catch ex As Exception
+
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[sp_EgswNutrientGetList]"
+                                .Parameters.Clear()
+                                .Parameters.Add("@intCodeNutrientDB", SqlDbType.Int).Value = -1
+                                .Parameters.Add("@intCodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@intCodeTrans", SqlDbType.Int).Value = codetrans
+                                .Parameters.Add("@intCodeSet", SqlDbType.Int).Value = codeset
+                                cn.Open()
+
+                                Dim _da2 As New SqlDataAdapter(cmd)
+                                _da2.Fill(ds2)
+                            Catch ex As Exception
+
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim nutrient_ As DataTable = ds.Tables(0)
+                Dim query = From n In nutrient_.AsEnumerable() Select n Skip (page * pageCount) Take pageCount
+
+                Dim filtered As DataTable = query.CopyToDataTable()
+                Dim c1 As New DataColumn
+
+                For Each col In filtered.Columns
+
+                    If (col.ColumnName.StartsWith("val")) Then
+                        col.ColumnName = col.Ordinal - 4.ToString()
+                    End If
+
+                Next
+
+                ds2.Tables.RemoveAt(1)
+                ds2.Tables(0).TableName = "NutrientDefinition"
+                filtered.TableName = "Nutrients"
+                ds2.Tables.Add(filtered)
+                Return ds2
+
+            Catch ex As Exception
+
+            End Try
+            Return Nothing ' RBAJ-2014.08.04
+        End Function
+
+        <HttpGet> <[GET]("/api/nutrient/{codeliste:int}/{codenutrientset:int}/{codesite:int}/{codetrans:int}/{imposedtype:int}/")> _
+        Public Function GetNutrient(codeliste As Integer, _
+                                 codenutrientset As Integer, _
+                                 codesite As Integer, _
+                                 codetrans As Integer, _
+                                 imposedtype As Integer) As List(Of Models.RecipeNutrition)
+            Dim nutrients As New List(Of Models.RecipeNutrition)
+            Try
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_NutrientData]"
+                                .Parameters.Add("@CodeListe", SqlDbType.Int).Value = codeliste
+                                .Parameters.Add("@CodeNutrientSet", SqlDbType.Int).Value = codenutrientset
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans
+                                .Parameters.Add("@ImposedType", SqlDbType.Int).Value = imposedtype
+                                cn.Open()
+                                Using dr As SqlDataReader = cmd.ExecuteReader()
+                                    If dr.HasRows Then
+                                        '.Value = IIf(GetDbl(dr("Value"), -1) < 0, 0, Format(GetDbl(dr("Value")), .Format)), _
+                                        '.Imposed = IIf(GetDbl(dr("Imposed"), -1) < 0, "", Format(GetDbl(dr("Imposed")), .Format)), _
+                                        While dr.Read ' RBAJ-2014.01.03
+                                            Dim n As New Models.RecipeNutrition With {
+                                                .Id = GetInt(dr("Id")), _
+                                                .Nutr_No = GetInt(dr("Nutr_No")), _
+                                                .Position = GetInt(dr("Position")), _
+                                                .Name = GetStr(dr("Name")), _
+                                                .TagName = GetStr(dr("TagName")), _
+                                                .Format = GetStr(dr("Format")), _
+                                                .Value = IIf(GetDbl(dr("Value"), -1) < 0, 0, GetDbl(dr("Value"))), _
+                                                .Imposed = IIf(GetDbl(dr("Imposed"), -1) < 0, 0, GetDbl(dr("Imposed"))), _
+                                                .Percent = IIf(GetDbl(dr("Percent"), -1) < 0, 0, GetDbl(dr("Percent"))), _
+                                                .Unit = GetStr(dr("Unit")), _
+                                                .GDA = GetInt(dr("GDA")), _
+                                                .CodeNutrientSet = GetInt(dr("CodeNutrientSet")), _
+                                                .NutrientSet = GetStr(dr("NutrientSet")), _
+                                                .DisplayNutrition = GetBool(dr("DisplayNutrition")), _
+                                                .Display = GetBool(dr("Display")), _
+                                                .ImposedType = GetInt(dr("ImposedType")), _
+                                                .PortionSize = GetStr(dr("PortionSize")), _
+                                                .NutritionBasis = GetStr(dr("NutritionBasis"))
+                                            }
+                                            nutrients.Add(n)
+                                        End While
+                                    End If
+                                    dr.Close()
+                                End Using
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+            Return nutrients
+        End Function
+
+        <HttpGet> <[GET]("/api/nutrientset/{codesite:int}")> _
+        Public Function GetNutrientSet(codesite As Integer) As List(Of Models.GenericCodeValueList)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "API_GET_NutrientSetList"
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim nutrientsets As New List(Of Models.GenericCodeValueList)
+                For Each r In ds.Tables(0).Rows
+                    nutrientsets.Add(New Models.GenericCodeValueList With {
+                                     .Code = GetInt(r("Code")), _
+                                     .Value = GetStr(r("DisplayName"))})
+                Next
+
+                Return nutrientsets.ToList
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpGet> <[GET]("/api/nutrientsetheader/{CodeNutrientDB:int?}/{CodeTrans:int?}/{CodeSite:int?}/{CodeSet:int?}")> _
+        Public Function GetNutrientSetHeader(Optional ByVal CodeNutrientDB As Integer = -1, Optional ByVal CodeTrans As Integer = -1, _
+                                             Optional ByVal CodeSite As Integer = -1, Optional ByVal CodeSet As Integer = -1) As List(Of Models.GenericList)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_NutrientsAsHeader]"
+                                .Parameters.Add("@intCodeNutrientDB", SqlDbType.Int).Value = CodeNutrientDB
+                                .Parameters.Add("@intCodeTrans", SqlDbType.Int).Value = CodeTrans
+                                .Parameters.Add("@intCodeSite", SqlDbType.Int).Value = CodeSite
+                                .Parameters.Add("@intCodeSet", SqlDbType.Int).Value = CodeSet
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim nutrientsets As New List(Of Models.GenericList)
+                For Each r In ds.Tables(0).Rows
+                    nutrientsets.Add(New Models.GenericList With {
+                                     .Code = GetInt(r("Nutr_No")), _
+                                     .Value = GetStr(r("Name"))})
+                Next
+
+                Return nutrientsets.ToList
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpGet> <[GET]("/api/nutrientlinks/{codesite:int}/{codeset:int}/{codetrans:int}/{filtertype:int}/{take?}/{skip?}/{searchstring?}")> _
+        Public Function GetNutrientDataPerSet(codesite As Integer, codeset As Integer, codetrans As Integer, filtertype As Integer, Optional take As Integer = 10, Optional skip As Integer = 0, Optional searchstring As String = "") As Models.NutrientListData
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                If searchstring Is Nothing Then searchstring = ""
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[GetNutrientDataPerSet]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@CodeSet", SqlDbType.Int).Value = codeset
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans
+                                .Parameters.Add("@nvcSearchString", SqlDbType.NVarChar).Value = searchstring
+                                .Parameters.Add("@intFilterType", SqlDbType.Int).Value = filtertype
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim nutrients As New List(Of Models.NutrientList)
+                For Each r In ds.Tables(0).Rows
+                    Dim nutrient_ As New Models.NutrientList
+                    With nutrient_
+                        .NDB_No = GetStr(r("NDB_No"))
+                        .Name = GetStr(r("Desc"))
+                        If ds.Tables(0).Columns.Count > 5 Then .N1 = GetDbl(r("val1"))
+                        If ds.Tables(0).Columns.Count > 6 Then .N2 = GetDbl(r("val2"))
+                        If ds.Tables(0).Columns.Count > 7 Then .N3 = GetDbl(r("val3"))
+                        If ds.Tables(0).Columns.Count > 8 Then .N4 = GetDbl(r("val4"))
+                        If ds.Tables(0).Columns.Count > 9 Then .N5 = GetDbl(r("val5"))
+                        If ds.Tables(0).Columns.Count > 10 Then .N6 = GetDbl(r("val6"))
+                        If ds.Tables(0).Columns.Count > 11 Then .N7 = GetDbl(r("val7"))
+                        If ds.Tables(0).Columns.Count > 12 Then .N8 = GetDbl(r("val8"))
+                        If ds.Tables(0).Columns.Count > 13 Then .N9 = GetDbl(r("val9"))
+                        If ds.Tables(0).Columns.Count > 14 Then .N10 = GetDbl(r("val10"))
+                        If ds.Tables(0).Columns.Count > 15 Then .N11 = GetDbl(r("val11"))
+                        If ds.Tables(0).Columns.Count > 16 Then .N12 = GetDbl(r("val12"))
+                        If ds.Tables(0).Columns.Count > 17 Then .N13 = GetDbl(r("val13"))
+                        If ds.Tables(0).Columns.Count > 18 Then .N14 = GetDbl(r("val14"))
+                        If ds.Tables(0).Columns.Count > 19 Then .N15 = GetDbl(r("val15"))
+                        If ds.Tables(0).Columns.Count > 20 Then .N16 = GetDbl(r("val16"))
+                        If ds.Tables(0).Columns.Count > 21 Then .N17 = GetDbl(r("val17"))
+                        If ds.Tables(0).Columns.Count > 22 Then .N18 = GetDbl(r("val18"))
+                        If ds.Tables(0).Columns.Count > 23 Then .N19 = GetDbl(r("val19"))
+                        If ds.Tables(0).Columns.Count > 24 Then .N20 = GetDbl(r("val20"))
+                        If ds.Tables(0).Columns.Count > 25 Then .N21 = GetDbl(r("val21"))
+                        If ds.Tables(0).Columns.Count > 26 Then .N22 = GetDbl(r("val22"))
+                        If ds.Tables(0).Columns.Count > 27 Then .N23 = GetDbl(r("val23"))
+                        If ds.Tables(0).Columns.Count > 28 Then .N24 = GetDbl(r("val24"))
+                        If ds.Tables(0).Columns.Count > 29 Then .N25 = GetDbl(r("val25"))
+                        If ds.Tables(0).Columns.Count > 30 Then .N26 = GetDbl(r("val26"))
+                        If ds.Tables(0).Columns.Count > 31 Then .N27 = GetDbl(r("val27"))
+                        If ds.Tables(0).Columns.Count > 32 Then .N28 = GetDbl(r("val28"))
+                        If ds.Tables(0).Columns.Count > 33 Then .N29 = GetDbl(r("val29"))
+                        If ds.Tables(0).Columns.Count > 34 Then .N30 = GetDbl(r("val30"))
+                        If ds.Tables(0).Columns.Count > 35 Then .N31 = GetDbl(r("val31"))
+                        If ds.Tables(0).Columns.Count > 36 Then .N32 = GetDbl(r("val32"))
+                        If ds.Tables(0).Columns.Count > 37 Then .N33 = GetDbl(r("val33"))
+                        If ds.Tables(0).Columns.Count > 38 Then .N34 = GetDbl(r("val34"))
+                    End With
+                    nutrients.Add(nutrient_)
+                Next
+
+                Dim totalCount As Integer = nutrients.Count
+                take = IIf(take > totalCount + 1, totalCount, take) ' Prevent overflow of take
+                take = IIf(take <= 0, 1, take) ' Prevent overflow of take
+                Dim totalPages As Integer = Math.Ceiling(totalCount / take)
+                skip = IIf(skip > totalPages, totalPages, skip) ' Prevent overflow of skip
+                skip = IIf(skip < 1, 0, skip) ' Prevent overflow of skip
+
+                Return New Models.NutrientListData(nutrients.Skip(take * skip).Take(take).ToList, totalCount)
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+    End Class
+End Namespace

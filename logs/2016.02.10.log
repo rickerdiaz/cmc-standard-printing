@@ -1,0 +1,37 @@
+2016-02-10 11:54:01,966 [5] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2016-02-10 11:54:02,061 [5] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2016-02-10 11:54:02,071 [5] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2016-02-10 11:54:08,584 [5] ERROR CalcmenuAPI.Global_asax - The HTTP verb POST used to access path '/calcmenuapi/api/search/menuplan' is not allowed.
+2016-02-10 11:54:08,585 [5] ERROR CalcmenuAPI.Global_asax -    at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2016-02-10 11:54:14,015 [14] ERROR CalcmenuAPI.Global_asax - The HTTP verb POST used to access path '/calcmenuapi/api/search/menuplan' is not allowed.
+2016-02-10 11:54:14,016 [14] ERROR CalcmenuAPI.Global_asax -    at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2016-02-10 11:54:20,516 [14] ERROR CalcmenuAPI.Global_asax - The HTTP verb POST used to access path '/calcmenuapi/api/search/menuplan' is not allowed.
+2016-02-10 11:54:20,516 [14] ERROR CalcmenuAPI.Global_asax -    at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2016-02-10 11:55:08,558 [12] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2016-02-10 11:55:08,558 [12] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2016-02-10 11:55:12,638 [5] ERROR CalcmenuAPI.Global_asax - The HTTP verb POST used to access path '/calcmenuapi/api/search/menuplan' is not allowed.
+2016-02-10 11:55:12,638 [5] ERROR CalcmenuAPI.Global_asax -    at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2016-02-10 11:56:24,761 [14] ERROR CalcmenuAPI.Global_asax - The HTTP verb POST used to access path '/calcmenuapi/api/search/menuplan' is not allowed.
+2016-02-10 11:56:24,761 [14] ERROR CalcmenuAPI.Global_asax -    at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2016-02-10 11:56:32,904 [14] ERROR CalcmenuAPI.Global_asax - The HTTP verb POST used to access path '/calcmenuapi/api/search/recipe' is not allowed.
+2016-02-10 11:56:32,904 [14] ERROR CalcmenuAPI.Global_asax -    at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)

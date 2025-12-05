@@ -1,0 +1,140 @@
+﻿Imports System
+Imports System.Web
+Imports System.Collections.Generic
+Imports System.Linq
+Imports AttributeRouting.Web.Http
+Imports System.Data.SqlClient
+Imports System.Web.Script.Serialization
+Imports log4net
+Imports System.IO
+Imports System.Net
+Imports System.Net.Http
+Imports System.Threading.Tasks
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace CalcmenuAPI
+    Public Class UploadController
+        Inherits ControllerBase
+        Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType)
+
+
+        <HttpPost> <[POST]("/api/Upload")> _
+  Public Function UploadImage() As Task(Of HttpResponseMessage)
+            ' Check if the request contains multipart/form-data.
+            If Not Request.Content.IsMimeMultipartContent() Then
+                Throw New HttpResponseException(HttpStatusCode.UnsupportedMediaType)
+            End If
+
+            Dim root As String = HttpContext.Current.Server.MapPath("~/temp")
+            Dim provider = New MultipartFormDataStreamProvider(root)
+
+            ' Read the form data and return an async task.
+            Dim task = Request.Content.ReadAsMultipartAsync(provider).ContinueWith(Of HttpResponseMessage)(Function(t)
+                                                                                                               If t.IsFaulted OrElse t.IsCanceled Then
+                                                                                                                   Return Request.CreateErrorResponse(HttpStatusCode.InternalServerError, t.Exception)
+                                                                                                               End If
+
+                                                                                                               ' This illustrates how to get the file names.
+                                                                                                               For Each file As MultipartFileData In provider.FileData
+                                                                                                                   Trace.WriteLine(file.Headers.ContentDisposition.FileName)
+                                                                                                                   Dim fileInfo As New FileInfo(file.Headers.ContentDisposition.FileName.Trim(""""))
+
+                                                                                                                   Trace.WriteLine("Server file path: " + file.LocalFileName)
+                                                                                                               Next
+
+                                                                                                               Return Request.CreateResponse(HttpStatusCode.OK)
+
+                                                                                                           End Function)
+
+            Return task
+        End Function
+        '' JDO-2014.04.23
+        <HttpGet> _
+        <[GET]("/api/attachment/{codeliste:int}")> _
+        Public Function GetAttachment(codeliste As Integer) As List(Of Models.RecipeAttachment)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.Text
+                                .CommandText = "SELECT ID, Flag, Filename, Filecaption from EgswListeFiles where codeliste=@CodeListe ORDER BY [ID] "
+                                .Parameters.Add("@CodeListe", SqlDbType.Int).Value = codeliste
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim ingredientbrands As New List(Of Models.RecipeAttachment)
+                For Each r In ds.Tables(0).Rows
+                    ingredientbrands.Add(New Models.RecipeAttachment With {
+                                         .Id = GetInt(r("ID")), _
+                                         .Name = GetStr(r("Filecaption")), _
+                                         .Resource = GetStr(r("Filename")), _
+                                         .Type = GetInt(r("Flag")), _
+                                         .IsDefault = GetInt(r("Default"))})
+                Next
+
+                Return ingredientbrands.ToList
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+        '' JDO-2014.04.23
+        <HttpGet> _
+        <[GET]("/api/picture/{codeliste:int}")> _
+        Public Function GetPicture(codeliste As Integer) As List(Of Models.GenericList)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.Text
+                                .CommandText = "SELECT Picturename from EgswListe where code=@CodeListe"
+                                .Parameters.Add("@CodeListe", SqlDbType.Int).Value = codeliste
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim picture As String = ""
+                For Each r In ds.Tables(0).Rows
+                 
+                    picture = GetStr(r("Picturename")).Substring(0, GetStr(r("Picturename")).Length - 1)
+                Next
+                Dim pics As New List(Of Models.GenericList)
+                Dim ctr As Integer = 1
+                For Each pic In picture.Split(";")
+                    pics.Add(New Models.GenericList With {
+                             .Code = ctr, .Value = GetStr(pic)})
+                    ctr += 1
+                Next
+                Return pics.ToList
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+    End Class
+End Namespace

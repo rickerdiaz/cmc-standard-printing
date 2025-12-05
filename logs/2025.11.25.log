@@ -1,0 +1,13 @@
+2025-11-25 17:55:55,181 [1] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2025-11-25 17:55:56,431 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-11-25 17:55:58,654 [5] INFO  CalcmenuAPI.Common - Generated connection string: Data Source=cmc-sql-eu.database.windows.net;Initial Catalog=CMC_CoopGastronomie;Integrated Security=False;User ID=egsadmin;Password=**** for CodeUser: 65085
+2025-11-25 17:55:59,896 [5] INFO  EgsReport.clsReport - CreateReport_CMC
+2025-11-25 17:55:59,949 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Cannot find table 1.
+2025-11-25 17:56:29,435 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-11-25 17:56:29,813 [5] INFO  CalcmenuAPI.Common - Generated connection string: Data Source=cmc-sql-eu.database.windows.net;Initial Catalog=CMC_CoopGastronomie;Integrated Security=False;User ID=egsadmin;Password=**** for CodeUser: 65085
+2025-11-25 18:04:03,974 [5] INFO  EgsReport.clsReport - CreateReport_CMC
+2025-11-25 18:04:04,028 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Cannot find table 1.
+2025-11-25 18:04:09,087 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-11-25 18:04:29,584 [5] INFO  CalcmenuAPI.Common - Generated connection string: Data Source=cmc-sql-eu.database.windows.net;Initial Catalog=CMC_CoopGastronomie;Integrated Security=False;User ID=egsadmin;Password=**** for CodeUser: 65085
+2025-11-25 18:04:29,777 [5] INFO  EgsReport.clsReport - CreateReport_CMC
+2025-11-25 18:04:29,778 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Cannot find table 1.

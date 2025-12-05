@@ -1,0 +1,342 @@
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.SqlClient;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
+using Newtonsoft.Json;
+
+namespace CalcmenuAPI_CMC_CoopGastro.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class AliasController : ControllerBase
+    {
+        private string ConnectionString => HttpContext.RequestServices.GetService<IConfiguration>()?.GetConnectionString("Default") ?? string.Empty;
+
+        [HttpGet("{codealias:int}/{codetrans:int}")]
+        public ActionResult<CalcmenuAPI.Models.AliasData> GetAlias(int codealias, int codetrans)
+        {
+            try
+            {
+                var ds = new DataSet();
+                using var cmd = new SqlCommand();
+                using var cn = new SqlConnection(ConnectionString);
+                cmd.Connection = cn;
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "API_GET_AliasInfo"; // avoid dependency on VB Common
+                cmd.Parameters.Add("@CodeAlias", SqlDbType.Int).Value = codealias;
+                cmd.Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans;
+                cn.Open();
+                using var da = new SqlDataAdapter(cmd);
+                da.Fill(ds);
+                cn.Close();
+
+                var result = new CalcmenuAPI.Models.AliasData();
+                // TODO: map ds -> result
+                return Ok(result);
+            }
+            catch (ArgumentException)
+            {
+                return Problem(title: "Request failed", statusCode: 400);
+            }
+            catch (Exception)
+            {
+                return Problem(title: "Request failed", statusCode: 500);
+            }
+        }
+
+        [HttpPost]
+        public ActionResult<CalcmenuAPI.Models.ResponseCallBack> SaveAlias([FromBody] CalcmenuAPI.Models.AliasData data)
+        {
+            var response = new CalcmenuAPI.Models.ResponseCallBack();
+            var resultCode = 0;
+            SqlTransaction? trans = null;
+            try
+            {
+                using var cmd = new SqlCommand();
+                using var cn = new SqlConnection(ConnectionString);
+                cmd.Connection = cn;
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "API_UPDATE_Alias";
+                cmd.Parameters.Clear();
+                var pId = cmd.Parameters.Add("@Id", SqlDbType.Int);
+                pId.Value = data.Info.Code;
+                pId.Direction = ParameterDirection.InputOutput;
+                cmd.Parameters.Add("@IdMain", SqlDbType.Int).Value = data.Info.IdMain;
+                cmd.Parameters.Add("@CodeTrans", SqlDbType.Int).Value = data.Info.CodeTrans;
+                cmd.Parameters.Add("@Name", SqlDbType.NVarChar).Value = data.Info.Name;
+                cmd.Parameters.Add("@Alias", SqlDbType.NVarChar).Value = data.Info.Alias;
+                var ret = cmd.Parameters.Add("@retval", SqlDbType.Int);
+                ret.Direction = ParameterDirection.ReturnValue;
+
+                cn.Open();
+                trans = cn.BeginTransaction();
+                cmd.Transaction = trans;
+                cmd.ExecuteNonQuery();
+                resultCode = GetInt(ret.Value, -1);
+                if (resultCode != 0) throw new Exception($"[{resultCode}] Save alias failed");
+                var codeAlias = Convert.ToInt32(pId.Value);
+                response.Code = 0;
+                response.Message = "OK";
+                response.ReturnValue = codeAlias;
+                response.Status = true;
+                trans.Commit();
+            }
+            catch (Exception)
+            {
+                try { trans?.Rollback(); trans?.Dispose(); } catch { }
+                if (resultCode == 0) resultCode = 500;
+                response.Code = resultCode;
+                response.Status = false;
+                response.Message = "Save alias failed";
+                return StatusCode(500, response);
+            }
+            return Ok(response);
+        }
+
+        [HttpGet("{codetrans:int}")]
+        public ActionResult<List<CalcmenuAPI.Models.Alias>> SearchAlias(int codetrans)
+        {
+            try
+            {
+                var ds = new DataSet();
+                using var cmd = new SqlCommand();
+                using var cn = new SqlConnection(ConnectionString);
+                cmd.Connection = cn;
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "[dbo].[API_GET_Generic]";
+                cmd.Parameters.Add("@CodeSite", SqlDbType.Int).Value = -1;
+                cmd.Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans;
+                cmd.Parameters.Add("@Type", SqlDbType.Int).Value = -1;
+                cmd.Parameters.Add("@TableName", SqlDbType.NVarChar, 200).Value = "EGSWSEARCHALIASES";
+                cmd.Parameters.Add("@Status", SqlDbType.Int).Value = 1;
+                cn.Open();
+                using var da = new SqlDataAdapter(cmd);
+                da.Fill(ds);
+
+                var aliases = new List<CalcmenuAPI.Models.Alias>();
+                foreach (DataRow r in ds.Tables[0].Rows)
+                {
+                    aliases.Add(new CalcmenuAPI.Models.Alias
+                    {
+                        Code = GetInt(r["Code"]),
+                        IdMain = GetInt(r["IdMain"]),
+                        CodeTrans = GetInt(r["CodeTrans"]),
+                        Name = GetStr(r["Name"]),
+                        [Alias] = GetStr(r["Alias"]) 
+                    });
+                }
+                return Ok(aliases);
+            }
+            catch (ArgumentException)
+            {
+                return Problem(title: "Request failed", statusCode: 400);
+            }
+            catch (Exception)
+            {
+                return Problem(title: "Request failed", statusCode: 500);
+            }
+        }
+
+        [HttpGet("{codetrans:int}/{name}")]
+        public ActionResult<List<CalcmenuAPI.Models.Alias>> SearchAliasByName(int codetrans, string name = "")
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(name) || name == "null" || name == "undefined") name = null;
+                var ds = new DataSet();
+                using var cmd = new SqlCommand();
+                using var cn = new SqlConnection(ConnectionString);
+                cmd.Connection = cn;
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "[dbo].[API_MANAGE_Generic]";
+                cmd.Parameters.Add("@CodeSite", SqlDbType.Int).Value = -1;
+                cmd.Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans;
+                cmd.Parameters.Add("@Type", SqlDbType.Int).Value = -1;
+                cmd.Parameters.Add("@Status", SqlDbType.Int).Value = -1;
+                cmd.Parameters.Add("@TableName", SqlDbType.NVarChar, 200).Value = "EGSWSEARCHALIASES";
+                cmd.Parameters.Add("@Name", SqlDbType.NVarChar, 300).Value = (object?)name ?? DBNull.Value;
+                cn.Open();
+                using var da = new SqlDataAdapter(cmd);
+                da.Fill(ds);
+
+                var aliases = new List<CalcmenuAPI.Models.Alias>();
+                foreach (DataRow r in ds.Tables[0].Rows)
+                {
+                    aliases.Add(new CalcmenuAPI.Models.Alias
+                    {
+                        Code = GetInt(r["Id"]),
+                        IdMain = GetInt(r["IdMain"]),
+                        CodeTrans = GetInt(r["CodeTrans"]),
+                        Name = GetStr(r["Name"]),
+                        [Alias] = GetStr(r["Alias"]) 
+                    });
+                }
+                return Ok(aliases);
+            }
+            catch (ArgumentException)
+            {
+                return Problem(title: "Request failed", statusCode: 400);
+            }
+            catch (Exception)
+            {
+                return Problem(title: "Request failed", statusCode: 500);
+            }
+        }
+
+        [HttpPost("search")]
+        public ActionResult<List<CalcmenuAPI.Models.Alias>> SearchAliasByName2([FromBody] CalcmenuAPI.Models.ConfigurationcSearch data)
+        {
+            try
+            {
+                var ds = new DataSet();
+                using var cmd = new SqlCommand();
+                using var cn = new SqlConnection(ConnectionString);
+                cmd.Connection = cn;
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.CommandText = "[dbo].[API_MANAGE_Generic]";
+                cmd.Parameters.Add("@CodeSite", SqlDbType.Int).Value = -1;
+                cmd.Parameters.Add("@CodeTrans", SqlDbType.Int).Value = data.CodeTrans;
+                cmd.Parameters.Add("@Type", SqlDbType.Int).Value = -1;
+                cmd.Parameters.Add("@Status", SqlDbType.Int).Value = -1;
+                cmd.Parameters.Add("@TableName", SqlDbType.NVarChar, 200).Value = "EGSWSEARCHALIASES";
+                cmd.Parameters.Add("@Name", SqlDbType.NVarChar, 300).Value = data.Name;
+                cn.Open();
+                using var da = new SqlDataAdapter(cmd);
+                da.Fill(ds);
+
+                var aliases = new List<CalcmenuAPI.Models.Alias>();
+                foreach (DataRow r in ds.Tables[0].Rows)
+                {
+                    aliases.Add(new CalcmenuAPI.Models.Alias
+                    {
+                        Code = GetInt(r["Id"]),
+                        IdMain = GetInt(r["IdMain"]),
+                        CodeTrans = GetInt(r["CodeTrans"]),
+                        Name = GetStr(r["Name"]),
+                        [Alias] = GetStr(r["Alias"]) 
+                    });
+                }
+                return Ok(aliases);
+            }
+            catch (ArgumentException)
+            {
+                return Problem(title: "Request failed", statusCode: 400);
+            }
+            catch (Exception)
+            {
+                return Problem(title: "Request failed", statusCode: 500);
+            }
+        }
+
+        [HttpPost("delete")]
+        public ActionResult<CalcmenuAPI.Models.ResponseCallBack> DeleteAlias([FromBody] CalcmenuAPI.Models.GenericDeleteData data)
+        {
+            var response = new CalcmenuAPI.Models.ResponseCallBack();
+            var resultCode = 0;
+            try
+            {
+                var arrAliasCodes = new ArrayList();
+                foreach (var c in data.CodeList)
+                {
+                    if (!arrAliasCodes.Contains(c.Code)) arrAliasCodes.Add(c.Code);
+                }
+                var codeList = string.Join(",", arrAliasCodes.Cast<object>().Select(x => Convert.ToString(x)));
+
+                using var cmd = new SqlCommand();
+                using var cn = new SqlConnection(ConnectionString);
+                cmd.Connection = cn;
+                cmd.CommandText = "API_DELETE_Generic";
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Clear();
+                cmd.Parameters.Add("@CodeList", SqlDbType.VarChar, 4000).Value = codeList;
+                cmd.Parameters.Add("@TableName", SqlDbType.VarChar, 200).Value = "EGSWSEARCHALIASES";
+                cmd.Parameters.Add("@CodeUser", SqlDbType.Int).Value = data.CodeUser;
+                cmd.Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.CodeSite;
+                cmd.Parameters.Add("@ForceDelete", SqlDbType.Bit).Value = data.ForceDelete;
+                var skipList = cmd.Parameters.Add("@SkipList", SqlDbType.NVarChar, 4000);
+                skipList.Direction = ParameterDirection.Output;
+                var ret = cmd.Parameters.Add("@Return", SqlDbType.Int);
+                ret.Direction = ParameterDirection.ReturnValue;
+
+                cn.Open();
+                cmd.ExecuteNonQuery();
+                resultCode = GetInt(ret.Value, -1);
+                if (resultCode != 0) throw new Exception($"[{resultCode}] Delete alias failed");
+
+                response.Code = 0;
+                response.Message = "OK";
+                response.ReturnValue = GetStr(skipList.Value);
+                response.Status = true;
+            }
+            catch (Exception)
+            {
+                if (resultCode == 0) resultCode = 500;
+                response.Code = resultCode;
+                response.Status = false;
+                response.ReturnValue = "";
+                response.Message = "Delete failed";
+                return StatusCode(500, response);
+            }
+            return Ok(response);
+        }
+
+        [HttpPost("purge/{type:int}/{codeUser:int}/{codeSite:int}")]
+        public ActionResult<CalcmenuAPI.Models.ResponseCallBack> PurgeAlias(int type, long codeUser, long codeSite)
+        {
+            var response = new CalcmenuAPI.Models.ResponseCallBack();
+            var resultCode = 0;
+            SqlTransaction? trans = null;
+            try
+            {
+                using var cmd = new SqlCommand();
+                using var cn = new SqlConnection(ConnectionString);
+                cmd.Connection = cn;
+                cmd.CommandText = "API_PURGE_Generic";
+                cmd.CommandType = CommandType.StoredProcedure;
+                cmd.Parameters.Clear();
+                cmd.Parameters.Add("@TableName", SqlDbType.VarChar, 200).Value = "EGSWSEARCHALIASES";
+                cmd.Parameters.Add("@Type", SqlDbType.Int).Value = type;
+                cmd.Parameters.Add("@CodeUser", SqlDbType.Int).Value = codeUser;
+                cmd.Parameters.Add("@CodeSite", SqlDbType.Int).Value = codeSite;
+                var ret = cmd.Parameters.Add("@Return", SqlDbType.Int);
+                ret.Direction = ParameterDirection.ReturnValue;
+
+                cn.Open();
+                trans = cn.BeginTransaction();
+                cmd.Transaction = trans;
+                cmd.ExecuteNonQuery();
+                resultCode = GetInt(ret.Value, -1);
+                if (resultCode != 0) throw new Exception($"[{resultCode}] Purge alias failed");
+
+                response.Code = 0;
+                response.Message = "OK";
+                response.Status = true;
+                trans.Commit();
+            }
+            catch (Exception)
+            {
+                try { trans?.Rollback(); trans?.Dispose(); } catch { }
+                if (resultCode == 0) resultCode = 500;
+                response.Code = resultCode;
+                response.Status = false;
+                response.Message = "Purge alias failed";
+                return StatusCode(500, response);
+            }
+            return Ok(response);
+        }
+
+        private static int GetInt(object? value, int fallback = 0)
+        {
+            if (value == null || value == DBNull.Value) return fallback;
+            if (int.TryParse(Convert.ToString(value), out var i)) return i;
+            try { return Convert.ToInt32(value); } catch { return fallback; }
+        }
+        private static string GetStr(object? value)
+        {
+            return value == null || value == DBNull.Value ? string.Empty : Convert.ToString(value) ?? string.Empty;
+        }
+    }
+}

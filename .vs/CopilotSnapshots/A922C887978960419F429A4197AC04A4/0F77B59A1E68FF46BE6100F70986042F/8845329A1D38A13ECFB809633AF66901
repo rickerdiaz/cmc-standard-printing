@@ -1,0 +1,63 @@
+﻿Imports System
+Imports System.Web
+Imports System.Collections.Generic
+Imports System.Linq
+Imports AttributeRouting.Web.Http
+Imports System.Data.SqlClient
+Imports System.Web.Script.Serialization
+Imports log4net
+Imports System.Net
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace CalcmenuAPI
+    Public Class PropertyController
+        Inherits ControllerBase
+
+        Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType)
+
+		<HttpGet> <[GET]("/api/property")> _
+		Public Function GetProperty() As List(Of Models.GenericList)
+			Try
+				Dim ds As New DataSet
+				Using cmd As New SqlCommand
+					With cmd
+						Using cn As New SqlConnection(ConnectionString)
+							Try
+								.Connection = cn
+								.CommandType = CommandType.StoredProcedure
+								.CommandText = "[dbo].[API_GET_Properties]"
+								cn.Open()
+								Dim _da As New SqlDataAdapter(cmd)
+								_da.Fill(ds)
+							Finally
+								If Not cn Is Nothing Then
+									cn.Close()
+									CType(cn, IDisposable).Dispose()
+								End If
+							End Try
+						End Using
+					End With
+				End Using
+
+				Dim properties As New List(Of Models.GenericList)
+				For Each r In ds.Tables(0).Rows
+					properties.Add(New Models.GenericList With {
+									.Code = GetInt(r("Code")), _
+									.Value = GetStr(r("Name"))})
+				Next
+				Return properties.ToList
+			Catch aex As ArgumentException
+				Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+				Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+			Catch hex As HttpResponseException
+				Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+				Throw hex
+			Catch ex As Exception
+				Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+				Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+			End Try
+		End Function
+    End Class
+End Namespace
+
+

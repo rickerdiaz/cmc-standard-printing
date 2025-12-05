@@ -1,0 +1,938 @@
+﻿Imports System
+Imports System.Web
+Imports System.Collections.Generic
+Imports System.Linq
+Imports AttributeRouting.Web.Http
+Imports System.Data.SqlClient
+Imports System.Web.Script.Serialization
+Imports log4net
+Imports System.Threading
+Imports System.Drawing
+Imports System.IO
+Imports Newtonsoft.Json
+Imports System.Net
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace CalcmenuAPI
+    Public Class ProcedureTemplateController
+        Inherits ControllerBase
+
+        Private m_PictureNames As String
+        Private m_TempPictureNames As String
+
+        Private arrPictures As String()
+
+        Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType)
+
+
+        <HttpGet> <[GET]("/api/proceduretemplate/{codesite:int}/{codetrans:int}/{type:int}/{name?}")> _
+        Public Function SearchProcedureTemplate(codesite As Integer, _
+                              codetrans As Integer, _
+                              type As Integer, _
+                              Optional name As String = "") As List(Of Models.ProcedureTemplateInfo)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        .Connection = New SqlConnection(ConfigurationManager.AppSettings.Get("dsn").ToString)
+                        .CommandType = CommandType.StoredProcedure
+                        .CommandText = "[dbo].[API_GET_ProcedureTemplate]"
+                        .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                        .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans
+                        .Parameters.Add("@Type", SqlDbType.Int).Value = type
+
+                        .Connection.Open()
+                        Dim _da As New SqlDataAdapter(cmd)
+                        _da.Fill(ds)
+                        .Connection.Close()
+                    End With
+                End Using
+
+                Dim templates As New List(Of Models.ProcedureTemplateInfo)
+                For Each r In ds.Tables(0).Rows
+                    templates.Add(New Models.ProcedureTemplateInfo With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name")), _
+                                    .Global = GetBool(r("Global"))})
+                Next
+
+                If name.Trim <> "" Then
+
+                    Dim templateresult As New List(Of Models.ProcedureTemplateInfo)
+
+                    Dim arrNames() As String = name.Trim.Split(",")
+                    For Each word In arrNames
+                        For Each c In templates
+                            If c.Name.ToLower.Contains(Common.ReplaceSpecialCharacters(word.Trim.ToLower)) Then
+                                templateresult.Add(c)
+                            End If
+                        Next
+                    Next
+                    templates = templateresult
+
+                End If
+
+                Return templates.ToList
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        'START - Raqi Pinili 08.26.2015
+        <HttpPost> <[POST]("/api/proceduretemplate/search")> _
+        Public Function SearchProcedureTemplate2(data As Models.ConfigurationcSearch) As List(Of Models.ProcedureTemplateInfo)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        .Connection = New SqlConnection(ConfigurationManager.AppSettings.Get("dsn").ToString)
+                        .CommandType = CommandType.StoredProcedure
+                        .CommandText = "[dbo].[API_GET_ProcedureTemplate]"
+                        .Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.CodeSite
+                        .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = data.CodeTrans
+                        .Parameters.Add("@Type", SqlDbType.Int).Value = data.Type
+
+                        .Connection.Open()
+                        Dim _da As New SqlDataAdapter(cmd)
+                        _da.Fill(ds)
+                        .Connection.Close()
+                    End With
+                End Using
+
+                Dim templates As New List(Of Models.ProcedureTemplateInfo)
+                For Each r In ds.Tables(0).Rows
+                    templates.Add(New Models.ProcedureTemplateInfo With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name")), _
+                                    .Global = GetBool(r("Global"))})
+                Next
+
+                If data.Name.Trim <> "" Then
+
+                    Dim templateresult As New List(Of Models.ProcedureTemplateInfo)
+
+                    Dim arrNames() As String = data.Name.Trim.Split(",")
+                    For Each word In arrNames
+                        For Each c In templates
+                            If c.Name.ToLower.Contains(Common.ReplaceSpecialCharacters(word.Trim.ToLower)) Then
+                                templateresult.Add(c)
+                            End If
+                        Next
+                    Next
+                    templates = templateresult
+
+                End If
+
+                Return templates.ToList
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+        'END - Raqi Pinili 08.26.2015
+
+        <HttpGet> <[GET]("/api/proceduretemplateinfo/{codetemplate:int}/{codesite:int}/{codetrans:int}/{type:int}")> _
+        Public Function GetProcedureTemplateInfo(codetemplate As Integer, _
+                              codesite As Integer, _
+                              codetrans As Integer, _
+                              type As Integer) As Models.ProcedureTemplate
+            Dim template As New Models.ProcedureTemplate
+            Try
+                Using cmd As New SqlCommand()
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_ProcedureTemplateInfo]"
+                                .Parameters.Add("@CodeTemplate", SqlDbType.Int).Value = codetemplate
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = type
+                                cn.Open()
+
+                                Using dr As SqlDataReader = cmd.ExecuteReader()
+                                    '' Main
+                                    If dr.HasRows Then
+                                        Dim info As New Models.ProcedureTemplateInfo
+                                        While dr.Read
+                                            With info
+                                                .Code = GetInt(dr("Code"))
+                                                .Name = GetStr(dr("Name"))
+                                                .Global = GetBool(dr("Global"))
+                                                .Note = GetStr(dr("Note"))
+                                                template.Global = GetBool(dr("Global"))
+                                            End With
+                                        End While
+                                        template.Info = info
+                                    End If
+
+                                    '' Procedure Template Name Translation
+                                    dr.NextResult()
+                                    Dim translation As New List(Of Models.RecipeTranslation)
+                                    If dr.HasRows Then
+                                        While dr.Read
+                                            translation.Add(
+                                                New Models.RecipeTranslation With {
+                                                   .CodeTrans = GetInt(dr("CodeTrans")), _
+                                                    .TranslationName = GetStr(dr("TranslationName")), _
+                                                    .Name = GetStr(dr("Name"))})
+                                        End While
+                                        template.Translations = translation
+                                    End If
+
+                                    '' Procedure Translation
+                                    dr.NextResult()
+                                    Dim procedureTranslation As New List(Of Models.RecipeProcedureTranslation)
+                                    If dr.HasRows Then
+                                        While dr.Read
+                                            procedureTranslation.Add(
+                                                New Models.RecipeProcedureTranslation With {
+                                                    .NoteId = GetInt(dr("NoteId")), _
+                                                    .CodeTrans = GetInt(dr("CodeTrans")), _
+                                                    .Note = GetStr(dr("Note")), _
+                                                    .AbbrevNote = GetStr(dr("AbbrevNote")), _
+                                                    .Position = GetInt(dr("Position"))
+                                                    }
+                                                )
+                                        End While
+                                    End If
+
+                                    '' Procedure
+                                    dr.NextResult()
+                                    If dr.HasRows Then
+                                        Dim procedure As New List(Of Models.RecipeProcedure)
+                                        While dr.Read
+                                            procedure.Add(
+                                                New Models.RecipeProcedure With {
+                                                    .NoteId = GetInt(dr("NoteId")), _
+                                                    .Position = GetInt(dr("Position")), _
+                                                    .Note = GetStr(dr("Note")), _
+                                                    .AbbrevNote = GetStr(dr("AbbrevNote")), _
+                                                    .Translation = procedureTranslation.Where(Function(c) c.NoteId = .NoteId).ToList(), _
+                                                    .Picture = GetStr(dr("Picture")), _
+                                                    .hasPicture = GetStr(dr("hasPicture"))
+                                                    })
+                                        End While
+                                        template.Procedures = procedure
+                                    End If
+
+                                    '' Procedure
+                                    dr.NextResult()
+                                    If dr.HasRows Then
+                                        Dim users As New List(Of Models.GenericList)
+                                        While dr.Read
+                                            users.Add(New Models.GenericList With {.Code = GetInt(dr("CodeUser")), .Value = GetStr(dr("IsAssigned")), .Name = GetStr(dr("Name"))})
+                                        End While
+                                        template.Users = users
+                                    End If
+
+                                    dr.Close()
+
+                                End Using
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+
+            Return template
+        End Function
+
+        <HttpGet> <[GET]("/api/proceduretemplate/sharing/{codetemplate:int}")> _
+        Public Function GetProcedureTemplateSharing(codetemplate As Integer) As List(Of Models.TreeNode)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_SharingProcedureTemplate]"
+                                .Parameters.Add("@CodeTemplate", SqlDbType.Int).Value = codetemplate
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim sharings As New List(Of Models.GenericTree)
+                For Each r In ds.Tables(0).Rows
+                    sharings.Add(New Models.GenericTree With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name")), _
+                                    .ParentCode = GetInt(r("ParentCode")), _
+                                    .ParentName = GetStr(r("ParentName")), _
+                                    .Flagged = GetBool(r("Flagged")), _
+                                    .Type = GetInt(r("Type")), _
+                                    .Global = GetBool(r("Global"))})
+                Next
+
+                'Dim sharingdata As New List(Of Models.TreeNode)
+
+                'Dim parents = sharings.Where(Function(obj) obj.ParentCode = 0 And obj.Type = 1).OrderBy(Function(obj) obj.Name).ToList()
+
+                'For Each p In parents
+                '    Dim parent As New Models.TreeNode
+                '    parent.title = p.Name
+                '    parent.key = p.Code
+                '    parent.icon = False
+                '    parent.children = CreateChildrenSharing(sharings, p.Code)
+                '    parent.select = p.Flagged
+                '    parent.selected = p.Flagged
+                '    parent.parenttitle = p.ParentName
+                '    sharingdata.Add(parent)
+                'Next
+
+
+                Dim sharingdata As New List(Of Models.TreeNode)
+
+                Dim parents = sharings.Where(Function(obj) obj.ParentCode = 0 And obj.Type = 1).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each p In parents
+                    Dim parent As New Models.TreeNode
+                    parent.title = p.Name
+                    parent.key = p.Code
+                    parent.icon = False
+                    parent.children = CreateChildrenSharing(sharings, p.Code)
+                    parent.select = p.Flagged
+                    parent.selected = p.Flagged
+                    parent.parenttitle = p.ParentName
+                    parent.groupLevel = GroupLevel.Property     'MKAM 2014.11.11
+                    If parent.children.Count > 0 Then sharingdata.Add(parent)
+                Next
+
+                Return sharingdata
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpPost> <POST("api/proceduretemplate")> _
+        Public Function SaveProcedureTemplate(data As Models.ProcedureTemplate) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim _trans As SqlTransaction = Nothing
+            Dim resultCode As Integer = 0
+
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + JsonConvert.SerializeObject(data, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+                Using cmd As New SqlCommand
+
+                    ' Validation
+                    If data Is Nothing Then
+                        Throw (New ArgumentNullException("procedure template data is empty"))
+                    End If
+                    If data.Info Is Nothing Then
+                        Throw (New ArgumentNullException("invalid procedure template data"))
+                    End If
+
+                    With cmd
+                        Using cn = New SqlConnection(ConnectionString)
+                            Try
+                                Dim intCodeTemplate As Integer = -1
+                                Dim intCodeUser As Integer = GetInt(data.Info.CodeUser)
+
+                                Dim arrSharing As New ArrayList
+                                For Each sh In data.Sharing
+                                    If arrSharing.IndexOf(sh.Code) = -1 Then arrSharing.Add(sh.Code)
+                                Next
+                                Dim codeSharedTo As String = Common.Join(arrSharing, "(", ")", ",")
+                                codeSharedTo = Common.Join(arrSharing, "", "", ",")
+
+
+
+                                'If data.Sharing IsNot Nothing Then
+                                '    Dim sharingList = (From row In data.Sharing.AsEnumerable() Select row.Code).Distinct().ToList()
+                                '    Dim codeSharedTo As String = String.Join(",", sharingList)
+                                'End If
+
+
+                                ' Wait for 2 minutes for the query to execute before timing out
+                                .CommandTimeout = 120
+                                .Connection = cn
+                                .CommandText = "[dbo].[API_UPDATE_ProcedureTemplate]"
+                                .CommandType = CommandType.StoredProcedure
+                                .Parameters.Add("@CodeTemplate", SqlDbType.Int).Value = data.Info.Code
+                                .Parameters.Add("@Name", SqlDbType.NVarChar).Value = data.Info.Name
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = data.Info.Type
+                                .Parameters.Add("@Global", SqlDbType.Bit).Value = GetBool(data.Info.Global)
+                                .Parameters.Add("@CodeSite", SqlDbType.Int, 260).Value = data.Info.CodeSite
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int, 20).Value = data.Info.CodeTrans
+                                .Parameters.Add("@Note", SqlDbType.NVarChar).Value = data.Info.Note
+                                .Parameters.Add("@CodeSiteList", SqlDbType.NVarChar, 2000).Value = codeSharedTo    'RDTC 2015.08.13
+
+                                ''Output Params
+                                .Parameters.Add("@CodeTemplateNew", SqlDbType.Int).Direction = ParameterDirection.Output
+                                .Parameters.Add("@Return", SqlDbType.Int).Direction = ParameterDirection.Output
+
+                                cn.Open()
+                                _trans = cn.BeginTransaction
+                                .Transaction = _trans
+                                .ExecuteNonQuery()
+
+                                intCodeTemplate = GetInt(.Parameters("@CodeTemplateNew").Value, -1)
+
+                                resultCode = GetInt(.Parameters("@Return").Value, -1)
+                                If resultCode <> 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Procedure Template update failed", resultCode))
+                                End If
+
+                                _trans.Commit()
+
+
+                                If intCodeTemplate > 0 Then
+                                    ' Update sharing
+                                    If data.Sharing IsNot Nothing Then
+                                        'Dim sharingList = (From row In data.Sharing.AsEnumerable() Select row.Code).Distinct().ToList()
+                                        'Dim codeSharedTo As String = String.Join(",", sharingList)
+
+                                        .CommandText = SP_API_UPDATE_Sharing
+                                        .Parameters.Clear()
+                                        .Parameters.Add("@Code", SqlDbType.Int).Value = intCodeTemplate
+                                        .Parameters.Add("@CodeOwner", SqlDbType.Int).Value = intCodeUser
+                                        .Parameters.Add("@CodeSharedToList", SqlDbType.VarChar, 4000).Value = codeSharedTo
+                                        .Parameters.Add("@Type", SqlDbType.Int).Value = 128
+                                        .Parameters.Add("@CodeEgswTable", SqlDbType.Int).Value = 50
+                                        .Parameters.Add("@IsGlobal", SqlDbType.Bit).Value = data.Info.Global
+                                        .Parameters.Add("@Return", SqlDbType.Int).Direction = ParameterDirection.ReturnValue
+                                        .ExecuteNonQuery()
+                                        resultCode = GetInt(.Parameters("@Return").Value, -1)
+                                        If resultCode <> 0 Then
+                                            Throw New DatabaseException(String.Format("[{0}] Save procedure template sharing failed", resultCode))
+                                        End If
+                                    End If
+
+                                    ''Procedure
+                                    Dim dsCurrentProcedure As New DataSet
+                                    Dim _da As New SqlDataAdapter(cmd)
+                                    .CommandText = "sp_EgswGetInstruction"
+                                    .CommandType = CommandType.StoredProcedure
+                                    .Parameters.Clear()
+                                    .Parameters.Add("@intCodeListe", SqlDbType.Int).Value = intCodeTemplate
+                                    .Parameters.Add("@intCodeTrans", SqlDbType.Int).Value = data.Info.CodeTrans
+                                    _da = New SqlDataAdapter(cmd)
+                                    _da.Fill(dsCurrentProcedure)
+
+                                    If data.Procedures IsNot Nothing AndAlso data.Procedures.Count > 0 Then
+                                        Dim _noteID As Integer
+                                        'Delete removed procedure items
+                                        If dsCurrentProcedure IsNot Nothing AndAlso dsCurrentProcedure.Tables.Count > 0 AndAlso dsCurrentProcedure.Tables(0).Rows.Count > 0 Then
+                                            Dim dtProcedure As DataTable = dsCurrentProcedure.Tables(0)
+                                            .CommandText = <sql>
+                                            DELETE FROM EgswListeNoteTrans WHERE EgswListeNoteID = @NoteID; 
+                                            DELETE FROM EgswListeNote WHERE ID = @NoteID;
+                                        </sql>.Value
+                                            .CommandType = CommandType.Text
+                                            .Parameters.Clear()
+                                            .Parameters.Add("@NoteID", SqlDbType.Int)
+
+                                            For Each dr As DataRow In dtProcedure.Rows
+                                                _noteID = GetInt(dr("ID"))
+                                                If data.Procedures.Where(Function(s) s.NoteId = _noteID).Count = 0 Then
+                                                    .Parameters("@NoteID").Value = _noteID
+                                                    .ExecuteNonQuery()
+                                                End If
+                                            Next
+                                        End If
+
+                                        Dim procpics As String = ""
+                                        'Insert/update procedure items
+                                        For Each procedure As Models.RecipeProcedure In data.Procedures
+                                            .CommandText = "sp_EgswListeNoteUpdate"
+                                            .CommandType = CommandType.StoredProcedure
+                                            .Parameters.Clear()
+                                            .Parameters.Add("@NoteId", SqlDbType.Int).Value = procedure.NoteId
+                                            .Parameters.Add("@Codeliste", SqlDbType.Int).Value = intCodeTemplate
+                                            .Parameters.Add("@Position", SqlDbType.Int).Value = procedure.Position
+                                            .Parameters.Add("@DigitalAsset", SqlDbType.NVarChar, 2000).Value = DBNull.Value
+                                            .Parameters.Add("@Picture", SqlDbType.NVarChar, 2000).Value = GetStr(procedure.Picture)
+                                            .Parameters.Add("@FreakOutMoment", SqlDbType.Bit).Value = DBNull.Value
+                                            .Parameters.Add("@ID", SqlDbType.Int).Direction = ParameterDirection.Output
+                                            .Parameters.Add("@retVal", SqlDbType.Int).Direction = ParameterDirection.ReturnValue
+                                            .ExecuteNonQuery()
+                                            resultCode = GetInt(.Parameters("@retval").Value, -1)
+                                            If resultCode <> 0 Then
+                                                Throw New DatabaseException(String.Format("[{0}] Update Procedure Template notes failed", resultCode))
+                                            End If
+                                            If procedure.NoteId <= 0 Then
+                                                _noteID = GetInt(.Parameters("@ID").Value, -1)
+                                            Else
+                                                _noteID = procedure.NoteId
+                                            End If
+
+                                            'Insert/update translation
+                                            If _noteID > 0 Then
+                                                .CommandText = <sql>
+                                                            IF EXISTS ( SELECT ID FROM EgsWListeNoteTrans WHERE EgswListeNoteId = @NoteID AND CodeTrans = @Codetrans ) 
+                                                            BEGIN 
+                                                                UPDATE EgswListeNoteTrans
+                                                                SET Note = @Note, Comment = @Comment, CookMode = @CookMode
+                                                                WHERE EgswListeNoteId = @NoteID AND CodeTrans = @Codetrans
+                                                            END ELSE BEGIN
+                                                                INSERT INTO EgswListeNoteTrans ( EgswListeNoteID, CodeTrans, Note, Comment, CookMode )
+                                                                VALUES ( @NoteID, @CodeTrans, @Note, @Comment, @CookMode ) 
+                                                            END
+                                                       </sql>.Value
+                                                .CommandType = CommandType.Text
+                                                For Each item As Models.RecipeProcedureTranslation In procedure.Translation
+                                                    .Parameters.Clear()
+                                                    .Parameters.Add("@NoteID", SqlDbType.Int).Value = _noteID
+                                                    .Parameters.Add("@Codetrans", SqlDbType.Int).Value = item.CodeTrans
+                                                    .Parameters.Add("@Note", SqlDbType.NVarChar, 2000).Value = IIf(data.Info.CodeTrans = item.CodeTrans, procedure.Note, IIf(item.Note IsNot Nothing And item.Note <> "", item.Note, "")) 'ECAM 1.9.2017
+                                                    '.Parameters.Add("@Note", SqlDbType.NVarChar, 2000).Value = IIf(item.Note IsNot Nothing And item.Note <> "", item.Note, "")
+                                                    .Parameters.Add("@Comment", SqlDbType.NVarChar, 2000).Value = String.Empty
+                                                    .Parameters.Add("@CookMode", SqlDbType.NVarChar, 4000).Value = item.AbbrevNote
+                                                    .ExecuteNonQuery()
+                                                Next
+                                            End If
+                                            procpics += procedure.Picture & ";"
+                                        Next
+                                        m_PictureNames = procpics
+                                        m_TempPictureNames = data.TempPictures
+                                        arrPictures = procpics.Split(";")
+                                        Log.Info("arrayPictures" + arrPictures.ToString)
+                                        Dim NewThread As Thread = New Thread(AddressOf SavePictures)
+                                        NewThread.Priority = ThreadPriority.Lowest
+                                        NewThread.Start()
+                                    ElseIf data.Procedures IsNot Nothing AndAlso data.Procedures.Count = 0 Then
+                                        'Delete all procedure
+                                        .CommandText = <sql>
+                                        DELETE FROM dbo.EgswListeNoteTrans WHERE EgswListeNoteID IN ( SELECT ID FROM dbo.EgswListeNote WHERE CodeListe = @CodeListe );
+                                        DELETE FROM dbo.EgswListeNote WHERE CodeListe = @CodeListe;
+                                    </sql>.Value
+                                        .CommandType = CommandType.Text
+                                        .Parameters.Clear()
+                                        .Parameters.Add("@CodeListe", SqlDbType.Int).Value = intCodeTemplate
+                                        .ExecuteNonQuery()
+                                    End If
+
+
+                                    ''Translation
+                                    If data.translations IsNot Nothing Then
+                                        For Each t In data.translations
+                                            .CommandText = <sql>
+                                                           IF EXISTS(SELECT Id FROM EgswListeTranslation WHERE CodeListe=@CodeListe AND CodeTrans=@CodeTrans)
+                                                                BEGIN
+	                                                            UPDATE EgswListeTranslation SET [Name]=@Name, [SubTitle]=@SubName, [Remark]=@Remark, [Description]=@Description, [FootNote1]=@FootNote1, [FootNote2]=@FootNote2,  [FootNote1Clean]=dbo.[fn_CleanText](@FootNote1), [FootNote2Clean]=dbo.[fn_CleanText](@FootNote2), [CCPDescription]=@CCPDescription WHERE CodeListe=@CodeListe AND CodeTrans=@CodeTrans
+	                                                            END
+                                                           ELSE
+	                                                            BEGIN
+	                                                            INSERT INTO EgswListeTranslation(CodeListe, CodeTrans, [Name], [SubTitle], [Remark], [Description], [FootNote1], [FootNote2], [FootNote1Clean], [FootNote2Clean], [CCPDescription]) VALUES(@CodeListe, @CodeTrans, @Name, @SubName, @Remark, @Description, @FootNote1, @FootNote2, dbo.[fn_CleanText](@FootNote1), dbo.[fn_CleanText](@FootNote2), @CCPDescription)
+	                                                            END
+                                                       </sql>.Value
+                                            .CommandType = CommandType.Text
+                                            .Parameters.Clear()
+                                            .Parameters.Add("@CodeListe", SqlDbType.Int).Value = intCodeTemplate
+                                            .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = t.CodeTrans
+                                            .Parameters.Add("@Name", SqlDbType.NVarChar).Value = GetStr(t.Name)
+                                            .Parameters.Add("@SubName", SqlDbType.NVarChar).Value = GetStr(t.SubName)
+                                            .Parameters.Add("@Remark", SqlDbType.NVarChar).Value = GetStr(t.Remark)
+                                            .Parameters.Add("@Description", SqlDbType.NVarChar).Value = GetStr(t.Description)
+                                            .Parameters.Add("@FootNote1", SqlDbType.NVarChar).Value = GetStr(t.Notes)
+                                            .Parameters.Add("@FootNote2", SqlDbType.NVarChar).Value = GetStr(t.AdditionalNotes)
+                                            .Parameters.Add("@CCPDescription", SqlDbType.NVarChar).Value = GetStr(t.CCPDescription)
+
+                                            .ExecuteNonQuery()
+                                        Next
+                                    Else '' Default translation only, for single-translation sites, the Translation tabs may not be visible
+
+                                    End If
+
+                                    ' Update procedure template users
+                                    If data.Users IsNot Nothing Then
+                                        Dim userList = (From row In data.Users.AsEnumerable() Where row.Value = "1" Select row.Code).Distinct().ToList()
+                                        Dim codeusers As String = String.Join(",", userList)
+                                        .CommandText = "[dbo].[API_UPDATE_ProcedureTemplateUser]"
+                                        .CommandType = CommandType.StoredProcedure
+                                        .Parameters.Clear()
+                                        .Parameters.Add("@CodeTemplate", SqlDbType.Int).Value = intCodeTemplate
+                                        .Parameters.Add("@CodeUsers", SqlDbType.VarChar, 4000).Value = codeusers
+                                        .Parameters.Add("@CodeUserOwner", SqlDbType.Int).Value = intCodeUser
+                                        .Parameters.Add("@Return", SqlDbType.Int).Direction = ParameterDirection.ReturnValue
+                                        .ExecuteNonQuery()
+                                        resultCode = GetInt(.Parameters("@Return").Value, -1)
+                                        If resultCode <> 0 Then
+                                            Throw New DatabaseException(String.Format("[{0}] Save Procedure Template users failed", resultCode))
+                                        End If
+                                    End If
+
+                                End If
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.ReturnValue = intCodeTemplate
+                                response.Message = Common.ReplaceSpecialCharacters(data.Info.Name) & " successfully saved."
+                                response.Status = True
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                Try
+                                    _trans.Rollback()
+                                    If Not _trans Is Nothing Then
+                                        CType(_trans, IDisposable).Dispose()
+                                    End If
+                                Catch
+                                End Try
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.Status = False
+                                response.Message = "Save Procedure Template failed"
+                                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Procedure Template")
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+
+                        End Using
+
+                    End With
+                End Using
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                response.Code = 400
+                response.Message = "Missing or invalid parameters"
+                response.Parameters = New List(Of Models.param) From {New Models.param With {.name = "data", .value = "RecipeData"}}
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), aex.Message.ToString(), aex.StackTrace.ToString(), "Procedure Template")
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), hex.Message.ToString(), hex.StackTrace.ToString(), "Procedure Template")
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Procedure Template")
+            End Try
+            Return response
+
+        End Function
+
+        <HttpPost> <POST("api/proceduretemplate/delete")> _
+        Public Function DeleteProcedureTemplate(data As Models.GenericDeleteData) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim resultCode As Integer = 0
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + JsonConvert.SerializeObject(data, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+                Using cmd As New SqlCommand
+                    Dim arrProcedureTemplateCodes As New ArrayList
+                    For Each c In data.CodeList
+                        If arrProcedureTemplateCodes.IndexOf(c.Code) = -1 Then arrProcedureTemplateCodes.Add(c.Code)
+                    Next
+                    Dim _codeProcedureTemplate As String = Common.Join(arrProcedureTemplateCodes, "", "", ",")
+
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandText = "API_DELETE_Generic"
+                                .CommandType = CommandType.StoredProcedure
+                                .Parameters.Clear()
+                                .Parameters.Add("@CodeList", SqlDbType.VarChar, 4000).Value = _codeProcedureTemplate
+                                .Parameters.Add("@TableName", SqlDbType.VarChar, 200).Value = "PROCEDURETEMPLATE"
+                                .Parameters.Add("@CodeUser", SqlDbType.Int).Value = data.CodeUser                    ''codeuser
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.CodeSite                    ''codesite                                                        
+                                .Parameters.Add("@ForceDelete", SqlDbType.Bit).Value = data.ForceDelete              ''force delete
+                                .Parameters.Add("@SkipList", SqlDbType.VarChar, 4000).Direction = ParameterDirection.Output
+                                .Parameters.Add("@Return", SqlDbType.Int)
+                                .Parameters("@Return").Direction = ParameterDirection.ReturnValue
+
+                                cn.Open()
+                                .ExecuteNonQuery()
+                                resultCode = GetInt(.Parameters("@Return").Value, -1)
+                                If resultCode <> 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Delete procedure template failed", resultCode))
+                                End If
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = GetStr(.Parameters("@SkipList").Value)
+                                response.Status = True
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.Status = False
+                                response.ReturnValue = GetStr(.Parameters("@SkipList").Value)
+                                response.Message = "Delete procedure template failed"
+                                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Procedure Template")
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+
+                End Using
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                response.Code = 400
+                response.Message = "Missing or invalid parameters"
+                response.Parameters = New List(Of Models.param) From {New Models.param With {.name = "data", .value = "RecipeData"}}
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), aex.Message.ToString(), aex.StackTrace.ToString(), "Procedure Template")
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), hex.Message.ToString(), hex.StackTrace.ToString(), "Procedure Template")
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Procedure Template")
+            End Try
+            Return response
+        End Function
+
+        Private Function CreateChildrenSharing(_sharingdata As List(Of Models.GenericTree),
+                                               _code As Integer) As List(Of Models.TreeNode)
+            Dim children As New List(Of Models.TreeNode)
+            If _sharingdata IsNot Nothing Then
+                Dim kids = _sharingdata.Where(Function(obj) obj.ParentCode = _code And obj.Type = 2).OrderBy(Function(obj) obj.Name).ToList() ' RBAJ-2014.04.23 Fixed infinite loop "obj.Code <> _code"
+                For Each k In kids
+                    Dim child As New Models.TreeNode
+                    child.title = k.Name
+                    child.key = k.Code
+                    child.icon = False
+                    child.children = Nothing
+                    children.Add(child)
+                    child.select = k.Flagged
+                    child.parenttitle = k.ParentName
+                    child.note = k.Global
+                Next
+            End If
+            Return children
+        End Function
+
+        Private Sub SavePictures()
+            Try
+
+                Dim strTempFolder As String = TempFolder2
+
+                If m_PictureNames.Trim.Length > 0 Then
+                    Dim arrPictureNames() As String = m_PictureNames.Trim.Split(";")
+                    m_PictureNames = String.Join(";", arrPictures)
+                    If arrPictureNames.Length > 0 Then
+                        For ctr As Integer = 0 To arrPictureNames.Length - 1
+                            If arrPictureNames(ctr).Trim.Length > 0 Then
+
+                                Dim pic As String = arrPictureNames(ctr)
+                                Dim _source As String
+                                If pic.Trim.IndexOf("| DAM") <> -1 Then
+
+                                    pic = pic.Substring(0, pic.IndexOf("|")).Trim
+                                    _source = DamFolder & pic
+                                    File.Copy(_source, strTempFolder & arrPictures(ctr))
+                                    pic = arrPictures(ctr)
+                                End If
+                                _source = strTempFolder & pic
+                                If File.Exists(_source) Then
+
+                                    'Save picoriginal
+                                    File.Copy(_source, PicOriginalFolder & pic)
+                                    'Save picnormal
+                                    fctResizeConvertImage(_source, PicNormalFolder & pic, 300, 300, False)
+
+                                    'Save picthumbnail
+                                    fctResizeConvertImage(_source, PicThumbnailFolder & pic, 200, 200, False)
+                                    Log.Info("Picture saved:" + _source)
+                                End If
+                            End If
+                        Next
+                    End If
+                End If
+
+                ''Remove pictures stored in the temp and those in picnormal, picthumbnail, picoriginal
+                If m_TempPictureNames.Length > 0 Then
+                    Dim arrPictureNames() As String = m_TempPictureNames.Trim.Split(";")
+                    If arrPictureNames.Length > 0 Then
+                        For Each pic As String In arrPictureNames
+
+                            If pic.Trim.Length > 0 Then
+                                If pic.Trim.LastIndexOf("| DAM") = -1 Then
+                                    Dim _source As String = strTempFolder & pic
+                                    If File.Exists(_source) Then
+                                        File.Delete(_source)
+
+                                    End If
+
+                                    If m_PictureNames.IndexOf(pic) = -1 Then
+                                        'Delete from picoriginal
+                                        If File.Exists(PicOriginalFolder & pic) Then
+                                            File.Delete(PicOriginalFolder & pic)
+                                        End If
+
+                                        'Delete from picnormal
+                                        If File.Exists(PicNormalFolder & pic) Then
+                                            File.Delete(PicNormalFolder & pic)
+                                        End If
+
+                                        'Delete from picthumbnail
+                                        If File.Exists(PicThumbnailFolder & pic) Then
+                                            File.Delete(PicThumbnailFolder & pic)
+                                        End If
+                                        Log.Info("Picture deleted:" + pic)
+                                    End If
+
+                                End If
+                            End If
+
+                        Next
+                    End If
+                End If
+
+            Catch ex As Exception
+                Log.Error("Save pictures failed", ex)
+            End Try
+        End Sub
+
+        Public ReadOnly Property TempFolder2() As String
+            Get
+                Dim tmp As String = GetStr(ConfigurationManager.AppSettings("temp")).Trim()
+                If tmp.Equals(String.Empty) Then
+                    tmp = Common.MapPath("temp")
+                End If
+                Return tmp.TrimEnd("\") + "\"
+            End Get
+        End Property
+
+        Public ReadOnly Property DamFolder() As String
+            Get
+                Dim tmp As String = GetStr(ConfigurationManager.AppSettings("dam")).Trim()
+                If tmp.Equals(String.Empty) Then
+                    tmp = Common.MapPath("DigitalAssets")
+                End If
+                Return tmp.TrimEnd("\") + "\"
+            End Get
+        End Property
+        Public ReadOnly Property PicNormalFolder() As String
+            Get
+                Dim tmp As String = GetStr(ConfigurationManager.AppSettings("picnormal")).Trim()
+                If tmp.Equals(String.Empty) Then
+                    tmp = Common.MapPath("picnormal")
+                End If
+                Return tmp.TrimEnd("\") + "\"
+            End Get
+        End Property
+
+        Public ReadOnly Property PicThumbnailFolder() As String
+            Get
+                Dim tmp As String = GetStr(ConfigurationManager.AppSettings("picthumbnail")).Trim()
+                If tmp.Equals(String.Empty) Then
+                    tmp = Common.MapPath("picthumbnail")
+                End If
+                Return tmp.TrimEnd("\") + "\"
+            End Get
+        End Property
+        Public ReadOnly Property PicOriginalFolder() As String
+            Get
+                Dim tmp As String = GetStr(ConfigurationManager.AppSettings("picoriginal")).Trim()
+                If tmp.Equals(String.Empty) Then
+                    tmp = Common.MapPath("picoriginal")
+                End If
+                Return tmp.TrimEnd("\") + "\"
+            End Get
+        End Property
+
+        Private Function fctResizeConvertImage(ByVal strFile As String, _
+                                               ByVal strDestination As String, _
+                                               ByVal newWidth As Integer, _
+                                               ByVal newHeight As Integer, _
+                                               Optional ByVal blnDelete As Boolean = False) As Boolean
+            Try
+                Dim dblTempW As Double
+                Dim dblTempH As Double
+                Dim H1 As Integer
+                Dim W1 As Integer
+                Dim strNewFile As String
+
+                Dim FileToResize As String = strFile 'Server.MapPath("~/images/1.jpg")
+                Dim originalBitmap As Bitmap = Bitmap.FromFile(FileToResize, True)
+                Dim WidthVsHeightRatio = CDec(originalBitmap.Height) / CDec(originalBitmap.Width)
+
+                If newHeight > newWidth Then
+                    dblTempH = CDbl(newHeight)
+                    dblTempW = dblTempH / WidthVsHeightRatio
+                Else
+                    dblTempW = CDbl(newWidth)
+                    dblTempH = dblTempW * WidthVsHeightRatio
+                End If
+                Do While (dblTempW > CDbl(newWidth) Or dblTempH > CDbl(newHeight))
+                    dblTempW = (dblTempW * 0.999)
+                    dblTempH = (dblTempH * 0.999)
+                Loop
+                W1 = CInt(dblTempW)
+                H1 = CInt(dblTempH)
+
+                Dim newbmp As Bitmap = New Bitmap(W1, H1)
+                Using newg As Graphics = Graphics.FromImage(newbmp)
+                    newg.SmoothingMode = Drawing2D.SmoothingMode.HighQuality
+                    newg.Clear(Color.White)
+                    newg.DrawImage(originalBitmap, 0, 0, W1, H1)
+                    newg.Save()
+                End Using
+                strNewFile = Replace(Path.GetFileName(strFile), Path.GetExtension(strFile), ".jpg")
+                newbmp.Save(strDestination, System.Drawing.Imaging.ImageFormat.Jpeg)
+                originalBitmap.Dispose()
+                If blnDelete Then File.Delete(strFile)
+
+            Catch ex As Exception
+                Log.Error("ResizeConvertImage failed", ex)
+                Return False
+            End Try
+            Return True
+        End Function
+    End Class
+End Namespace

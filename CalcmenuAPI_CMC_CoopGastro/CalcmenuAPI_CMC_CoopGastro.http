@@ -1,0 +1,6 @@
+@CalcmenuAPI_CMC_CoopGastro_HostAddress = http://localhost:5247
+
+GET {{CalcmenuAPI_CMC_CoopGastro_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

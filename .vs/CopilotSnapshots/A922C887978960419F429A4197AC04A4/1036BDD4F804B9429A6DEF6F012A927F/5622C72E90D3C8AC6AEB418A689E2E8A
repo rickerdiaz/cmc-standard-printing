@@ -1,0 +1,1137 @@
+﻿Imports System
+Imports System.Web
+Imports System.Collections.Generic
+Imports System.Linq
+Imports AttributeRouting.Web.Http
+Imports System.Data.SqlClient
+Imports System.Web.Script.Serialization
+Imports log4net
+Imports System.Net
+Imports Newtonsoft.Json
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace CalcmenuAPI
+    Public Class MenuPlanController
+        Inherits ControllerBase
+
+        Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType)
+
+#Region " MENUPLAN "
+
+        <HttpGet> <[GET]("api/menuplaninfo/{codemenuplan}/{codetrans}/{copiedInfo?}")>
+        Public Function GetMenuPlanInfo(codeMenuPlan As Integer, ByVal codeTrans As Integer, Optional ByVal copiedInfo As Boolean = False) As DataTable
+            Try
+                Dim dt As New DataTable
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "MP_GETMenuPlanInfo"
+                                .Parameters.Add("@CodeMenuPlan", SqlDbType.Int).Value = codeMenuPlan
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codeTrans
+                                .Parameters.Add("@Copy", SqlDbType.Bit).Value = copiedInfo
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(dt)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Return dt
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+
+        End Function
+
+        <HttpGet> <[GET]("api/menuplan/restaurant/{codesite?}/{coderestaurant?}/{namerestaurant?}")>
+        Public Function GetRestaurant(Optional codeSite As Integer = -1, Optional codeRestaurant As Integer = -1, Optional nameRestaurant As String = "") As DataTable
+            Try
+                Dim dt As New DataTable
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "MP_GETRestaurant"
+                                .Parameters.Add("@intCodeSite", SqlDbType.Int).Value = codeSite
+                                .Parameters.Add("@intCodeRestaurant", SqlDbType.Int).Value = codeRestaurant
+                                .Parameters.Add("@nvcName", SqlDbType.NVarChar).Value = nameRestaurant
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(dt)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Return dt
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+
+        End Function
+
+        <HttpGet> <[GET]("api/menuplan/masterplan/{coderestaurant?}/{codetrans?}")>
+        Public Function GetMasterPlan(Optional codeRestaurant As Integer = -1, Optional intCodeTrans As Integer = -1) As DataTable
+            Try
+                Dim dt As New DataTable
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "MP_GetMasterPlan"
+                                .Parameters.Add("@intCodeRestaurant", SqlDbType.Int).Value = codeRestaurant
+                                .Parameters.Add("@intCodeTrans", SqlDbType.Int).Value = intCodeTrans
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(dt)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Return dt
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+
+        End Function
+
+        <HttpPost> <POST("api/menuplan/delete")>
+        Public Function DeleteMenuPlan(data As Models.GenericDeleteData) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim resultCode As Integer
+            Try
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn = New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandText = "API_DELETE_MENUPLAN"
+                                .CommandType = CommandType.StoredProcedure
+                                cn.Open()
+
+                                For Each del In data.Codes
+                                    .Parameters.Clear()
+                                    .Parameters.Add("@CodeMenuPlan", SqlDbType.Int).Value = del
+                                    .Parameters.Add("@CodeUser", SqlDbType.Int).Value = data.CodeUser
+                                    .ExecuteNonQuery()
+                                    'If resultCode < 0 Then Exit For
+                                Next
+                                If resultCode <> 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Delete menu plan failed", resultCode))
+                                End If
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                'response.ReturnValue = GetStr(.Parameters("@SkipList").Value)
+                                response.Status = True
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                'response.ReturnValue = GetStr(.Parameters("@SkipList").Value) ''JDO 1.21.2014
+                                response.Status = False
+                                response.Message = "Delete menu plan failed"
+                                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Menu Plan")
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+
+                End Using
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured" & ex.Message
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Menu Plan")
+            End Try
+            Return response
+        End Function
+
+        <HttpPost> <POST("api/menuplan/copy")>
+        Public Function CopyMenuPlan(data As Models.MenuPlan) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim resultCode As Integer
+            Try
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn = New SqlConnection(ConnectionString)
+                            Try
+                                'Master Plan Mappings
+                                'Format: CodeSource:CodeDesti,CodeSource2:CodeDesti2
+                                Dim masterPlanList As String = ""
+                                For Each map In data.source
+                                    If map.CodeMasterPlan > 0 Then
+                                        masterPlanList &= map.CodeMasterPlanSource & ":" & map.CodeMasterPlan & ","
+                                    End If
+                                Next
+                                masterPlanList = masterPlanList.TrimEnd(",")
+
+                                .Connection = cn
+                                .CommandText = "MP_COPYMenuPlan2"
+                                .CommandType = CommandType.StoredProcedure
+                                cn.Open()
+
+                                .Parameters.Add("@CodeMenuPlan", SqlDbType.Int).Direction = ParameterDirection.Output
+                                .Parameters.Add("@CodeMenuPlanSrc", SqlDbType.Int).Value = data.copiedFromMPCode
+                                .Parameters.Add("@CodeUser", SqlDbType.Int).Value = data.codeUser
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = data.codeTrans
+                                .Parameters.Add("@Name", SqlDbType.NVarChar).Value = data.name
+                                .Parameters.Add("@Number", SqlDbType.NVarChar).Value = data.number
+                                .Parameters.Add("@Description", SqlDbType.NVarChar).Value = data.description
+                                .Parameters.Add("@CodeRestaurant", SqlDbType.Int).Value = IIf(data.copyRestaurant, -1, data.codeRestaurantTo)
+                                .Parameters.Add("@CyclePlan", SqlDbType.Bit).Value = data.cyclePlan
+                                .Parameters.Add("@StartDate", SqlDbType.DateTime).Value = GetDate(data.startDate)
+                                .Parameters.Add("@CodeCategory", SqlDbType.Int).Value = data.codeCategory
+                                .Parameters.Add("@CodeSeason", SqlDbType.Int).Value = data.codeSeason
+                                .Parameters.Add("@CodeService", SqlDbType.Int).Value = data.codeService
+                                .Parameters.Add("@CodeSetPrice", SqlDbType.Int).Value = data.codeSetPrice
+                                .Parameters.Add("@Duration", SqlDbType.Int).Value = data.duration
+                                .Parameters.Add("@Recurrence", SqlDbType.Int).Value = data.recurrence
+                                .Parameters.Add("@MasterPlanList", SqlDbType.NVarChar).Value = masterPlanList
+
+                                .ExecuteNonQuery()
+
+                                resultCode = GetInt(.Parameters("@CodeMenuPlan").Value, -1)
+
+                                If resultCode < 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Copy menu plan failed", resultCode))
+                                End If
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.Status = True
+                                response.ReturnValue = resultCode
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.Status = False
+                                response.Message = "Copy menu plan failed"
+                                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Menu Plan")
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+
+                End Using
+
+
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                response.Code = 400
+                response.Message = "Missing or invalid parameters"
+                response.Parameters = New List(Of Models.param) From {New Models.param With {.name = "data", .value = "MenuPlanData"}}
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), aex.Message.ToString(), aex.StackTrace.ToString(), "Menu Plan")
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), hex.Message.ToString(), hex.StackTrace.ToString(), "Menu Plan")
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Menu Plan")
+            End Try
+            Return response
+        End Function
+
+        <HttpGet> <[GET]("/api/menuplan/export/costmargin/{codemainmenu?}/{coderestaurant?}/{codetrans?}/{baseurl?}/{codeSetPrice?}/{culture?}/{CodeUser?}/{margin1?}/{margin2?}/{dayTotalCost?}")> _
+        Public Function GetMSCMenuRecipeCostExport(ByVal codemainmenu As Integer, ByVal coderestaurant As Integer, ByVal codetrans As Integer, _
+                                                   ByVal baseurl As String, ByVal codeSetPrice As Integer, ByVal culture As String, ByVal CodeUser As Integer, ByVal margin1 As Double, ByVal margin2 As Double, _
+                                                   ByVal dayTotalCost As Double) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name)
+
+                Dim Report As New EGSTelerikReport.Coop
+                Dim FolderPath As String
+                Dim ReportURL As String
+                Dim ds As New DataSet
+                Dim result As String
+                ' Get the per-user connection string (decrypted via your helper)
+                Dim userConnectionString As String = GetUserConnectionString(CodeUser)
+
+                FolderPath = System.Configuration.ConfigurationManager.AppSettings("ReportFolder")
+                ReportURL = System.Configuration.ConfigurationManager.AppSettings("ReportURL")
+
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(userConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_Report_MenuPlan_Export_RecipeCostMargin]"
+                                .CommandTimeout = 3600
+                                .Parameters.Add("@CodeMainMenu", SqlDbType.Int).Value = GetInt(codemainmenu)
+                                .Parameters.Add("@CodeRestaurant", SqlDbType.Int).Value = GetInt(coderestaurant)
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = GetInt(codetrans)
+                                .Parameters.Add("@BaseURL", SqlDbType.VarChar).Value = GetStr(baseurl)
+                                .Parameters.Add("@CodeSetPrice", SqlDbType.Int).Value = GetInt(codeSetPrice)
+                                .Parameters.Add("@Culture", SqlDbType.VarChar).Value = GetStr(culture)
+                                .Parameters.Add("@CodeUser", SqlDbType.Int).Value = GetInt(CodeUser)
+                                .Parameters.Add("@Margin1", SqlDbType.Float).Value = GetDbl(margin1)
+                                .Parameters.Add("@Margin2", SqlDbType.Float).Value = GetDbl(margin2)
+                                .Parameters.Add("@DayTotalCost", SqlDbType.Float).Value = GetDbl(dayTotalCost)
+                                cn.Open()
+
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+
+                                result = Report.GetExportMenuPlanRecipeCostMargin(ds, FolderPath, ReportURL)
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = result
+                                response.Status = True
+
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+
+                        End Using
+                    End With
+                End Using
+
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                response.Code = 400
+                response.Message = "Missing or invalid parameters"
+                response.Parameters = New List(Of Models.param) From {New Models.param With {.name = "data", .value = "RecipeData"}}
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+            End Try
+            Return response
+        End Function
+
+#End Region
+
+#Region " SEASONS "
+
+        <HttpGet> <[GET]("api/season/list/{codesite:int}/{codetrans:int}")>
+        Public Function GetSeasonList(codeSite As Integer, codeTrans As Integer) As List(Of Models.GenericList)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "API_GET_SEASON"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codeSite
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codeTrans
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim result = From x In ds.Tables(0)
+                            Select New Models.GenericList With {
+                                .Code = x.Item("Code"),
+                                .Name = x.Item("Name"),
+                                .Value = x.Item("Name")
+                                }
+
+                Return result.ToList
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpPost> <[POST]("/api/seasons/search")> _
+        Public Function GetSeasons(data As Models.ConfigurationcSearch) As List(Of Models.GenericList)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_SEASON]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.CodeSite
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = data.CodeTrans
+                                .Parameters.Add("@CodeProperty", SqlDbType.Int).Value = data.CodeProperty
+
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim list As New List(Of Models.GenericList)
+                For Each r In ds.Tables(0).Rows
+                    list.Add(New Models.GenericList With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name")), _
+                                    .Global = GetBool(r("Global"))})
+                Next
+
+                If data.Name.Trim <> "" Then
+                    Dim listresult As New List(Of Models.GenericList)
+
+                    Dim arrNames() As String = data.Name.Trim.Split(",")
+                    For Each word In arrNames
+                        If word.Trim.ToString <> "" Then    'RDTC 2015.08.10; added this otherwise the rows are getting duplicated
+                            For Each c In list
+                                If c.Name.ToLower.Contains(Common.ReplaceSpecialCharacters(word.Trim.ToLower)) Then
+                                    listresult.Add(c)
+                                End If
+                            Next
+                        End If
+                    Next
+                    list = listresult
+
+                End If
+
+                Return list
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpPost> <POST("api/season")> _
+        Public Function SaveSeason(data As Models.GenericData) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim resultCode As Integer = 0
+            Dim _trans As SqlTransaction = Nothing
+            Dim strCodesToMerge As String = ""
+
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + JsonConvert.SerializeObject(data, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+                Dim arrSharing As New ArrayList
+                For Each sh In data.Sharing
+                    If arrSharing.IndexOf(sh.Code) = -1 Then arrSharing.Add(sh.Code)
+                Next
+                Dim _codeSiteList As String = Common.Join(arrSharing, "(", ")", ",")
+
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[API_UPDATE_Season]"
+                                .Parameters.Add("@Code", SqlDbType.Int).Value = data.Info.Code
+                                .Parameters.Add("@Name", SqlDbType.NVarChar, 150).Value = data.Info.Name
+                                .Parameters.Add("@IsGlobal", SqlDbType.Bit).Value = data.Info.Global
+                                .Parameters.Add("@CodeSiteList", SqlDbType.NVarChar, 2000).Value = _codeSiteList
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.Profile.CodeSite
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = data.Info.CodeTrans
+                                .Parameters("@Code").Direction = ParameterDirection.InputOutput
+
+                                cn.Open()
+                                _trans = cn.BeginTransaction ' RBAJ-2014.01.13
+                                .Transaction = _trans
+
+                                .ExecuteNonQuery()
+                                Dim code = GetInt(.Parameters("@Code").Value, -1)
+                                If code > 0 Then
+                                    .CommandText = "API_UPDATE_ItemTranslation"
+                                    .CommandType = CommandType.StoredProcedure
+                                    For Each t In data.Translation
+                                        .Parameters.Clear()
+                                        .Parameters.Add("@Code", SqlDbType.Int).Value = code
+                                        .Parameters.Add("@Name", SqlDbType.NVarChar, 200).Value = t.Name
+                                        .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = t.CodeTrans
+                                        .Parameters.Add("@CodeEgswTable", SqlDbType.Int).Value = 156
+                                        .ExecuteNonQuery()
+                                    Next
+                                Else
+                                    Throw New DatabaseException(String.Format("[{0}] Save season failed", code))
+                                End If
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = code
+                                response.Status = True
+                                _trans.Commit()
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                Try
+                                    _trans.Rollback()
+                                    If Not _trans Is Nothing Then
+                                        CType(_trans, IDisposable).Dispose()
+                                    End If
+                                Catch
+                                End Try
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.Status = False
+                                response.Message = "Save season failed"
+                                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Menu Plan")
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+
+                End Using
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                response.Code = 400
+                response.Message = "Missing or invalid parameters"
+                response.Parameters = New List(Of Models.param) From {New Models.param With {.name = "data", .value = "RecipeData"}}
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), aex.Message.ToString(), aex.StackTrace.ToString(), "Menu Plan")
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), hex.Message.ToString(), hex.StackTrace.ToString(), "Menu Plan")
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Menu Plan")
+            End Try
+            Return response
+
+        End Function
+
+        <HttpPost> <POST("api/seasons/delete")> _
+        Public Function DeleteSeason(data As Models.GenericDeleteData) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim resultCode As Integer = 0
+
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + JsonConvert.SerializeObject(data, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+                Dim arrCategoryCodes As New ArrayList
+                For Each c In data.CodeList
+                    If arrCategoryCodes.IndexOf(c.Code) = -1 Then arrCategoryCodes.Add(c.Code)
+                Next
+                Dim _codeCategoryList As String = Common.Join(arrCategoryCodes, "", "", ",")
+
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandText = "API_DELETE_Season"
+                                .CommandType = CommandType.StoredProcedure
+                                .Parameters.Clear()
+                                .Parameters.Add("@CodeList", SqlDbType.VarChar, 4000).Value = _codeCategoryList
+                                .Parameters.Add("@SkipList", SqlDbType.NVarChar, 4000).Direction = ParameterDirection.Output
+                                .Parameters.Add("@Return", SqlDbType.Int)
+                                .Parameters("@Return").Direction = ParameterDirection.ReturnValue
+
+                                cn.Open()
+                                .ExecuteNonQuery()
+                                resultCode = GetInt(.Parameters("@Return").Value, -1) ' RBAJ-2014.01.14                               
+                                If resultCode <> 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Delete item failed", resultCode))
+                                End If
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = GetStr(.Parameters("@SkipList").Value)
+                                response.Status = True
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.Status = False
+                                response.ReturnValue = GetStr(.Parameters("@SkipList").Value)
+                                response.Message = "Delete item failed"
+                                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Menu Plan")
+                            Catch exc As Exception
+
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+
+                End Using
+
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                response.Code = 400
+                response.Message = "Missing or invalid parameters"
+                response.Parameters = New List(Of Models.param) From {New Models.param With {.name = "data", .value = "RecipeData"}}
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), aex.Message.ToString(), aex.StackTrace.ToString(), "Menu Plan")
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), hex.Message.ToString(), hex.StackTrace.ToString(), "Menu Plan")
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Menu Plan")
+            End Try
+            Return response
+        End Function
+
+#End Region
+
+#Region " TYPE OF SERVICE "
+
+        <HttpGet> <[GET]("api/servicetype/list/{codesite:int}/{codetrans:int}")>
+        Public Function GetServiceTypeList(codeSite As Integer, codeTrans As Integer) As List(Of Models.GenericList)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "API_GET_SERVICETYPE"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codeSite
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codeTrans
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim result = From x In ds.Tables(0)
+                            Select New Models.GenericList With {
+                                .Code = x.Item("Code"),
+                                .Name = x.Item("Name"),
+                                .Value = x.Item("Name")
+                                }
+
+                Return result.ToList
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpPost> <[POST]("/api/services/search")> _
+        Public Function GetServices(data As Models.ConfigurationcSearch) As List(Of Models.GenericList)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_SERVICETYPE]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.CodeSite
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = data.CodeTrans
+                                .Parameters.Add("@CodeProperty", SqlDbType.Int).Value = data.CodeProperty
+
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim list As New List(Of Models.GenericList)
+                For Each r In ds.Tables(0).Rows
+                    list.Add(New Models.GenericList With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name")), _
+                                    .Global = GetBool(r("Global"))})
+                Next
+
+                If data.Name.Trim <> "" Then
+                    Dim listresult As New List(Of Models.GenericList)
+
+                    Dim arrNames() As String = data.Name.Trim.Split(",")
+                    For Each word In arrNames
+                        If word.Trim.ToString <> "" Then    'RDTC 2015.08.10; added this otherwise the rows are getting duplicated
+                            For Each c In list
+                                If c.Name.ToLower.Contains(Common.ReplaceSpecialCharacters(word.Trim.ToLower)) Then
+                                    listresult.Add(c)
+                                End If
+                            Next
+                        End If
+                    Next
+                    list = listresult
+
+                End If
+
+                Return list
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpPost> <POST("api/service")> _
+        Public Function SaveServiceType(data As Models.GenericData) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim resultCode As Integer = 0
+            Dim _trans As SqlTransaction = Nothing
+            Dim strCodesToMerge As String = ""
+
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + JsonConvert.SerializeObject(data, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+                Dim arrSharing As New ArrayList
+                For Each sh In data.Sharing
+                    If arrSharing.IndexOf(sh.Code) = -1 Then arrSharing.Add(sh.Code)
+                Next
+                Dim _codeSiteList As String = Common.Join(arrSharing, "(", ")", ",")
+
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[API_UPDATE_ServiceType]"
+                                .Parameters.Add("@Code", SqlDbType.Int).Value = data.Info.Code
+                                .Parameters.Add("@Name", SqlDbType.NVarChar, 150).Value = data.Info.Name
+                                .Parameters.Add("@IsGlobal", SqlDbType.Bit).Value = data.Info.Global
+                                .Parameters.Add("@CodeSiteList", SqlDbType.NVarChar, 2000).Value = _codeSiteList
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.Profile.CodeSite
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = data.Info.CodeTrans
+                                .Parameters("@Code").Direction = ParameterDirection.InputOutput
+
+                                cn.Open()
+                                _trans = cn.BeginTransaction ' RBAJ-2014.01.13
+                                .Transaction = _trans
+
+                                .ExecuteNonQuery()
+                                Dim code = GetInt(.Parameters("@Code").Value, -1)
+                                If code > 0 Then
+                                    .CommandText = "API_UPDATE_ItemTranslation"
+                                    .CommandType = CommandType.StoredProcedure
+                                    For Each t In data.Translation
+                                        .Parameters.Clear()
+                                        .Parameters.Add("@Code", SqlDbType.Int).Value = code
+                                        .Parameters.Add("@Name", SqlDbType.NVarChar, 200).Value = t.Name
+                                        .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = t.CodeTrans
+                                        .Parameters.Add("@CodeEgswTable", SqlDbType.Int).Value = 157
+                                        .ExecuteNonQuery()
+                                    Next
+                                Else
+                                    Throw New DatabaseException(String.Format("[{0}] Save service failed", code))
+                                End If
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = code
+                                response.Status = True
+                                _trans.Commit()
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                Try
+                                    _trans.Rollback()
+                                    If Not _trans Is Nothing Then
+                                        CType(_trans, IDisposable).Dispose()
+                                    End If
+                                Catch
+                                End Try
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.Status = False
+                                response.Message = "Save service failed"
+                                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Menu Plan")
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+
+                End Using
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                response.Code = 400
+                response.Message = "Missing or invalid parameters"
+                response.Parameters = New List(Of Models.param) From {New Models.param With {.name = "data", .value = "RecipeData"}}
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), aex.Message.ToString(), aex.StackTrace.ToString(), "Menu Plan")
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), hex.Message.ToString(), hex.StackTrace.ToString(), "Menu Plan")
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Menu Plan")
+            End Try
+            Return response
+
+        End Function
+
+        <HttpPost> <POST("api/service/delete")> _
+        Public Function DeleteServiceType(data As Models.GenericDeleteData) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim resultCode As Integer = 0
+
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + JsonConvert.SerializeObject(data, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+                Dim arrCategoryCodes As New ArrayList
+                For Each c In data.CodeList
+                    If arrCategoryCodes.IndexOf(c.Code) = -1 Then arrCategoryCodes.Add(c.Code)
+                Next
+                Dim _codeCategoryList As String = Common.Join(arrCategoryCodes, "", "", ",")
+
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandText = "API_DELETE_ServiceType"
+                                .CommandType = CommandType.StoredProcedure
+                                .Parameters.Clear()
+                                .Parameters.Add("@CodeList", SqlDbType.VarChar, 4000).Value = _codeCategoryList
+                                .Parameters.Add("@SkipList", SqlDbType.NVarChar, 4000).Direction = ParameterDirection.Output
+                                .Parameters.Add("@Return", SqlDbType.Int)
+                                .Parameters("@Return").Direction = ParameterDirection.ReturnValue
+
+                                cn.Open()
+                                .ExecuteNonQuery()
+                                resultCode = GetInt(.Parameters("@Return").Value, -1) ' RBAJ-2014.01.14                               
+                                If resultCode <> 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Delete item failed", resultCode))
+                                End If
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = GetStr(.Parameters("@SkipList").Value)
+                                response.Status = True
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.Status = False
+                                response.ReturnValue = GetStr(.Parameters("@SkipList").Value)
+                                response.Message = "Delete item failed"
+                                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Menu Plan")
+                            Catch exc As Exception
+
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+
+                End Using
+
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                response.Code = 400
+                response.Message = "Missing or invalid parameters"
+                response.Parameters = New List(Of Models.param) From {New Models.param With {.name = "data", .value = "RecipeData"}}
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), aex.Message.ToString(), aex.StackTrace.ToString(), "Menu Plan")
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), hex.Message.ToString(), hex.StackTrace.ToString(), "Menu Plan")
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Menu Plan")
+            End Try
+            Return response
+        End Function
+
+
+
+        <HttpGet> <[GET]("/api/recipe/rehaclinic/report/menuplan/{codemainmenu?}/{coderestaurant?}/{codetrans?}/{baseurl?}/{culture?}")> _
+        Public Function GetRehaClinicMenuPlanReport(ByVal codemainmenu As Integer, ByVal coderestaurant As Integer, ByVal codetrans As Integer, ByVal baseurl As String, ByVal culture As String) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name)
+
+                Dim Report As New EGSTelerikReport.RehaClinic
+                Dim FolderPath As String
+                Dim ReportURL As String
+                Dim ds As New DataSet
+                Dim result As String
+
+                FolderPath = System.Configuration.ConfigurationManager.AppSettings("ReportFolder")
+                ReportURL = System.Configuration.ConfigurationManager.AppSettings("ReportURL")
+
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_Report_RehaClinic_MenuPlan]"
+                                .Parameters.Add("@CodeMainMenu", SqlDbType.Int).Value = codemainmenu
+                                .Parameters.Add("@CodeRestaurant", SqlDbType.Int).Value = coderestaurant
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans
+                                .Parameters.Add("@BaseURL", SqlDbType.VarChar).Value = baseurl
+                                .Parameters.Add("@Culture", SqlDbType.VarChar).Value = culture
+
+                                cn.Open()
+
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+
+                                result = Report.GetReportMenuPlan(ds, FolderPath, ReportURL)
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = result
+                                response.Status = True
+
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+
+                        End Using
+                    End With
+                End Using
+
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                response.Code = 400
+                response.Message = "Missing or invalid parameters"
+                response.Parameters = New List(Of Models.param) From {New Models.param With {.name = "data", .value = "RecipeData"}}
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+            End Try
+            Return response
+        End Function
+
+
+#End Region
+
+#Region "Reports"        
+        <HttpGet> <[GET]("/api/menuplan/report/manor/weeklymargin/{codemainmenu?}/{coderestaurant?}/{codetrans?}/{baseurl?}/{codesetprice?}/{culture?}/{byPortion?}/{days?}")> _
+        Public Function GetManorMenuPlanWeeklyMarginReport(ByVal codemainmenu As Integer, ByVal coderestaurant As Integer, ByVal codetrans As Integer, ByVal baseurl As String,
+                                                   ByVal codesetprice As Integer, ByVal culture As String, ByVal byPortion As Integer, ByVal days As Integer) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name)
+
+                Dim Report As New EGSTelerikReport.Manor
+                Dim FolderPath As String
+                Dim ReportURL As String
+                Dim ds As New DataSet
+                Dim result As String
+
+                FolderPath = System.Configuration.ConfigurationManager.AppSettings("ReportFolder")
+                ReportURL = System.Configuration.ConfigurationManager.AppSettings("ReportURL")
+
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_Report_MANOR_MenuPlanWeeklyMargin]"
+                                .Parameters.Add("@CodeMainMenu", SqlDbType.Int).Value = codemainmenu
+                                .Parameters.Add("@CodeRestaurant", SqlDbType.Int).Value = coderestaurant
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans
+                                .Parameters.Add("@BaseURL", SqlDbType.VarChar).Value = baseurl
+                                .Parameters.Add("@CodeSetPrice", SqlDbType.Int).Value = codesetprice
+                                .Parameters.Add("@Culture", SqlDbType.VarChar).Value = culture
+                                .Parameters.Add("@ByPortion", SqlDbType.Bit).Value = byPortion
+                                .Parameters.Add("@Days", SqlDbType.Int).Value = days
+                                cn.Open()
+
+                                Dim _da As New SqlDataAdapter(cmd)
+
+                                _da.Fill(ds)
+
+                                result = Report.GetReportMenuPlanWeeklyMargin(ds, FolderPath, ReportURL, culture)
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = result
+                                response.Status = True
+
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+
+                        End Using
+                    End With
+                End Using
+
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                response.Code = 400
+                response.Message = "Missing or invalid parameters"
+                response.Parameters = New List(Of Models.param) From {New Models.param With {.name = "data", .value = "RecipeData"}}
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+            End Try
+            Return response
+        End Function
+#End Region
+
+    End Class
+End Namespace
+
+

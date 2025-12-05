@@ -1,0 +1,65 @@
+﻿Imports System
+Imports System.Web
+Imports System.Collections.Generic
+Imports System.Linq
+Imports AttributeRouting.Web.Http
+Imports System.Data.SqlClient
+Imports System.Web.Script.Serialization
+Imports log4net
+Imports System.Net
+Imports Newtonsoft.Json
+Imports Microsoft.AspNetCore.Mvc
+Namespace CalcmenuAPI
+    Public Class CountryController
+        Inherits ControllerBase
+
+        Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType)
+
+        <HttpGet> <[GET]("/api/country/{codesite:int}/{codetrans:int}")> _
+        Public Function GetCountryList(codesite As Integer, codetrans As Integer) As List(Of Models.Country)
+            Dim Countries As New List(Of Models.Country)
+            Try
+                Using cmd As New SqlCommand()
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+
+                            .Connection = cn
+                            .CommandType = CommandType.StoredProcedure
+                            .CommandText = "[dbo].[GET_COUNRTYLIST]"
+                            .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                            .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans
+                            cn.Open()
+
+                            Using dr As SqlDataReader = cmd.ExecuteReader()
+                                If dr.HasRows Then
+                                    While dr.Read
+                                        Dim country_ As New Models.Country
+                                        With country_
+                                            .Name = GetStr(dr("Name"))
+                                            .Code = GetInt(dr("Code"))
+                                            .Abbr = GetStr(dr("Abbr"))
+                                        End With
+                                        Countries.Add(country_)
+                                    End While
+                                End If
+                                dr.Close()
+                            End Using
+
+                        End Using
+                    End With
+                End Using
+                Return Countries
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            End Try
+        End Function
+    End Class
+End Namespace
+

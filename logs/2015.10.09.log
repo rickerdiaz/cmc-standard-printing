@@ -1,0 +1,33 @@
+2015-10-09 19:20:24,707 [5] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2015-10-09 19:20:25,438 [5] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2015-10-09 19:20:25,442 [5] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2015-10-09 19:21:21,280 [5] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2015-10-09 19:21:21,313 [5] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2015-10-09 19:21:21,313 [5] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2015-10-09 19:21:21,400 [6] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2015-10-09 19:21:21,400 [6] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2015-10-09 19:22:16,909 [12] ERROR CalcmenuAPI.CalcmenuAPI.RecipeController - GetRecipe: Unexpected error occured
+System.InvalidOperationException: The connection was not closed. The connection's current state is open.
+   at System.Data.ProviderBase.DbConnectionInternal.TryOpenConnection(DbConnection outerConnection, DbConnectionFactory connectionFactory, TaskCompletionSource`1 retry, DbConnectionOptions userOptions)
+   at System.Data.SqlClient.SqlConnection.TryOpenInner(TaskCompletionSource`1 retry)
+   at System.Data.SqlClient.SqlConnection.TryOpen(TaskCompletionSource`1 retry)
+   at System.Data.SqlClient.SqlConnection.Open()
+   at CalcmenuAPI.CalcmenuAPI.RecipeController.GetRecipe(Int32 codeliste, Int32 codesite, Int32 codetrans, Int32 codesetprice, Int32 codenutrientset, Int32 codeuser, Int32 rolelevel) in D:\Data\Projects\ASPNET\MVC\CalcmenuAPI\Controllers\RecipeController.vb:line 57
+2015-10-09 19:23:30,079 [7] ERROR CalcmenuAPI.CalcmenuAPI.RecipeController - GetRecipe: Unexpected error occured
+System.IndexOutOfRangeException: ItemNumber
+   at System.Data.ProviderBase.FieldNameLookup.GetOrdinal(String fieldName)
+   at System.Data.SqlClient.SqlDataReader.GetOrdinal(String name)
+   at System.Data.SqlClient.SqlDataReader.get_Item(String name)
+   at CalcmenuAPI.CalcmenuAPI.RecipeController.GetRecipe(Int32 codeliste, Int32 codesite, Int32 codetrans, Int32 codesetprice, Int32 codenutrientset, Int32 codeuser, Int32 rolelevel) in D:\Data\Projects\ASPNET\MVC\CalcmenuAPI\Controllers\RecipeController.vb:line 245

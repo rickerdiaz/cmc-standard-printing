@@ -1,0 +1,58 @@
+2014-09-11 11:44:51,276 [5] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2014-09-11 11:44:51,349 [5] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2014-09-11 11:44:51,351 [5] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2014-09-11 11:45:01,130 [6] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2014-09-11 11:45:01,133 [6] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2014-09-11 11:45:28,376 [5] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2014-09-11 11:45:28,409 [5] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2014-09-11 11:45:28,411 [5] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2014-09-11 11:46:26,603 [14] ERROR CalcmenuAPI.CalcmenuAPI.PasswordAndLoginController - GetPasswordAndLogin: Unexpected error occured
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at CalcmenuAPI.CalcmenuAPI.PasswordAndLoginController.GetPasswordAndLogin() in C:\Data\Project\CalcmenuAPI\Controllers\PasswordAndLoginController.vb:line 38
+2014-09-11 11:48:14,902 [5] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2014-09-11 11:48:14,935 [5] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2014-09-11 11:48:14,937 [5] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2014-09-11 11:50:32,077 [18] INFO  CalcmenuAPI.CalcmenuAPI.PasswordAndLoginController - Calling SaveAlias:{"EnforceStrongPassword":true,"ExpiresAfterNumberOfDays":"45","MinimumPasswordLength":16,"MinimumPasswordReuse":"10","MaximumFailedLoginAttempts":5,"LockoutPeriod":"15:m"}
+2014-09-11 11:51:19,448 [18] ERROR CalcmenuAPI.CalcmenuAPI.PasswordAndLoginController - SaveAlias: Unexpected error occured
+System.FormatException: Failed to convert parameter value from a String to a Int32. ---> System.FormatException: Input string was not in a correct format.
+   at System.Number.StringToNumber(String str, NumberStyles options, NumberBuffer& number, NumberFormatInfo info, Boolean parseDecimal)
+   at System.Number.ParseInt32(String s, NumberStyles style, NumberFormatInfo info)
+   at System.String.System.IConvertible.ToInt32(IFormatProvider provider)
+   at System.Convert.ChangeType(Object value, Type conversionType, IFormatProvider provider)
+   at System.Data.SqlClient.SqlParameter.CoerceValue(Object value, MetaType destinationType, Boolean& coercedToDataFeed, Boolean& typeChanged, Boolean allowStreaming)
+   --- End of inner exception stack trace ---
+   at System.Data.SqlClient.SqlParameter.CoerceValue(Object value, MetaType destinationType, Boolean& coercedToDataFeed, Boolean& typeChanged, Boolean allowStreaming)
+   at System.Data.SqlClient.SqlParameter.GetCoercedValue()
+   at System.Data.SqlClient.SqlParameter.Validate(Int32 index, Boolean isCommandProc)
+   at System.Data.SqlClient.SqlCommand.SetUpRPCParameters(_SqlRPC rpc, Int32 startCount, Boolean inSchema, SqlParameterCollection parameters)
+   at System.Data.SqlClient.SqlCommand.BuildRPC(Boolean inSchema, SqlParameterCollection parameters, _SqlRPC& rpc)
+   at System.Data.SqlClient.SqlCommand.RunExecuteReaderTds(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, Boolean async, Int32 timeout, Task& task, Boolean asyncWrite, SqlDataReader ds)
+   at System.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method, TaskCompletionSource`1 completion, Int32 timeout, Task& task, Boolean asyncWrite)
+   at System.Data.SqlClient.SqlCommand.InternalExecuteNonQuery(TaskCompletionSource`1 completion, String methodName, Boolean sendToPipe, Int32 timeout, Boolean asyncWrite)
+   at System.Data.SqlClient.SqlCommand.ExecuteNonQuery()
+   at CalcmenuAPI.CalcmenuAPI.PasswordAndLoginController.SaveAlias(PasswordAndLogin data) in C:\Data\Project\CalcmenuAPI\Controllers\PasswordAndLoginController.vb:line 103
+2014-09-11 11:51:37,104 [13] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2014-09-11 11:51:37,137 [13] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2014-09-11 11:51:37,139 [13] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2014-09-11 11:51:39,680 [17] INFO  CalcmenuAPI.CalcmenuAPI.PasswordAndLoginController - Calling SaveAlias:{"EnforceStrongPassword":true,"ExpiresAfterNumberOfDays":"45","MinimumPasswordLength":16,"MinimumPasswordReuse":"10","MaximumFailedLoginAttempts":5,"LockoutPeriod":"15:m"}
+2014-09-11 11:52:51,975 [12] INFO  CalcmenuAPI.CalcmenuAPI.PasswordAndLoginController - Calling SaveAlias:{"EnforceStrongPassword":false,"ExpiresAfterNumberOfDays":"30","MinimumPasswordLength":8,"MinimumPasswordReuse":"5","MaximumFailedLoginAttempts":3,"LockoutPeriod":"5:m"}

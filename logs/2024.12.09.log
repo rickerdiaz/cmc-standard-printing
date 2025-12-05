@@ -1,0 +1,42 @@
+2024-12-09 21:21:34,296 [1] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2024-12-09 21:21:35,457 [8] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2024-12-09 21:21:36,974 [8] INFO  EgsReport.clsReport - CreateReport_Test
+2024-12-09 21:21:36,975 [8] INFO  EgsReport.clsReport - 1
+2024-12-09 21:21:37,236 [8] INFO  EgsReport.clsReport - 2
+2024-12-09 21:21:54,873 [8] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderPath: C:\Data\COOP\RecipeStandardPrint\Export_133782240969667463.pdf
+2024-12-09 21:21:54,875 [8] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderURL: http://localhost:6735//Export_133782240969667463.pdf
+2024-12-09 21:22:49,522 [8] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2024-12-09 21:22:49,711 [8] INFO  EgsReport.clsReport - CreateReport_Test
+2024-12-09 21:22:49,712 [8] INFO  EgsReport.clsReport - 1
+2024-12-09 21:22:49,899 [8] INFO  EgsReport.clsReport - 2
+2024-12-09 21:25:33,862 [8] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderPath: C:\Data\COOP\RecipeStandardPrint\Export_133782241697111251.pdf
+2024-12-09 21:25:33,863 [8] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderURL: http://localhost:6735//Export_133782241697111251.pdf
+2024-12-09 21:26:03,153 [42] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2024-12-09 21:26:03,344 [42] INFO  EgsReport.clsReport - CreateReport_Test
+2024-12-09 21:26:03,345 [42] INFO  EgsReport.clsReport - 1
+2024-12-09 21:26:03,531 [42] INFO  EgsReport.clsReport - 2
+2024-12-09 21:28:37,541 [42] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderPath: C:\Data\COOP\RecipeStandardPrint\Export_133782243633447158.pdf
+2024-12-09 21:28:37,541 [42] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderURL: http://localhost:6735//Export_133782243633447158.pdf
+2024-12-09 21:29:34,328 [8] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2024-12-09 21:29:34,514 [8] INFO  EgsReport.clsReport - CreateReport_Test
+2024-12-09 21:29:34,515 [8] INFO  EgsReport.clsReport - 1
+2024-12-09 21:29:34,704 [8] INFO  EgsReport.clsReport - 2
+2024-12-09 21:29:59,818 [8] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderPath: C:\Data\COOP\RecipeStandardPrint\Export_133782245745148283.pdf
+2024-12-09 21:29:59,818 [8] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderURL: http://localhost:6735//Export_133782245745148283.pdf
+2024-12-09 21:42:46,397 [1] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2024-12-09 21:42:47,061 [8] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2024-12-09 21:42:48,264 [8] INFO  EgsReport.clsReport - CreateReport_Test
+2024-12-09 21:42:48,267 [8] INFO  EgsReport.clsReport - 1
+2024-12-09 21:42:48,503 [8] INFO  EgsReport.clsReport - 2
+2024-12-09 21:43:05,617 [8] INFO  EgsReport.xrReports - StrCode: 56601 | CodeUser: 1 | CodePrintList: 562161 | strCodeParent: lblID | strCodeMain: lblID
+2024-12-09 21:43:05,618 [8] INFO  EgsReport.xrReports - strID: lblID | strFilter3: Code = 56601
+2024-12-09 21:43:06,615 [8] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderPath: C:\Data\COOP\RecipeStandardPrint\Export_133782253682560850.pdf
+2024-12-09 21:43:06,615 [8] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderURL: http://localhost:6735//Export_133782253682560850.pdf
+2024-12-09 21:59:25,200 [47] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2024-12-09 21:59:26,334 [47] INFO  EgsReport.clsReport - CreateReport_Test
+2024-12-09 21:59:26,334 [47] INFO  EgsReport.clsReport - 1
+2024-12-09 21:59:26,520 [47] INFO  EgsReport.clsReport - 2
+2024-12-09 21:59:43,355 [47] INFO  EgsReport.xrReports - StrCode: 61553 | CodeUser: 1 | CodePrintList: 562171 | strCodeParent: lblID | strCodeMain: lblID
+2024-12-09 21:59:43,356 [47] INFO  EgsReport.xrReports - strID: lblID | strFilter3: Code = 61553
+2024-12-09 21:59:44,381 [47] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderPath: C:\Data\COOP\RecipeStandardPrint\Export_133782263663344720.pdf
+2024-12-09 21:59:44,382 [47] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderURL: http://localhost:6735//Export_133782263663344720.pdf

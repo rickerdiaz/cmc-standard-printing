@@ -1,0 +1,128 @@
+{
+  "Version": 1,
+  "WorkspaceRootPath": "C:\\StandardPrinting\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{0697D7AE-C0DD-AA4C-593C-AC3E5721DA0C}|CalcmenuAPI_CMC_CoopGastro.csproj|c:\\standardprinting\\program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0697D7AE-C0DD-AA4C-593C-AC3E5721DA0C}|CalcmenuAPI_CMC_CoopGastro.csproj|solutionrelative:program.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0697D7AE-C0DD-AA4C-593C-AC3E5721DA0C}|CalcmenuAPI_CMC_CoopGastro.csproj|c:\\standardprinting\\calcmenuapi_cmc_coopgastro.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}",
+      "RelativeMoniker": "D:0:0:{0697D7AE-C0DD-AA4C-593C-AC3E5721DA0C}|CalcmenuAPI_CMC_CoopGastro.csproj|solutionrelative:calcmenuapi_cmc_coopgastro.csproj||{FA3CD31E-987B-443A-9B81-186104E8DAC1}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0697D7AE-C0DD-AA4C-593C-AC3E5721DA0C}|CalcmenuAPI_CMC_CoopGastro.csproj|c:\\standardprinting\\controllers\\aliascontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0697D7AE-C0DD-AA4C-593C-AC3E5721DA0C}|CalcmenuAPI_CMC_CoopGastro.csproj|solutionrelative:controllers\\aliascontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0697D7AE-C0DD-AA4C-593C-AC3E5721DA0C}|CalcmenuAPI_CMC_CoopGastro.csproj|c:\\standardprinting\\calcmenuapi.core\\controllers\\aliascontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0697D7AE-C0DD-AA4C-593C-AC3E5721DA0C}|CalcmenuAPI_CMC_CoopGastro.csproj|solutionrelative:calcmenuapi.core\\controllers\\aliascontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0697D7AE-C0DD-AA4C-593C-AC3E5721DA0C}|CalcmenuAPI_CMC_CoopGastro.csproj|c:\\standardprinting\\controllers\\brandcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{0697D7AE-C0DD-AA4C-593C-AC3E5721DA0C}|CalcmenuAPI_CMC_CoopGastro.csproj|solutionrelative:controllers\\brandcontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{0697D7AE-C0DD-AA4C-593C-AC3E5721DA0C}|CalcmenuAPI_CMC_CoopGastro.csproj|c:\\standardprinting\\models\\compatmodels.vb||{2C015C70-C72C-11D0-88C3-00A0C9110049}",
+      "RelativeMoniker": "D:0:0:{0697D7AE-C0DD-AA4C-593C-AC3E5721DA0C}|CalcmenuAPI_CMC_CoopGastro.csproj|solutionrelative:models\\compatmodels.vb||{2C015C70-C72C-11D0-88C3-00A0C9110049}"
+    }
+  ],
+  "DocumentGroupContainers": [
+    {
+      "Orientation": 0,
+      "VerticalTabListWidth": 256,
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 3,
+          "Children": [
+            {
+              "$type": "Bookmark",
+              "Name": "ST:1:0:{e8b06f52-6d01-11d2-aa7d-00c04f990343}"
+            },
+            {
+              "$type": "Bookmark",
+              "Name": "ST:0:0:{aa2115a1-9712-457b-9047-dbb71ca2cdd2}"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
+              "Title": "CompatModels.vb",
+              "DocumentMoniker": "C:\\StandardPrinting\\Models\\CompatModels.vb",
+              "RelativeDocumentMoniker": "Models\\CompatModels.vb",
+              "ToolTip": "C:\\StandardPrinting\\Models\\CompatModels.vb",
+              "RelativeToolTip": "Models\\CompatModels.vb",
+              "ViewState": "AgIAADMAAAAAAAAAAABQwIwAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003361|",
+              "WhenOpened": "2025-12-03T16:15:19.724Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "Program.cs",
+              "DocumentMoniker": "C:\\StandardPrinting\\Program.cs",
+              "RelativeDocumentMoniker": "Program.cs",
+              "ToolTip": "C:\\StandardPrinting\\Program.cs",
+              "RelativeToolTip": "Program.cs",
+              "ViewState": "AgIAAAwAAAAAAAAAAAAvwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-03T14:57:16.501Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 3,
+              "Title": "AliasController.cs",
+              "DocumentMoniker": "C:\\StandardPrinting\\CalcmenuAPI.Core\\Controllers\\AliasController.cs",
+              "RelativeDocumentMoniker": "CalcmenuAPI.Core\\Controllers\\AliasController.cs",
+              "ToolTip": "C:\\StandardPrinting\\CalcmenuAPI.Core\\Controllers\\AliasController.cs",
+              "RelativeToolTip": "CalcmenuAPI.Core\\Controllers\\AliasController.cs",
+              "ViewState": "AgIAAOMBAAAAAAAAAEBVwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-03T14:59:24.939Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "CalcmenuAPI_CMC_CoopGastro.csproj",
+              "DocumentMoniker": "C:\\StandardPrinting\\CalcmenuAPI_CMC_CoopGastro.csproj",
+              "RelativeDocumentMoniker": "CalcmenuAPI_CMC_CoopGastro.csproj",
+              "ToolTip": "C:\\StandardPrinting\\CalcmenuAPI_CMC_CoopGastro.csproj",
+              "RelativeToolTip": "CalcmenuAPI_CMC_CoopGastro.csproj",
+              "ViewState": "AgIAAA8AAAAAAAAAAAApwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000758|",
+              "WhenOpened": "2025-12-03T14:30:18.978Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 2,
+              "Title": "AliasController.cs",
+              "DocumentMoniker": "C:\\StandardPrinting\\Controllers\\AliasController.cs",
+              "RelativeDocumentMoniker": "Controllers\\AliasController.cs",
+              "ToolTip": "C:\\StandardPrinting\\Controllers\\AliasController.cs",
+              "RelativeToolTip": "Controllers\\AliasController.cs",
+              "ViewState": "AgIAAAQAAAAAAAAAAAApwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-03T14:28:01.265Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 4,
+              "Title": "BrandController.cs",
+              "DocumentMoniker": "C:\\StandardPrinting\\Controllers\\BrandController.cs",
+              "RelativeDocumentMoniker": "Controllers\\BrandController.cs",
+              "ToolTip": "C:\\StandardPrinting\\Controllers\\BrandController.cs",
+              "RelativeToolTip": "Controllers\\BrandController.cs",
+              "ViewState": "AgIAAAEAAAAAAAAAAGBnwAAAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-03T15:27:14.824Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

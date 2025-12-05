@@ -1,0 +1,15 @@
+2013-10-30 14:21:06,561 [5] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2013-10-30 14:22:43,928 [5] ERROR CalcmenuAPI.Global_asax - An operation was attempted on something that is not a socket
+2013-10-30 14:22:43,956 [5] ERROR CalcmenuAPI.Global_asax -    at System.Net.Sockets.Socket.get_LocalEndPoint()
+   at Microsoft.VisualStudio.WebHost.Connection.get_LocalIP()
+   at Microsoft.VisualStudio.WebHost.Connection.get_LocalIP()
+   at Microsoft.VisualStudio.WebHost.Request.GetLocalAddress()
+   at Microsoft.VisualStudio.WebHost.Request.GetServerName()
+   at System.Web.HttpRequest.BuildUrl(Func`1 pathAccessor)
+   at System.Web.HttpRequest.get_Url()
+   at System.Web.HttpRequestWrapper.get_Url()
+   at System.Web.Http.WebHost.HttpControllerHandler.ConvertRequest(HttpContextBase httpContextBase)
+   at System.Web.Http.WebHost.HttpControllerHandler.BeginProcessRequest(HttpContextBase httpContextBase, AsyncCallback callback, Object state)
+   at System.Web.Http.WebHost.HttpControllerHandler.System.Web.IHttpAsyncHandler.BeginProcessRequest(HttpContext httpContext, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)

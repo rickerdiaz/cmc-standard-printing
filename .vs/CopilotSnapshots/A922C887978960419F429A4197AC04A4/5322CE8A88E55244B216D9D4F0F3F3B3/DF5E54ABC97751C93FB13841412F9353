@@ -1,0 +1,151 @@
+﻿Imports System
+Imports System.Web
+Imports System.Collections.Generic
+Imports System.Linq
+Imports AttributeRouting.Web.Http
+Imports System.Data.SqlClient
+Imports System.Web.Script.Serialization
+Imports log4net
+Imports System.Net
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace CalcmenuAPI
+    Public Class DigitalAssetsController
+        Inherits ControllerBase
+
+        Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType)
+
+        <HttpGet> <[GET]("/api/dam/imagetype")> _
+        Public Function GetImageType() As List(Of Models.GenericCodeValueList)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.Text
+                                .CommandText = "SELECT * FROM EgswDigitalAssetsMediaTypes WHERE [Name] IN('JPEG','PNG')"
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim imagetype As New List(Of Models.GenericCodeValueList)
+                For Each r In ds.Tables(0).Rows
+                    imagetype.Add(New Models.GenericCodeValueList With {.Code = GetInt(r("Code")), .Value = GetStr(r("Name"))})
+                Next
+
+                Return imagetype
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+        <HttpGet> <[GET]("/api/dam/{codesite:int}/{codetrans:int}/{codeuser:int}/{codemediatype:int}/{bitKeywordAnd:bool}/{name?}")> _
+        Public Function GetDigitalAssets(ByVal codesite As Integer, _
+                                         ByVal codetrans As Integer, _
+                                         ByVal codeuser As Integer, _
+                                         ByVal codemediatype As Integer, _
+                                         ByVal bitKeywordAnd As Boolean, _
+                                         Optional name As String = "", _
+                                         Optional keyword As String = "", _
+                                         Optional recipenumber As String = "", _
+                                         Optional recipenumberAnd As Integer = 0, _
+                                         Optional recipename As String = "", _
+                                         Optional take As Integer = 10, _
+                                         Optional skip As Integer = 0) As Models.ResponseDigitalAssets
+            Try
+                If name.Trim <> "" Then
+                    name = System.Text.ASCIIEncoding.ASCII.GetString(Convert.FromBase64String(name))
+                End If
+                If keyword.Trim <> "" Then
+                    keyword = System.Text.ASCIIEncoding.ASCII.GetString(Convert.FromBase64String(keyword))
+                End If
+                If recipename.Trim <> "" Then
+                    recipename = System.Text.ASCIIEncoding.ASCII.GetString(Convert.FromBase64String(recipename))
+                End If
+                If recipenumber.Trim <> "" Then
+                    recipenumber = System.Text.ASCIIEncoding.ASCII.GetString(Convert.FromBase64String(recipenumber))
+                End If
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[sp_EgswDigitalAssetsearch3]"
+                                .Parameters.Add("@id", SqlDbType.Int).Value = -1
+                                .Parameters.Add("@nvcName", SqlDbType.NVarChar, 4000).Value = name
+                                .Parameters.Add("@nvcKeyword", SqlDbType.NVarChar, 4000).Value = keyword
+                                .Parameters.Add("@bitKeywordAnd", SqlDbType.Bit).Value = bitKeywordAnd
+                                .Parameters.Add("@intMediaType", SqlDbType.Int).Value = codemediatype
+                                .Parameters.Add("@nvcRecipeName", SqlDbType.NVarChar, 4000).Value = recipename
+                                .Parameters.Add("@nvcRecipeNumber", SqlDbType.NVarChar, 4000).Value = recipenumber
+                                .Parameters.Add("@intRecipeNumberAnd", SqlDbType.Int).Value = recipenumberAnd
+                                .Parameters.Add("@Codetrans", SqlDbType.Int).Value = codetrans
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim dam As New List(Of Models.DigitalAssets)
+                For Each r In ds.Tables(0).Rows
+                    If GetStr(r("Extension")) = "JPG" Or GetStr(r("Extension")) = "PNG" Then '' JDO-2014.04.08
+                        dam.Add(New Models.DigitalAssets With {.id = GetInt(r("id")), _
+                                                                     .ImageUrl = GetStr(r("ImageUrl")), _
+                                                                     .MediaType = GetInt(r("MediaType")), _
+                                                                     .FileName = GetStr(r("FileName")), _
+                                                                     .Extension = GetStr(r("Extension")), _
+                                                                     .Name = GetStr(r("Name")), _
+                                                                        .Keyword = GetStr(r("Keyword"))})
+                    End If
+                Next
+
+                'RBAJ-2013.12.10 Fixed paging
+                Dim totalCount As Integer = dam.Count
+                take = IIf(take > totalCount + 1, totalCount, take) ' Prevent overflow of take
+                take = IIf(take <= 0, 1, take) ' Prevent overflow of take
+                Dim totalPages As Integer = Math.Ceiling(totalCount / take)
+                skip = IIf(skip > totalPages, totalPages, skip) ' Prevent overflow of skip
+                skip = IIf(skip < 1, 0, skip) ' Prevent overflow of skip
+
+                Return New Models.ResponseDigitalAssets(dam.Skip(take * skip).Take(take).ToList, totalCount)
+
+			Catch aex As ArgumentException
+				Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+				Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+			Catch hex As HttpResponseException
+				Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+				Throw hex
+			Catch ex As Exception
+				Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+				Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+			End Try
+        End Function
+
+    End Class
+End Namespace

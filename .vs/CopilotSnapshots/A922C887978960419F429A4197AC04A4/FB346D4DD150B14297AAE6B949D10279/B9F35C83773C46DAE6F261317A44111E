@@ -1,0 +1,321 @@
+﻿Imports System
+Imports System.Web
+Imports System.Collections.Generic
+Imports System.Linq
+Imports AttributeRouting.Web.Http
+Imports System.Data.SqlClient
+Imports System.Web.Script.Serialization
+Imports log4net
+Imports System.Net
+Imports Newtonsoft.Json
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace CalcmenuAPI
+    Public Class AllergenController
+        Inherits ControllerBase
+
+        Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType)
+
+        <HttpGet> <[GET]("/api/allergens/{codetrans:int}/{codesite:int}/{name?}")> _
+        Public Function GetAllergens(codetrans As Integer, codesite As Integer, Optional name As String = "") As List(Of Models.BrandTreeNode)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                If (name Is Nothing Or name = "" Or name = "null" Or name = "undefined") Then name = Nothing
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_Allergens]"
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@name", SqlDbType.VarChar).Value = name
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim allergens As New List(Of Models.BrandTreeNode)
+                For Each r In ds.Tables(0).Rows
+                    allergens.Add(New Models.BrandTreeNode With {
+                                    .title = GetStr(r("Name")), _
+                                    .key = GetStr(r("Code")), _
+                                    .hasPicture = True, _
+                                    .picture = GetStr(r("PictureName"))})
+                Next
+
+
+                Return allergens.ToList
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpGet> <[GET]("/api/allergensnew/{codetrans:int}/{codesite:int}/{name?}")> _
+        Public Function GetAllergensNew(codetrans As Integer, codesite As Integer, Optional name As String = "") As List(Of Models.BrandTreeNode)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                If (name Is Nothing Or name = "" Or name = "null" Or name = "undefined") Then name = Nothing
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_Allergens]"
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans
+                                .Parameters.Add("@name", SqlDbType.VarChar).Value = name
+                                .Parameters.Add("@CodeSite", SqlDbType.VarChar).Value = codesite
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim allergens As New List(Of Models.BrandTreeNode)
+                For Each r In ds.Tables(0).Rows
+                    allergens.Add(New Models.BrandTreeNode With {
+                                    .title = GetStr(r("Name")), _
+                                    .key = GetStr(r("Code")), _
+                                    .hasPicture = True, _
+                                    .picture = GetStr(r("PictureName"))})
+                Next
+
+
+                Return allergens.ToList
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpGet> <[GET]("/api/allergen/list/{codetrans:int}")> _
+        Public Function GetAllergenList(CodeTrans As Integer) As List(Of Models.GenericCodeValueList)
+            Dim allergens As New List(Of Models.GenericCodeValueList)
+
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_Allergens]"
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = CodeTrans
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                allergens = New List(Of Models.GenericCodeValueList)(From p In ds.Tables(0)
+                                                             Select New Models.GenericCodeValueList With {
+                                                                 .Code = p.Item("Code"),
+                                                                 .Value = p.Item("Name")
+                                                             })
+
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+            Return allergens
+        End Function
+
+        <HttpGet> <[GET]("/api/allergen/{codeliste:int}/{codetrans:int}/{codesite:int}")> _
+        Public Function GetListeAllergen(CodeListe As Integer, CodeTrans As Integer, CodeSite As Integer) As List(Of Models.ListeAllergen)
+            Dim allergens As New List(Of Models.ListeAllergen)
+
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_ListeAllergen]"
+                                .Parameters.Add("@CodeListe", SqlDbType.Int).Value = CodeListe
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = CodeTrans
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = CodeSite
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                allergens = New List(Of Models.ListeAllergen)(From p In ds.Tables(0)
+                                                             Select New Models.ListeAllergen With {
+                                                                 .CodeListe = CodeListe,
+                                                                 .CodeAllergen = p.Item("CodeAllergen"),
+                                                                 .Contain = p.Item("Contain"),
+                                                                 .Trace = p.Item("Trace"),
+                                                                 .NonAllergen = p.Item("NonAllergen"),
+                                                                 .Derived = p.Item("Derived"),
+                                                                 .Hidden = p.Item("Hidden")
+                                                             })
+
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+            Return allergens
+        End Function
+
+        <HttpGet> <[GET]("/api/allergen/ingredient/{codeliste:int}/{codetrans:int}/{codesite:int}")> _
+        Public Function GetIngredientAllergen(CodeListe As Integer, CodeTrans As Integer, CodeSite As Integer) As List(Of Models.IngredientAllergen)
+            Dim allergens As New List(Of Models.IngredientAllergen)
+
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_ListeAllergen]"
+                                .Parameters.Add("@CodeListe", SqlDbType.Int).Value = CodeListe
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = CodeTrans
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = CodeSite
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                allergens = New List(Of Models.IngredientAllergen)(From p In ds.Tables(0) Where GetBool(p.Item("Contain")) Or GetBool(p.Item("Trace"))
+                                                             Select New Models.IngredientAllergen With {
+                                                                 .CodeListe = CodeListe,
+                                                                 .CodeAllergen = p.Item("CodeAllergen"),
+                                                                 .Contain = p.Item("Contain"),
+                                                                 .Trace = p.Item("Trace"),
+                                                                 .NonAllergen = p.Item("NonAllergen")
+                                                             })
+
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+            Return allergens
+        End Function
+
+        <HttpGet> <[GET]("/api/allergen/derived/{codeliste:int}")> _
+        Public Function GetListeAllergen(CodeListe As Integer) As List(Of Models.ListeAllergen)
+            Dim allergens As New List(Of Models.ListeAllergen)
+
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_RecipeDerivedAllergens]"
+                                .Parameters.Add("@FirstCode", SqlDbType.Int).Value = CodeListe
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                allergens = New List(Of Models.ListeAllergen)(From p In ds.Tables(0)
+                                                             Select New Models.ListeAllergen With {
+                                                                 .CodeListe = p.Item("SecondCode"),
+                                                                 .CodeAllergen = p.Item("CodeAllergen"),
+                                                                 .Contain = p.Item("Contain"),
+                                                                 .Trace = p.Item("Trace")
+                                                             })
+
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+            Return allergens
+        End Function
+
+    End Class
+
+End Namespace

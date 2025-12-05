@@ -1,0 +1,137 @@
+﻿namespace CalcmenuAPI.Models
+{
+    public class ResponseCallBack
+    {
+        public int Code { get; set; }
+        public bool Status { get; set; }
+        public string Message { get; set; } = string.Empty;
+        public object? ReturnValue { get; set; }
+    }
+
+    public class AliasData
+    {
+        public AliasRecord Info { get; set; } = new AliasRecord();
+    }
+
+    public class AliasRecord
+    {
+        public int Code { get; set; }
+        public int IdMain { get; set; }
+        public int CodeTrans { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string Alias { get; set; } = string.Empty;
+    }
+
+    public class GenericDeleteData
+    {
+        public int CodeUser { get; set; }
+        public int CodeSite { get; set; }
+        public bool ForceDelete { get; set; }
+        public List<GenericList> CodeList { get; set; } = new();
+    }
+
+    public class GenericList
+    {
+        public int Code { get; set; }
+        public int CodeDictionary { get; set; }
+        public string? Name { get; set; }
+        public string? Value { get; set; }
+    }
+
+    // Unified search model (used by Alias and Brand controllers). Extra fields are optional for Alias.
+    public class ConfigurationcSearch
+    {
+        public int CodeTrans { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public int CodeSite { get; set; }
+        public int CodeListe { get; set; }
+        public int CodeProperty { get; set; }
+    }
+
+    public class GenericTree
+    {
+        public int Code { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public int ParentCode { get; set; }
+        public string ParentName { get; set; } = string.Empty;
+        public bool Flagged { get; set; }
+        public bool Global { get; set; }
+        public bool CanBeParent { get; set; }
+        public int Type { get; set; }
+        public string Note { get; set; } = string.Empty;
+    }
+
+    public class Brand
+    {
+        public int Code { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public int ParentCode { get; set; }
+        public string ParentName { get; set; } = string.Empty;
+        public bool Flagged { get; set; }
+        public int Classification { get; set; }
+        public int Note { get; set; }
+    }
+
+    public class BrandTreeNode
+    {
+        public string title { get; set; } = string.Empty;
+        public int key { get; set; }
+        public bool icon { get; set; }
+        public List<BrandTreeNode> children { get; set; } = new();
+        public bool select { get; set; }
+        public string parenttitle { get; set; } = string.Empty;
+        public int note { get; set; }
+        public int classification { get; set; }
+    }
+
+    public enum GroupLevel { Property }
+
+    public class TreeNode
+    {
+        public string title { get; set; } = string.Empty;
+        public int key { get; set; }
+        public bool icon { get; set; }
+        public List<TreeNode>? children { get; set; }
+        public bool select { get; set; }
+        public bool selected { get; set; }
+        public string parenttitle { get; set; } = string.Empty;
+        public string note { get; set; } = string.Empty;
+        public bool CanBeParent { get; set; }
+        public bool Global { get; set; }
+        public GroupLevel groupLevel { get; set; }
+    }
+
+    public class RecipeTranslation
+    {
+        public int CodeTrans { get; set; }
+        public string TranslationName { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+    }
+
+    public class BrandData
+    {
+        public BrandInfo Info { get; set; } = new();
+        public List<BrandTranslation> Translation { get; set; } = new();
+        public Profile Profile { get; set; } = new();
+        public List<KioskItem> KioskList { get; set; } = new();
+        public int ActionType { get; set; }
+        public List<int> MergeList { get; set; } = new();
+        public List<SharingItem> Sharing { get; set; } = new();
+    }
+
+    public class BrandInfo
+    {
+        public int Code { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public bool Global { get; set; }
+        public int CodeUser { get; set; }
+        public int CodeSite { get; set; }
+        public int ParentCode { get; set; }
+        public bool CanBeParent { get; set; }
+    }
+
+    public class BrandTranslation { public string Name { get; set; } = string.Empty; public int CodeTrans { get; set; } }
+    public class Profile { public int Code { get; set; } public int CodeSite { get; set; } }
+    public class KioskItem { public int Code { get; set; } }
+    public class SharingItem { public int Code { get; set; } }
+}

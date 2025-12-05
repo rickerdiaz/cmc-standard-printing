@@ -1,0 +1,291 @@
+2025-10-13 10:21:48,283 [1] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2025-10-13 10:21:50,060 [6] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-13 10:22:17,255 [6] ERROR CalcmenuAPI.CalcmenuAPI.PrinterController - GetUserConnectionString: Unexpected error occurred
+System.InvalidOperationException: No connection data returned for the specified user.
+   at CalcmenuAPI.CalcmenuAPI.PrinterController.GetUserConnectionString(Int32 CodeUser) in C:\TFS Projects\CalcmenuAPI-v7.0.48_COOP_Gastro_CMC\Controllers\PrinterController.vb:line 553
+2025-10-13 10:22:17,301 [6] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - No connection data returned for the specified user.
+2025-10-13 10:23:59,858 [6] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-13 10:24:59,964 [6] ERROR CalcmenuAPI.CalcmenuAPI.PrinterController - GetUserConnectionString: Unexpected error occurred
+System.InvalidOperationException: No connection data returned for the specified user.
+   at CalcmenuAPI.CalcmenuAPI.PrinterController.GetUserConnectionString(Int32 CodeUser) in C:\TFS Projects\CalcmenuAPI-v7.0.48_COOP_Gastro_CMC\Controllers\PrinterController.vb:line 553
+2025-10-13 10:24:59,966 [6] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - No connection data returned for the specified user.
+2025-10-13 10:25:27,689 [6] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-13 10:30:16,649 [6] ERROR CalcmenuAPI.CalcmenuAPI.PrinterController - GetUserConnectionString: Unexpected error occurred
+System.InvalidOperationException: No connection data returned for the specified user.
+   at CalcmenuAPI.CalcmenuAPI.PrinterController.GetUserConnectionString(Int32 CodeUser) in C:\TFS Projects\CalcmenuAPI-v7.0.48_COOP_Gastro_CMC\Controllers\PrinterController.vb:line 553
+2025-10-13 10:30:16,650 [6] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - No connection data returned for the specified user.
+2025-10-13 10:30:58,976 [5] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2025-10-13 10:30:59,394 [6] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-13 10:31:49,532 [6] INFO  EgsReport.clsReport - CreateReport_Test
+2025-10-13 10:31:49,538 [6] INFO  EgsReport.clsReport - 1
+2025-10-13 10:31:49,616 [6] INFO  EgsReport.clsReport - 2
+2025-10-13 10:31:51,094 [6] INFO  EgsReport.xrReports - StrCode: 136515 | CodeUser: 1 | CodePrintList: 29 | strCodeParent:  | strCodeMain: 136515
+2025-10-13 10:31:51,095 [6] INFO  EgsReport.xrReports - strID: 33 | strFilter3: Code = 136515 AND CodeListeParent IS NULL AND CodeListeMain = 136515
+2025-10-13 10:31:52,146 [6] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderPath: C:\Data\COOP\RecipeStandardPrint\Export_134047963080453759.pdf
+2025-10-13 10:31:52,147 [6] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderURL: http://localhost:6735//Export_134047963080453759.pdf
+2025-10-13 10:38:49,249 [5] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2025-10-13 10:38:50,064 [6] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-13 10:42:20,018 [6] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Generated connection string: Data Source=WIN-38C5VTGNK0C\SQLEXPRESS2019;Initial Catalog=CMC_2025;Integrated Security=False;User ID=egs.seiko;Password=**** for CodeUser: 64039
+2025-10-13 10:42:43,215 [6] INFO  EgsReport.clsReport - CreateReport_CMC
+2025-10-13 10:42:43,216 [6] INFO  EgsReport.clsReport - 1
+2025-10-13 10:42:43,231 [6] INFO  EgsReport.clsReport - 2
+2025-10-13 10:42:44,775 [6] INFO  EgsReport.xrReports - StrCode: 136515 | CodeUser: 1 | CodePrintList: 29 | strCodeParent:  | strCodeMain: 136515
+2025-10-13 10:42:44,776 [6] INFO  EgsReport.xrReports - strID: 33 | strFilter3: Code = 136515 AND CodeListeParent IS NULL AND CodeListeMain = 136515
+2025-10-13 10:42:45,536 [6] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderPath: C:\Data\COOP\RecipeStandardPrint\Export_134047969622234976.pdf
+2025-10-13 10:42:45,537 [6] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderURL: http://localhost:6735//Export_134047969622234976.pdf
+2025-10-13 11:10:14,186 [5] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2025-10-13 11:10:14,651 [15] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-13 11:13:58,945 [15] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Generated connection string: Data Source=WIN-38C5VTGNK0C\SQLEXPRESS2019;Initial Catalog=CMC_2025;Integrated Security=False;User ID=egs.seiko;Password=**** for CodeUser: 64039
+2025-10-13 13:07:12,407 [1] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2025-10-13 13:07:13,710 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-13 13:07:23,105 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Generated connection string: Data Source=WIN-38C5VTGNK0C\SQLEXPRESS2019;Initial Catalog=CMC_CRRSionQA;Integrated Security=False;User ID=egs.seiko;Password=**** for CodeUser: 63893
+2025-10-13 13:07:26,807 [5] INFO  EgsReport.clsReport - CreateReport_CMC
+2025-10-13 13:07:37,504 [5] INFO  EgsReport.xrReports - StrCode: 180257 | CodeUser: 1 | CodePrintList: 68 | strCodeParent:  | strCodeMain: 180257
+2025-10-13 13:07:37,505 [5] INFO  EgsReport.xrReports - strID: 705 | strFilter3: Code = 180257 AND CodeListeParent IS NULL AND CodeListeMain = 180257
+2025-10-13 13:07:37,676 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - DataTable must be set prior to using DataView.
+2025-10-13 13:09:42,152 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-13 13:09:47,826 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Generated connection string: Data Source=WIN-38C5VTGNK0C\SQLEXPRESS2019;Initial Catalog=CMC_CRRSionQA;Integrated Security=False;User ID=egs.seiko;Password=**** for CodeUser: 63893
+2025-10-13 13:09:52,820 [5] INFO  EgsReport.clsReport - CreateReport_CMC
+2025-10-13 13:20:02,987 [5] INFO  EgsReport.xrReports - StrCode: 180257 | CodeUser: 1 | CodePrintList: 68 | strCodeParent:  | strCodeMain: 180257
+2025-10-13 13:20:02,988 [5] INFO  EgsReport.xrReports - strID: 705 | strFilter3: Code = 180257 AND CodeListeParent IS NULL AND CodeListeMain = 180257
+2025-10-13 14:01:16,544 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - DataTable must be set prior to using DataView.
+2025-10-13 14:01:53,091 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-13 14:01:54,394 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Generated connection string: Data Source=WIN-38C5VTGNK0C\SQLEXPRESS2019;Initial Catalog=CMC_CRRSionQA;Integrated Security=False;User ID=egs.seiko;Password=**** for CodeUser: 63893
+2025-10-13 14:01:54,440 [5] INFO  EgsReport.clsReport - CreateReport_CMC
+2025-10-13 14:01:57,587 [5] INFO  EgsReport.xrReports - StrCode: 180257 | CodeUser: 1 | CodePrintList: 68 | strCodeParent:  | strCodeMain: 180257
+2025-10-13 14:02:01,681 [5] INFO  EgsReport.xrReports - strID: 705 | strFilter3: Code = 180257 AND CodeListeParent IS NULL AND CodeListeMain = 180257
+2025-10-13 14:02:19,907 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - DataTable must be set prior to using DataView.
+2025-10-13 14:02:25,470 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-13 14:02:25,758 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Generated connection string: Data Source=WIN-38C5VTGNK0C\SQLEXPRESS2019;Initial Catalog=CMC_CRRSionQA;Integrated Security=False;User ID=egs.seiko;Password=**** for CodeUser: 63893
+2025-10-13 14:02:25,861 [5] INFO  EgsReport.clsReport - CreateReport_CMC
+2025-10-13 14:02:30,041 [5] INFO  EgsReport.xrReports - StrCode: 180257 | CodeUser: 1 | CodePrintList: 68 | strCodeParent:  | strCodeMain: 180257
+2025-10-13 14:02:32,001 [5] INFO  EgsReport.xrReports - strID: 705 | strFilter3: Code = 180257 AND CodeListeParent IS NULL AND CodeListeMain = 180257
+2025-10-13 14:03:14,438 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - DataTable must be set prior to using DataView.
+2025-10-13 14:03:18,474 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-13 14:03:18,764 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Generated connection string: Data Source=WIN-38C5VTGNK0C\SQLEXPRESS2019;Initial Catalog=CMC_CRRSionQA;Integrated Security=False;User ID=egs.seiko;Password=**** for CodeUser: 63893
+2025-10-13 14:03:18,830 [5] INFO  EgsReport.clsReport - CreateReport_CMC
+2025-10-13 14:03:20,060 [5] INFO  EgsReport.xrReports - StrCode: 180257 | CodeUser: 1 | CodePrintList: 68 | strCodeParent:  | strCodeMain: 180257
+2025-10-13 14:03:20,061 [5] INFO  EgsReport.xrReports - strID: 705 | strFilter3: Code = 180257 AND CodeListeParent IS NULL AND CodeListeMain = 180257
+2025-10-13 14:04:22,186 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - DataTable must be set prior to using DataView.
+2025-10-13 14:04:28,129 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-13 14:04:28,424 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Generated connection string: Data Source=WIN-38C5VTGNK0C\SQLEXPRESS2019;Initial Catalog=CMC_CRRSionQA;Integrated Security=False;User ID=egs.seiko;Password=**** for CodeUser: 63893
+2025-10-13 14:04:28,645 [5] INFO  EgsReport.clsReport - CreateReport_CMC
+2025-10-13 14:04:29,931 [5] INFO  EgsReport.xrReports - StrCode: 180257 | CodeUser: 1 | CodePrintList: 68 | strCodeParent:  | strCodeMain: 180257
+2025-10-13 14:04:29,932 [5] INFO  EgsReport.xrReports - strID: 705 | strFilter3: Code = 180257 AND CodeListeParent IS NULL AND CodeListeMain = 180257
+2025-10-13 14:04:47,854 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - DataTable must be set prior to using DataView.
+2025-10-13 14:04:55,801 [14] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-13 14:04:56,080 [14] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Generated connection string: Data Source=WIN-38C5VTGNK0C\SQLEXPRESS2019;Initial Catalog=CMC_CRRSionQA;Integrated Security=False;User ID=egs.seiko;Password=**** for CodeUser: 63893
+2025-10-13 14:04:56,153 [14] INFO  EgsReport.clsReport - CreateReport_CMC
+2025-10-13 14:04:57,021 [14] INFO  EgsReport.xrReports - StrCode: 180257 | CodeUser: 1 | CodePrintList: 68 | strCodeParent:  | strCodeMain: 180257
+2025-10-13 14:04:57,022 [14] INFO  EgsReport.xrReports - strID: 705 | strFilter3: Code = 180257 AND CodeListeParent IS NULL AND CodeListeMain = 180257
+2025-10-13 14:07:00,375 [14] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - DataTable must be set prior to using DataView.
+2025-10-13 14:07:04,935 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-13 14:07:05,248 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Generated connection string: Data Source=WIN-38C5VTGNK0C\SQLEXPRESS2019;Initial Catalog=CMC_CRRSionQA;Integrated Security=False;User ID=egs.seiko;Password=**** for CodeUser: 63893
+2025-10-13 14:07:05,328 [5] INFO  EgsReport.clsReport - CreateReport_CMC
+2025-10-13 14:07:09,000 [5] INFO  EgsReport.xrReports - StrCode: 180257 | CodeUser: 1 | CodePrintList: 68 | strCodeParent:  | strCodeMain: 180257
+2025-10-13 14:07:09,000 [5] INFO  EgsReport.xrReports - strID: 705 | strFilter3: Code = 180257 AND CodeListeParent IS NULL AND CodeListeMain = 180257
+2025-10-13 20:27:08,770 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - DataTable must be set prior to using DataView.
+2025-10-13 21:28:11,809 [65] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-13 21:28:14,853 [65] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Generated connection string: Data Source=WIN-38C5VTGNK0C\SQLEXPRESS2019;Initial Catalog=CMC_CRRSionQA;Integrated Security=False;User ID=egs.seiko;Password=**** for CodeUser: 63893
+2025-10-13 21:28:15,447 [65] INFO  EgsReport.clsReport - CreateReport_CMC
+2025-10-13 21:28:23,274 [65] INFO  EgsReport.xrReports - StrCode: 180257 | CodeUser: 1 | CodePrintList: 68 | strCodeParent:  | strCodeMain: 180257
+2025-10-13 21:28:23,276 [65] INFO  EgsReport.xrReports - strID: 705 | strFilter3: Code = 180257 AND CodeListeParent IS NULL AND CodeListeMain = 180257
+2025-10-13 21:35:20,922 [1] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2025-10-13 21:35:22,414 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-13 21:35:25,389 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Generated connection string: Data Source=WIN-38C5VTGNK0C\SQLEXPRESS2019;Initial Catalog=CMC_CRRSionQA;Integrated Security=False;User ID=egs.seiko;Password=**** for CodeUser: 63893
+2025-10-13 21:35:25,999 [5] INFO  EgsReport.clsReport - CreateReport_CMC
+2025-10-13 21:35:33,500 [5] INFO  EgsReport.xrReports - StrCode: 180257 | CodeUser: 1 | CodePrintList: 68 | strCodeParent:  | strCodeMain: 180257
+2025-10-13 21:35:33,501 [5] INFO  EgsReport.xrReports - strID: 705 | strFilter3: Code = 180257 AND CodeListeParent IS NULL AND CodeListeMain = 180257
+2025-10-13 21:37:04,687 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Object reference not set to an instance of an object.
+2025-10-13 21:40:48,115 [7] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2025-10-13 21:40:48,622 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-13 21:40:50,620 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Generated connection string: Data Source=WIN-38C5VTGNK0C\SQLEXPRESS2019;Initial Catalog=CMC_CRRSionQA;Integrated Security=False;User ID=egs.seiko;Password=**** for CodeUser: 63893
+2025-10-13 21:40:51,170 [5] INFO  EgsReport.clsReport - CreateReport_CMC
+2025-10-13 21:40:58,922 [5] INFO  EgsReport.xrReports - StrCode: 180257 | CodeUser: 1 | CodePrintList: 68 | strCodeParent:  | strCodeMain: 180257
+2025-10-13 21:40:58,923 [5] INFO  EgsReport.xrReports - strID: 705 | strFilter3: Code = 180257 AND CodeListeParent IS NULL AND CodeListeMain = 180257
+2025-10-13 21:41:19,248 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Object reference not set to an instance of an object.
+2025-10-13 21:46:48,045 [7] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2025-10-13 21:46:48,392 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-13 21:46:51,618 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Generated connection string: Data Source=WIN-38C5VTGNK0C\SQLEXPRESS2019;Initial Catalog=CMC_CRRSionQA;Integrated Security=False;User ID=egs.seiko;Password=**** for CodeUser: 63893
+2025-10-13 21:46:52,094 [5] INFO  EgsReport.clsReport - CreateReport_CMC
+2025-10-13 21:47:00,777 [5] INFO  EgsReport.xrReports - StrCode: 180257 | CodeUser: 1 | CodePrintList: 68 | strCodeParent:  | strCodeMain: 180257
+2025-10-13 21:47:00,777 [5] INFO  EgsReport.xrReports - strID: 705 | strFilter3: Code = 180257 AND CodeListeParent IS NULL AND CodeListeMain = 180257
+2025-10-13 21:47:16,882 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderPath: C:\Data\COOP\RecipeStandardPrint\Export_134048368120864576.pdf
+2025-10-13 21:47:16,882 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderURL: http://localhost:6735//Export_134048368120864576.pdf
+2025-10-13 21:53:39,069 [45] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-13 21:53:40,728 [45] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Generated connection string: Data Source=WIN-38C5VTGNK0C\SQLEXPRESS2019;Initial Catalog=CMC_CRRSionQA;Integrated Security=False;User ID=egs.seiko;Password=**** for CodeUser: 63893
+2025-10-13 21:53:40,819 [45] INFO  EgsReport.clsReport - CreateReport_CMC
+2025-10-13 21:53:48,756 [45] INFO  EgsReport.xrReports - StrCode: 180664 | CodeUser: 1 | CodePrintList: 81 | strCodeParent:  | strCodeMain: 180664
+2025-10-13 21:53:48,758 [45] INFO  EgsReport.xrReports - strID: 718 | strFilter3: Code = 180664 AND CodeListeParent IS NULL AND CodeListeMain = 180664
+2025-10-13 21:53:50,161 [45] INFO  EgsReport.StandardDetail - PRINT PICTURE 
+2025-10-13 21:53:50,162 [45] INFO  EgsReport.StandardDetail - PRINT PICTURE C:\Data\COOP\RecipeStandardPrint\PicNormal\
+2025-10-13 21:54:33,197 [45] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Object reference not set to an instance of an object.
+2025-10-13 21:58:19,715 [1] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2025-10-13 21:58:21,228 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-13 21:58:24,609 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Generated connection string: Data Source=WIN-38C5VTGNK0C\SQLEXPRESS2019;Initial Catalog=CMC_CRRSionQA;Integrated Security=False;User ID=egs.seiko;Password=**** for CodeUser: 63893
+2025-10-13 21:58:25,636 [5] INFO  EgsReport.clsReport - CreateReport_CMC
+2025-10-13 21:58:34,383 [5] INFO  EgsReport.xrReports - StrCode: 180664 | CodeUser: 1 | CodePrintList: 81 | strCodeParent:  | strCodeMain: 180664
+2025-10-13 21:58:34,386 [5] INFO  EgsReport.xrReports - strID: 718 | strFilter3: Code = 180664 AND CodeListeParent IS NULL AND CodeListeMain = 180664
+2025-10-13 21:58:35,060 [5] INFO  EgsReport.StandardDetail - PRINT PICTURE 
+2025-10-13 21:58:35,061 [5] INFO  EgsReport.StandardDetail - PRINT PICTURE C:\Data\COOP\RecipeStandardPrint\PicNormal\
+2025-10-13 22:04:57,042 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Object reference not set to an instance of an object.
+2025-10-13 22:07:39,335 [1] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2025-10-13 22:07:39,966 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-13 22:07:42,618 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Generated connection string: Data Source=WIN-38C5VTGNK0C\SQLEXPRESS2019;Initial Catalog=CMC_CRRSionQA;Integrated Security=False;User ID=egs.seiko;Password=**** for CodeUser: 63893
+2025-10-13 22:07:43,124 [5] INFO  EgsReport.clsReport - CreateReport_CMC
+2025-10-13 22:07:50,310 [5] INFO  EgsReport.xrReports - StrCode: 180664 | CodeUser: 1 | CodePrintList: 81 | strCodeParent:  | strCodeMain: 180664
+2025-10-13 22:07:50,310 [5] INFO  EgsReport.xrReports - strID: 718 | strFilter3: Code = 180664 AND CodeListeParent IS NULL AND CodeListeMain = 180664
+2025-10-13 22:07:50,957 [5] INFO  EgsReport.StandardDetail - PRINT PICTURE 
+2025-10-13 22:07:50,957 [5] INFO  EgsReport.StandardDetail - PRINT PICTURE C:\Data\COOP\RecipeStandardPrint\PicNormal\
+2025-10-13 22:07:52,433 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Value cannot be null.
+Parameter name: source
+2025-10-13 22:08:11,149 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-13 22:08:12,639 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Generated connection string: Data Source=WIN-38C5VTGNK0C\SQLEXPRESS2019;Initial Catalog=CMC_CRRSionQA;Integrated Security=False;User ID=egs.seiko;Password=**** for CodeUser: 63893
+2025-10-13 22:08:12,728 [5] INFO  EgsReport.clsReport - CreateReport_CMC
+2025-10-13 22:08:20,883 [5] INFO  EgsReport.xrReports - StrCode: 180664 | CodeUser: 1 | CodePrintList: 81 | strCodeParent:  | strCodeMain: 180664
+2025-10-13 22:08:20,884 [5] INFO  EgsReport.xrReports - strID: 718 | strFilter3: Code = 180664 AND CodeListeParent IS NULL AND CodeListeMain = 180664
+2025-10-13 22:08:21,252 [5] INFO  EgsReport.StandardDetail - PRINT PICTURE 
+2025-10-13 22:08:21,253 [5] INFO  EgsReport.StandardDetail - PRINT PICTURE C:\Data\COOP\RecipeStandardPrint\PicNormal\
+2025-10-13 22:23:38,166 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Value cannot be null.
+Parameter name: source
+2025-10-13 22:26:38,343 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-13 22:26:40,762 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Generated connection string: Data Source=WIN-38C5VTGNK0C\SQLEXPRESS2019;Initial Catalog=CMC_CRRSionQA;Integrated Security=False;User ID=egs.seiko;Password=**** for CodeUser: 63893
+2025-10-13 22:26:40,866 [5] INFO  EgsReport.clsReport - CreateReport_CMC
+2025-10-13 22:26:48,343 [5] INFO  EgsReport.xrReports - StrCode: 180664 | CodeUser: 1 | CodePrintList: 81 | strCodeParent:  | strCodeMain: 180664
+2025-10-13 22:26:48,344 [5] INFO  EgsReport.xrReports - strID: 718 | strFilter3: Code = 180664 AND CodeListeParent IS NULL AND CodeListeMain = 180664
+2025-10-13 22:26:48,680 [5] INFO  EgsReport.StandardDetail - PRINT PICTURE 
+2025-10-13 22:26:48,681 [5] INFO  EgsReport.StandardDetail - PRINT PICTURE C:\Data\COOP\RecipeStandardPrint\PicNormal\
+2025-10-13 22:29:49,617 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Value cannot be null.
+Parameter name: source
+2025-10-13 22:31:06,635 [40] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2025-10-13 22:31:07,065 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-13 22:31:09,506 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Generated connection string: Data Source=WIN-38C5VTGNK0C\SQLEXPRESS2019;Initial Catalog=CMC_CRRSionQA;Integrated Security=False;User ID=egs.seiko;Password=**** for CodeUser: 63893
+2025-10-13 22:31:10,022 [5] INFO  EgsReport.clsReport - CreateReport_CMC
+2025-10-13 22:31:16,820 [5] INFO  EgsReport.xrReports - StrCode: 180664 | CodeUser: 1 | CodePrintList: 81 | strCodeParent:  | strCodeMain: 180664
+2025-10-13 22:31:16,821 [5] INFO  EgsReport.xrReports - strID: 718 | strFilter3: Code = 180664 AND CodeListeParent IS NULL AND CodeListeMain = 180664
+2025-10-13 22:31:17,349 [5] INFO  EgsReport.StandardDetail - PRINT PICTURE 
+2025-10-13 22:31:17,350 [5] INFO  EgsReport.StandardDetail - PRINT PICTURE C:\Data\COOP\RecipeStandardPrint\PicNormal\
+2025-10-13 22:31:32,584 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Object reference not set to an instance of an object.
+2025-10-13 22:33:20,140 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-13 22:33:21,361 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Generated connection string: Data Source=WIN-38C5VTGNK0C\SQLEXPRESS2019;Initial Catalog=CMC_CRRSionQA;Integrated Security=False;User ID=egs.seiko;Password=**** for CodeUser: 63893
+2025-10-13 22:33:21,487 [5] INFO  EgsReport.clsReport - CreateReport_CMC
+2025-10-13 22:33:28,932 [5] INFO  EgsReport.xrReports - StrCode: 180664 | CodeUser: 1 | CodePrintList: 81 | strCodeParent:  | strCodeMain: 180664
+2025-10-13 22:33:28,932 [5] INFO  EgsReport.xrReports - strID: 718 | strFilter3: Code = 180664 AND CodeListeParent IS NULL AND CodeListeMain = 180664
+2025-10-13 22:33:29,369 [5] INFO  EgsReport.StandardDetail - PRINT PICTURE 
+2025-10-13 22:33:29,370 [5] INFO  EgsReport.StandardDetail - PRINT PICTURE C:\Data\COOP\RecipeStandardPrint\PicNormal\
+2025-10-13 22:33:57,619 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Object reference not set to an instance of an object.
+2025-10-13 22:44:39,887 [1] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2025-10-13 22:44:40,366 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-13 22:44:42,955 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Generated connection string: Data Source=WIN-38C5VTGNK0C\SQLEXPRESS2019;Initial Catalog=CMC_CRRSionQA;Integrated Security=False;User ID=egs.seiko;Password=**** for CodeUser: 63893
+2025-10-13 22:44:43,445 [5] INFO  EgsReport.clsReport - CreateReport_CMC
+2025-10-13 22:44:50,603 [5] INFO  EgsReport.xrReports - StrCode: 180664 | CodeUser: 1 | CodePrintList: 81 | strCodeParent:  | strCodeMain: 180664
+2025-10-13 22:44:50,603 [5] INFO  EgsReport.xrReports - strID: 718 | strFilter3: Code = 180664 AND CodeListeParent IS NULL AND CodeListeMain = 180664
+2025-10-13 22:44:51,083 [5] INFO  EgsReport.StandardDetail - PRINT PICTURE 
+2025-10-13 22:44:51,083 [5] INFO  EgsReport.StandardDetail - PRINT PICTURE C:\Data\COOP\RecipeStandardPrint\PicNormal\
+2025-10-13 22:46:57,895 [1] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2025-10-13 22:46:58,317 [6] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-13 22:47:01,375 [6] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Generated connection string: Data Source=WIN-38C5VTGNK0C\SQLEXPRESS2019;Initial Catalog=CMC_CRRSionQA;Integrated Security=False;User ID=egs.seiko;Password=**** for CodeUser: 63893
+2025-10-13 22:47:02,203 [6] INFO  EgsReport.clsReport - CreateReport_CMC
+2025-10-13 22:47:11,012 [6] INFO  EgsReport.xrReports - StrCode: 180664 | CodeUser: 1 | CodePrintList: 81 | strCodeParent:  | strCodeMain: 180664
+2025-10-13 22:47:11,013 [6] INFO  EgsReport.xrReports - strID: 718 | strFilter3: Code = 180664 AND CodeListeParent IS NULL AND CodeListeMain = 180664
+2025-10-13 22:47:11,686 [6] INFO  EgsReport.StandardDetail - PRINT PICTURE 
+2025-10-13 22:47:11,687 [6] INFO  EgsReport.StandardDetail - PRINT PICTURE C:\Data\COOP\RecipeStandardPrint\PicNormal\
+2025-10-13 22:47:24,767 [6] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderPath: C:\Data\COOP\RecipeStandardPrint\Export_134048404221915600.pdf
+2025-10-13 22:47:24,768 [6] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderURL: http://localhost:6735//Export_134048404221915600.pdf
+2025-10-13 23:00:22,217 [1] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2025-10-13 23:00:23,164 [19] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-13 23:00:26,110 [19] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Generated connection string: Data Source=139.135.145.139,1501;Initial Catalog=CMC_CRRSionQA;Integrated Security=False;User ID=egs.seiko;Password=**** for CodeUser: 63893
+2025-10-13 23:00:26,758 [19] INFO  EgsReport.clsReport - CreateReport_CMC
+2025-10-13 23:00:33,789 [19] INFO  EgsReport.xrReports - StrCode: 180664 | CodeUser: 1 | CodePrintList: 81 | strCodeParent:  | strCodeMain: 180664
+2025-10-13 23:00:33,790 [19] INFO  EgsReport.xrReports - strID: 718 | strFilter3: Code = 180664 AND CodeListeParent IS NULL AND CodeListeMain = 180664
+2025-10-13 23:00:34,408 [19] INFO  EgsReport.StandardDetail - PRINT PICTURE 
+2025-10-13 23:00:34,408 [19] INFO  EgsReport.StandardDetail - PRINT PICTURE C:\Data\COOP\RecipeStandardPrint\PicNormal\
+2025-10-13 23:00:36,586 [19] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderPath: C:\Data\COOP\RecipeStandardPrint\Export_134048412267524143.pdf
+2025-10-13 23:00:36,587 [19] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderURL: http://localhost:6735//Export_134048412267524143.pdf
+2025-10-13 23:01:06,343 [19] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-13 23:01:07,405 [19] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Generated connection string: Data Source=139.135.145.139,1501;Initial Catalog=CMC_CRRSionQA;Integrated Security=False;User ID=egs.seiko;Password=**** for CodeUser: 63893
+2025-10-13 23:01:07,508 [19] INFO  EgsReport.clsReport - CreateReport_CMC
+2025-10-13 23:01:16,521 [19] INFO  EgsReport.xrReports - StrCode: 180664 | CodeUser: 1 | CodePrintList: 81 | strCodeParent:  | strCodeMain: 180664
+2025-10-13 23:01:16,522 [19] INFO  EgsReport.xrReports - strID: 718 | strFilter3: Code = 180664 AND CodeListeParent IS NULL AND CodeListeMain = 180664
+2025-10-13 23:01:16,873 [19] INFO  EgsReport.StandardDetail - PRINT PICTURE 
+2025-10-13 23:01:16,873 [19] INFO  EgsReport.StandardDetail - PRINT PICTURE C:\Data\COOP\RecipeStandardPrint\PicNormal\
+2025-10-13 23:01:18,603 [19] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderPath: C:\Data\COOP\RecipeStandardPrint\Export_134048412675084183.pdf
+2025-10-13 23:01:18,603 [19] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderURL: http://localhost:6735//Export_134048412675084183.pdf
+2025-10-13 23:02:03,151 [11] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2025-10-13 23:02:03,611 [31] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-13 23:02:05,395 [31] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Generated connection string: Data Source=139.135.145.139,1501;Initial Catalog=CMC_CRRSionQA;Integrated Security=False;User ID=egs.seiko;Password=**** for CodeUser: 63893
+2025-10-13 23:02:46,543 [31] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Debug is enabled using: Data source=WIN-38C5VTGNK0C\SQLEXPRESS2019;Initial Catalog=CMC_CRRSionQA;User ID=egs.seiko;Password=IuDYGlh10p9$QWTs9^iD for CodeUser: 63893
+2025-10-13 23:02:47,664 [31] INFO  EgsReport.clsReport - CreateReport_CMC
+2025-10-13 23:02:54,775 [31] INFO  EgsReport.xrReports - StrCode: 180664 | CodeUser: 1 | CodePrintList: 81 | strCodeParent:  | strCodeMain: 180664
+2025-10-13 23:02:54,776 [31] INFO  EgsReport.xrReports - strID: 718 | strFilter3: Code = 180664 AND CodeListeParent IS NULL AND CodeListeMain = 180664
+2025-10-13 23:02:55,186 [31] INFO  EgsReport.StandardDetail - PRINT PICTURE 
+2025-10-13 23:02:55,187 [31] INFO  EgsReport.StandardDetail - PRINT PICTURE C:\Data\COOP\RecipeStandardPrint\PicNormal\
+2025-10-13 23:02:57,064 [31] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderPath: C:\Data\COOP\RecipeStandardPrint\Export_134048413676551249.pdf
+2025-10-13 23:02:57,064 [31] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderURL: http://localhost:6735//Export_134048413676551249.pdf
+2025-10-13 23:09:50,113 [31] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-13 23:09:51,901 [31] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Generated connection string: Data Source=139.135.145.139,1501;Initial Catalog=CMC_CRRSionQA;Integrated Security=False;User ID=egs.seiko;Password=**** for CodeUser: 63893
+2025-10-13 23:10:17,567 [31] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Debug is enabled using: Data source=WIN-38C5VTGNK0C\SQLEXPRESS2019;Initial Catalog=CMC_CRRSionQA;User ID=egs.seiko;Password=IuDYGlh10p9$QWTs9^iD for CodeUser: 63893
+2025-10-13 23:10:17,665 [31] INFO  EgsReport.clsReport - CreateReport_CMC
+2025-10-13 23:10:25,113 [31] INFO  EgsReport.xrReports - StrCode: 180257 | CodeUser: 1 | CodePrintList: 88 | strCodeParent:  | strCodeMain: 180257
+2025-10-13 23:10:25,114 [31] INFO  EgsReport.xrReports - strID: 725 | strFilter3: Code = 180257 AND CodeListeParent IS NULL AND CodeListeMain = 180257
+2025-10-13 23:10:25,425 [31] INFO  EgsReport.StandardDetail - PRINT PICTURE 
+2025-10-13 23:10:25,425 [31] INFO  EgsReport.StandardDetail - PRINT PICTURE C:\Data\COOP\RecipeStandardPrint\PicNormal\
+2025-10-13 23:10:31,100 [31] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Object reference not set to an instance of an object.
+2025-10-13 23:13:30,569 [1] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2025-10-13 23:13:31,010 [21] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-13 23:13:33,191 [21] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Generated connection string: Data Source=139.135.145.139,1501;Initial Catalog=CMC_CRRSionQA;Integrated Security=False;User ID=egs.seiko;Password=**** for CodeUser: 63893
+2025-10-13 23:13:33,192 [21] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Debug is enabled using: Data source=WIN-38C5VTGNK0C\SQLEXPRESS2019;Initial Catalog=CMC_CRRSionQA;User ID=egs.seiko;Password=IuDYGlh10p9$QWTs9^iD for CodeUser: 63893
+2025-10-13 23:13:33,808 [21] INFO  EgsReport.clsReport - CreateReport_CMC
+2025-10-13 23:13:42,722 [21] INFO  EgsReport.xrReports - StrCode: 180257 | CodeUser: 1 | CodePrintList: 88 | strCodeParent:  | strCodeMain: 180257
+2025-10-13 23:13:42,723 [21] INFO  EgsReport.xrReports - strID: 725 | strFilter3: Code = 180257 AND CodeListeParent IS NULL AND CodeListeMain = 180257
+2025-10-13 23:13:43,205 [21] INFO  EgsReport.StandardDetail - PRINT PICTURE 
+2025-10-13 23:13:43,206 [21] INFO  EgsReport.StandardDetail - PRINT PICTURE C:\Data\COOP\RecipeStandardPrint\PicNormal\
+2025-10-13 23:13:43,241 [21] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - DataTable must be set prior to using DataView.
+2025-10-13 23:19:39,488 [11] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2025-10-13 23:19:40,074 [21] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-13 23:19:42,885 [21] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Generated connection string: Data Source=139.135.145.139,1501;Initial Catalog=CMC_CRRSionQA;Integrated Security=False;User ID=egs.seiko;Password=**** for CodeUser: 63893
+2025-10-13 23:19:42,886 [21] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Debug is enabled using: Data source=WIN-38C5VTGNK0C\SQLEXPRESS2019;Initial Catalog=CMC_CRRSionQA;User ID=egs.seiko;Password=IuDYGlh10p9$QWTs9^iD for CodeUser: 63893
+2025-10-13 23:19:43,535 [21] INFO  EgsReport.clsReport - CreateReport_CMC
+2025-10-13 23:19:52,214 [21] INFO  EgsReport.xrReports - StrCode: 180257 | CodeUser: 1 | CodePrintList: 88 | strCodeParent:  | strCodeMain: 180257
+2025-10-13 23:19:52,215 [21] INFO  EgsReport.xrReports - strID: 725 | strFilter3: Code = 180257 AND CodeListeParent IS NULL AND CodeListeMain = 180257
+2025-10-13 23:19:52,693 [21] INFO  EgsReport.StandardDetail - PRINT PICTURE 
+2025-10-13 23:19:52,694 [21] INFO  EgsReport.StandardDetail - PRINT PICTURE C:\Data\COOP\RecipeStandardPrint\PicNormal\
+2025-10-13 23:19:52,732 [21] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - DataTable must be set prior to using DataView.
+2025-10-13 23:20:41,499 [21] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-13 23:20:42,734 [21] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Generated connection string: Data Source=139.135.145.139,1501;Initial Catalog=CMC_CRRSionQA;Integrated Security=False;User ID=egs.seiko;Password=**** for CodeUser: 63893
+2025-10-13 23:20:42,735 [21] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Debug is enabled using: Data source=WIN-38C5VTGNK0C\SQLEXPRESS2019;Initial Catalog=CMC_CRRSionQA;User ID=egs.seiko;Password=IuDYGlh10p9$QWTs9^iD for CodeUser: 63893
+2025-10-13 23:20:42,825 [21] INFO  EgsReport.clsReport - CreateReport_CMC
+2025-10-13 23:20:50,622 [21] INFO  EgsReport.xrReports - StrCode: 180257 | CodeUser: 1 | CodePrintList: 88 | strCodeParent:  | strCodeMain: 180257
+2025-10-13 23:20:50,622 [21] INFO  EgsReport.xrReports - strID: 725 | strFilter3: Code = 180257 AND CodeListeParent IS NULL AND CodeListeMain = 180257
+2025-10-13 23:20:50,857 [21] INFO  EgsReport.StandardDetail - PRINT PICTURE 
+2025-10-13 23:20:50,858 [21] INFO  EgsReport.StandardDetail - PRINT PICTURE C:\Data\COOP\RecipeStandardPrint\PicNormal\
+2025-10-13 23:20:50,886 [21] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - DataTable must be set prior to using DataView.
+2025-10-13 23:21:19,099 [21] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-13 23:21:19,521 [21] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Generated connection string: Data Source=139.135.145.139,1501;Initial Catalog=CMC_CRRSionQA;Integrated Security=False;User ID=egs.seiko;Password=**** for CodeUser: 63893
+2025-10-13 23:21:19,522 [21] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Debug is enabled using: Data source=WIN-38C5VTGNK0C\SQLEXPRESS2019;Initial Catalog=CMC_CRRSionQA;User ID=egs.seiko;Password=IuDYGlh10p9$QWTs9^iD for CodeUser: 63893
+2025-10-13 23:21:19,625 [21] INFO  EgsReport.clsReport - CreateReport_CMC
+2025-10-13 23:21:28,637 [21] INFO  EgsReport.xrReports - StrCode: 180257 | CodeUser: 1 | CodePrintList: 88 | strCodeParent:  | strCodeMain: 180257
+2025-10-13 23:21:28,638 [21] INFO  EgsReport.xrReports - strID: 725 | strFilter3: Code = 180257 AND CodeListeParent IS NULL AND CodeListeMain = 180257
+2025-10-13 23:21:28,880 [21] INFO  EgsReport.StandardDetail - PRINT PICTURE 
+2025-10-13 23:21:28,881 [21] INFO  EgsReport.StandardDetail - PRINT PICTURE C:\Data\COOP\RecipeStandardPrint\PicNormal\
+2025-10-13 23:21:34,056 [21] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - DataTable must be set prior to using DataView.
+2025-10-13 23:23:08,676 [30] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-13 23:23:09,089 [30] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Generated connection string: Data Source=139.135.145.139,1501;Initial Catalog=CMC_CRRSionQA;Integrated Security=False;User ID=egs.seiko;Password=**** for CodeUser: 63893
+2025-10-13 23:23:09,090 [30] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Debug is enabled using: Data source=WIN-38C5VTGNK0C\SQLEXPRESS2019;Initial Catalog=CMC_CRRSionQA;User ID=egs.seiko;Password=IuDYGlh10p9$QWTs9^iD for CodeUser: 63893
+2025-10-13 23:23:09,193 [30] INFO  EgsReport.clsReport - CreateReport_CMC
+2025-10-13 23:23:17,200 [30] INFO  EgsReport.xrReports - StrCode: 180257 | CodeUser: 1 | CodePrintList: 88 | strCodeParent:  | strCodeMain: 180257
+2025-10-13 23:23:17,200 [30] INFO  EgsReport.xrReports - strID: 725 | strFilter3: Code = 180257 AND CodeListeParent IS NULL AND CodeListeMain = 180257
+2025-10-13 23:23:17,538 [30] INFO  EgsReport.StandardDetail - PRINT PICTURE 
+2025-10-13 23:23:17,539 [30] INFO  EgsReport.StandardDetail - PRINT PICTURE C:\Data\COOP\RecipeStandardPrint\PicNormal\
+2025-10-13 23:23:38,160 [30] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - DataTable must be set prior to using DataView.
+2025-10-13 23:25:49,311 [14] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2025-10-13 23:25:49,766 [30] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-13 23:25:51,529 [30] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Generated connection string: Data Source=139.135.145.139,1501;Initial Catalog=CMC_CRRSionQA;Integrated Security=False;User ID=egs.seiko;Password=**** for CodeUser: 63893
+2025-10-13 23:25:51,530 [30] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Debug is enabled using: Data source=WIN-38C5VTGNK0C\SQLEXPRESS2019;Initial Catalog=CMC_CRRSionQA;User ID=egs.seiko;Password=IuDYGlh10p9$QWTs9^iD for CodeUser: 63893
+2025-10-13 23:25:52,145 [30] INFO  EgsReport.clsReport - CreateReport_CMC
+2025-10-13 23:26:00,700 [30] INFO  EgsReport.xrReports - StrCode: 180257 | CodeUser: 1 | CodePrintList: 88 | strCodeParent:  | strCodeMain: 180257
+2025-10-13 23:26:00,700 [30] INFO  EgsReport.xrReports - strID: 725 | strFilter3: Code = 180257 AND CodeListeParent IS NULL AND CodeListeMain = 180257
+2025-10-13 23:26:01,087 [30] INFO  EgsReport.StandardDetail - PRINT PICTURE 
+2025-10-13 23:26:01,087 [30] INFO  EgsReport.StandardDetail - PRINT PICTURE C:\Data\COOP\RecipeStandardPrint\PicNormal\
+2025-10-13 23:26:13,547 [30] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderPath: C:\Data\COOP\RecipeStandardPrint\Export_134048427521368088.pdf
+2025-10-13 23:26:13,548 [30] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderURL: http://localhost:6735//Export_134048427521368088.pdf

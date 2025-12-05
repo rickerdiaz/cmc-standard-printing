@@ -1,0 +1,522 @@
+﻿Imports System
+Imports System.Web
+Imports System.Collections.Generic
+Imports System.Linq
+Imports AttributeRouting.Web.Http
+Imports System.Data.SqlClient
+Imports System.Web.Script.Serialization
+Imports log4net
+Imports System.Net
+Imports Newtonsoft.Json
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace CalcmenuAPI
+    Public Class AliasController
+        Inherits ControllerBase
+
+        Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType)
+
+        ''' <summary>
+        ''' Get alias information
+        ''' </summary>
+        ''' <param name="codealias"></param>
+        ''' <returns></returns>
+        ''' <remarks></remarks>
+        <HttpGet> <[GET]("/api/alias/{codealias:int}/{codetrans:int}")> _
+        Public Function GetAlias(codealias As Integer, codetrans As Integer) As Models.AliasData
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        .Connection = New SqlConnection(ConnectionString)
+                        .CommandType = CommandType.StoredProcedure
+                        .CommandText = Common.SP_API_GET_AliasInfo
+                        .Parameters.Add("@CodeAlias", SqlDbType.Int).Value = codealias
+                        .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans
+
+                        .Connection.Open()
+                        Dim _da As New SqlDataAdapter(cmd)
+                        _da.Fill(ds)
+                        .Connection.Close()
+                    End With
+                End Using
+
+                Dim aliases As New Models.AliasData
+                For Each r In ds.Tables(0).Rows
+                    'categories.Add(New Models.Alias With {
+                    '				.Code = GetInt(r("Code")), _
+                    '				.Name = GetStr(r("Name")), _
+                    '				.Global = GetBool(r("Global"))})
+                Next
+
+                Return aliases
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpPost> <POST("api/alias")>
+        Public Function SaveAlias(data As Models.AliasData) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim resultCode As Integer = 0
+            Dim _trans As SqlTransaction = Nothing
+
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + JsonConvert.SerializeObject(data, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+                Dim arrSharing As New ArrayList
+                'For Each sh In data.Sharing
+                '    If arrSharing.IndexOf(sh.Code) = -1 Then arrSharing.Add(sh.Code)
+                'Next
+                'Dim _codeSiteList As String = Common.Join(arrSharing, "(", ")", ",")
+
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[API_UPDATE_Alias]"
+                                .Parameters.Clear()
+
+                                .Parameters.Add("@Id", SqlDbType.Int).Value = data.Info.Code
+                                .Parameters.Add("@IdMain", SqlDbType.Int).Value = data.Info.IdMain
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = data.Info.CodeTrans
+                                .Parameters.Add("@Name", SqlDbType.NVarChar).Value = data.Info.Name
+                                .Parameters.Add("@Alias", SqlDbType.NVarChar).Value = data.Info.Alias
+
+                                .Parameters.Add("@retval", SqlDbType.Int).Direction = ParameterDirection.ReturnValue
+
+                                .Parameters("@Id").Direction = ParameterDirection.InputOutput
+
+                                cn.Open()
+                                _trans = cn.BeginTransaction ' RBAJ-2014.01.13
+                                .Transaction = _trans
+
+                                .ExecuteNonQuery()
+                                resultCode = GetInt(.Parameters("@retval").Value, -1)
+                                If resultCode <> 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Save alias failed", resultCode))
+                                End If
+
+                                Dim codeAlias = CInt(.Parameters("@Id").Value)
+
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = codeAlias
+                                response.Status = True
+                                _trans.Commit()
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                Try
+                                    _trans.Rollback()
+                                    If Not _trans Is Nothing Then
+                                        CType(_trans, IDisposable).Dispose()
+                                    End If
+                                Catch
+                                End Try
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.Status = False
+                                response.Message = "Save alias failed"
+                                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Alias")
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+
+                End Using
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                response.Code = 400
+                response.Message = "Missing or invalid parameters"
+                response.Parameters = New List(Of Models.param) From {New Models.param With {.name = "data", .value = "RecipeData"}}
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), aex.Message.ToString(), aex.StackTrace.ToString(), "Alias")
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), hex.Message.ToString(), hex.StackTrace.ToString(), "Alias")
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Alias")
+            End Try
+            Return response
+
+        End Function
+
+
+        ''' <summary>
+        ''' Get List of Aliases per 
+        ''' </summary>
+        ''' <param name="codetrans"></param>
+        ''' <returns></returns>
+        ''' <remarks></remarks>
+        <HttpGet> <[GET]("/api/alias/{codetrans:int}")> _
+        Public Function SearchAlias(codetrans As Integer) As List(Of Models.Alias)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_Generic]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = -1
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = -1
+                                .Parameters.Add("@TableName", SqlDbType.NVarChar, 200).Value = "EGSWSEARCHALIASES"
+                                .Parameters.Add("@Status", SqlDbType.Int).Value = 1
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim aliases As New List(Of Models.Alias)
+                For Each r In ds.Tables(0).Rows
+                    aliases.Add(New Models.Alias With {.Code = GetInt(r("Code")), .IdMain = GetInt(r("IdMain")), .CodeTrans = GetInt(r("CodeTrans")), .Name = GetStr(r("Name")), .Alias = (GetStr(r("Alias")))})
+                Next
+
+                Return aliases
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpGet> <[GET]("/api/alias/{codetrans:int}/{name?}")> _
+        Public Function SearchAliasByName(codetrans As Integer, _
+                              Optional name As String = "") As List(Of Models.Alias)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        .Connection = New SqlConnection(ConfigurationManager.AppSettings.Get("dsn").ToString)
+                        .CommandType = CommandType.StoredProcedure
+                        .CommandText = "[dbo].[API_MANAGE_Generic]"
+                        .Parameters.Add("@CodeSite", SqlDbType.Int).Value = -1
+                        .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans
+                        .Parameters.Add("@Type", SqlDbType.Int).Value = -1
+                        .Parameters.Add("@Status", SqlDbType.Int).Value = -1
+                        .Parameters.Add("@TableName", SqlDbType.NVarChar, 200).Value = "EGSWSEARCHALIASES"
+                        .Parameters.Add("@Name", SqlDbType.NVarChar, 300).Value = name
+
+                        .Connection.Open()
+                        Dim _da As New SqlDataAdapter(cmd)
+                        _da.Fill(ds)
+                        .Connection.Close()
+                    End With
+                End Using
+
+                Dim aliases As New List(Of Models.Alias)
+                For Each r In ds.Tables(0).Rows
+                    aliases.Add(New Models.Alias With {
+                                    .Code = GetInt(r("Id")), _
+                                    .IdMain = GetInt(r("IdMain")), _
+                                    .CodeTrans = GetInt(r("CodeTrans")), _
+                                    .Name = GetStr(r("Name")), _
+                                    .Alias = GetStr(r("Alias"))})
+                Next
+
+                'If name.Trim <> "" Then
+
+                '    Dim aliasresult As New List(Of Models.Alias)
+
+                '    Dim arrNames() As String = name.Trim.Split(",")
+                '    For Each word In arrNames
+                '        For Each a In aliases
+                '            If a.Name.ToLower.Contains(Common.ReplaceSpecialCharacters(word.Trim.ToLower)) Or _
+                '                a.Alias.ToLower.Contains(Common.ReplaceSpecialCharacters(word.Trim.ToLower)) Then
+                '                aliasresult.Add(a)
+                '            End If
+                '        Next
+                '    Next
+
+                '    aliases = aliasresult
+
+                'End If
+
+                Return aliases.ToList
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+
+        'START - Raqi Pinili 08.26.2015
+        <HttpPost> <[POST]("/api/alias/search")> _
+        Public Function SearchAliasByName2(data As Models.ConfigurationcSearch) As List(Of Models.Alias)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        .Connection = New SqlConnection(ConfigurationManager.AppSettings.Get("dsn").ToString)
+                        .CommandType = CommandType.StoredProcedure
+                        .CommandText = "[dbo].[API_MANAGE_Generic]"
+                        .Parameters.Add("@CodeSite", SqlDbType.Int).Value = -1
+                        .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = data.CodeTrans
+                        .Parameters.Add("@Type", SqlDbType.Int).Value = -1
+                        .Parameters.Add("@Status", SqlDbType.Int).Value = -1
+                        .Parameters.Add("@TableName", SqlDbType.NVarChar, 200).Value = "EGSWSEARCHALIASES"
+                        .Parameters.Add("@Name", SqlDbType.NVarChar, 300).Value = data.Name
+
+                        .Connection.Open()
+                        Dim _da As New SqlDataAdapter(cmd)
+                        _da.Fill(ds)
+                        .Connection.Close()
+                    End With
+                End Using
+
+                Dim aliases As New List(Of Models.Alias)
+                For Each r In ds.Tables(0).Rows
+                    aliases.Add(New Models.Alias With {
+                                    .Code = GetInt(r("Id")), _
+                                    .IdMain = GetInt(r("IdMain")), _
+                                    .CodeTrans = GetInt(r("CodeTrans")), _
+                                    .Name = GetStr(r("Name")), _
+                                    .Alias = GetStr(r("Alias"))})
+                Next
+
+                'If name.Trim <> "" Then
+
+                '    Dim aliasresult As New List(Of Models.Alias)
+
+                '    Dim arrNames() As String = name.Trim.Split(",")
+                '    For Each word In arrNames
+                '        For Each a In aliases
+                '            If a.Name.ToLower.Contains(Common.ReplaceSpecialCharacters(word.Trim.ToLower)) Or _
+                '                a.Alias.ToLower.Contains(Common.ReplaceSpecialCharacters(word.Trim.ToLower)) Then
+                '                aliasresult.Add(a)
+                '            End If
+                '        Next
+                '    Next
+
+                '    aliases = aliasresult
+
+                'End If
+
+                Return aliases.ToList
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+        'END - Raqi Pinili 08.26.2015
+
+        <HttpPost> <POST("api/alias/delete")> _
+        Public Function DeleteAlias(data As Models.GenericDeleteData) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim resultCode As Integer = 0
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + JsonConvert.SerializeObject(data, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+                Dim arrAliasCodes As New ArrayList
+                For Each c In data.CodeList
+                    If arrAliasCodes.IndexOf(c.Code) = -1 Then arrAliasCodes.Add(c.Code)
+                Next
+                Dim _codeAliasList As String = Common.Join(arrAliasCodes, "", "", ",")
+
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandText = "API_DELETE_Generic"
+                                .CommandType = CommandType.StoredProcedure
+                                .Parameters.Clear()
+                                .Parameters.Add("@CodeList", SqlDbType.VarChar, 4000).Value = _codeAliasList
+                                .Parameters.Add("@TableName", SqlDbType.VarChar, 200).Value = "EGSWSEARCHALIASES"
+                                .Parameters.Add("@CodeUser", SqlDbType.Int).Value = data.CodeUser                    ''codeuser
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.CodeSite                    ''codesite                                                        
+                                .Parameters.Add("@ForceDelete", SqlDbType.Bit).Value = data.ForceDelete              ''force delete
+                                .Parameters.Add("@SkipList", SqlDbType.NVarChar, 4000).Direction = ParameterDirection.Output
+                                .Parameters.Add("@Return", SqlDbType.Int)
+                                .Parameters("@Return").Direction = ParameterDirection.ReturnValue
+
+                                cn.Open()
+                                .ExecuteNonQuery()
+                                resultCode = GetInt(.Parameters("@Return").Value, -1) ' RBAJ-2014.01.14                               
+                                If resultCode <> 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Delete alias failed", resultCode))
+                                End If
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = GetStr(.Parameters("@SkipList").Value)
+                                response.Status = True
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.Status = False
+                                response.ReturnValue = GetStr(.Parameters("@SkipList").Value)
+                                response.Message = "Delete failed failed"
+                                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Alias")
+                            Catch exc As Exception
+
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+
+                End Using
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                response.Code = 400
+                response.Message = "Missing or invalid parameters"
+                response.Parameters = New List(Of Models.param) From {New Models.param With {.name = "data", .value = "RecipeData"}}
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), aex.Message.ToString(), aex.StackTrace.ToString(), "Alias")
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), hex.Message.ToString(), hex.StackTrace.ToString(), "Alias")
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Alias")
+            End Try
+            Return response
+
+        End Function
+
+        <HttpPost> <POST("api/alias/purge/{type:int}/{codeUser:int}/{codeSite:int}")> _
+        Public Function PurgeAlias(type As Integer, codeUser As Long, codeSite As Long) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim resultCode As Integer = 0
+            Dim _trans As SqlTransaction = Nothing
+
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + "[" + type.ToString + "]")
+
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandText = "API_PURGE_Generic"
+                                .CommandType = CommandType.StoredProcedure
+                                .Parameters.Clear()
+                                .Parameters.Add("@TableName", SqlDbType.VarChar, 200).Value = "EGSWSEARCHALIASES"
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = type
+                                .Parameters.Add("@CodeUser", SqlDbType.Int).Value = codeUser  '' Doesn't need this here, but it should be controlled in the UI/
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codeSite '' The roles and rights of the user should determine if the link button must be shown or not.
+                                .Parameters.Add("@Return", SqlDbType.Int)
+                                .Parameters("@Return").Direction = ParameterDirection.ReturnValue
+
+                                cn.Open()
+                                _trans = cn.BeginTransaction ' RBAJ-2014.01.13 Added transaction
+                                .Transaction = _trans
+                                .ExecuteNonQuery()
+                                resultCode = GetInt(.Parameters("@Return").Value, -1)
+                                If resultCode <> 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Purge alias failed", resultCode))
+                                End If
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.Status = True
+                                _trans.Commit()
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                Try
+                                    _trans.Rollback()
+                                    If Not _trans Is Nothing Then
+                                        CType(_trans, IDisposable).Dispose()
+                                    End If
+                                Catch
+                                End Try
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.Status = False
+                                response.Message = "Purge alias failed"
+                                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Alias")
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+
+                End Using
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                response.Code = 400
+                response.Message = "Missing or invalid parameters"
+                response.Parameters = New List(Of Models.param) From {New Models.param With {.name = "data", .value = "RecipeData"}}
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), aex.Message.ToString(), aex.StackTrace.ToString(), "Alias")
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), hex.Message.ToString(), hex.StackTrace.ToString(), "Alias")
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Alias")
+            End Try
+            Return response
+
+        End Function
+
+    End Class
+End Namespace

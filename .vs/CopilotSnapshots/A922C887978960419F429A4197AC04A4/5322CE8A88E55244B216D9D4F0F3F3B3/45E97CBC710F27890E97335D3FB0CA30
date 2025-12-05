@@ -1,0 +1,13 @@
+﻿using Microsoft.AspNetCore.Mvc;
+
+namespace CalcmenuAPI_CMC_CoopGastro.Controllers
+{
+    [ApiController]
+    [Route("api/[controller]")]
+    public class PrinterController : ControllerBase
+    {
+        // TODO: Port logic from VB
+        [HttpGet("ping")]
+        public IActionResult Ping() => Ok(new { status = "ok" });
+    }
+}

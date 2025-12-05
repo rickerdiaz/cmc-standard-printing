@@ -1,0 +1,53 @@
+2024-07-16 15:26:43,531 [5] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2024-07-16 15:26:43,739 [5] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2024-07-16 15:26:43,739 [5] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2024-07-16 15:26:43,739 [5] INFO  CalcmenuAPI.Global_asax - File does not exist.
+2024-07-16 15:26:43,739 [5] INFO  CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2024-07-16 15:26:43,860 [7] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2024-07-16 15:26:43,860 [7] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2024-07-16 15:26:43,861 [7] INFO  CalcmenuAPI.Global_asax - File does not exist.
+2024-07-16 15:26:43,861 [7] INFO  CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2024-07-16 15:49:39,134 [7] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2024-07-16 15:50:05,621 [7] INFO  EgsReport.clsReport - CreateReport_Test
+2024-07-16 15:51:39,452 [7] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Object reference not set to an instance of an object.
+2024-07-16 15:51:51,767 [7] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2024-07-16 15:52:25,688 [7] INFO  EgsReport.clsReport - CreateReport_Test
+2024-07-16 15:53:32,881 [7] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Object reference not set to an instance of an object.
+2024-07-16 16:07:22,851 [11] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2024-07-16 16:07:22,851 [11] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2024-07-16 16:07:22,851 [11] INFO  CalcmenuAPI.Global_asax - File does not exist.
+2024-07-16 16:07:22,852 [11] INFO  CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2024-07-16 16:10:09,211 [29] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2024-07-16 16:10:19,654 [29] INFO  EgsReport.clsReport - CreateReport_Test
+2024-07-16 16:10:35,358 [29] INFO  EgsReport.clsReport - 1
+2024-07-16 16:10:46,992 [29] INFO  EgsReport.clsReport - 2

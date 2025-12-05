@@ -1,0 +1,270 @@
+﻿Imports System
+Imports System.Net
+Imports System.Net.Http
+Imports System.Web
+Imports System.Collections.Generic
+Imports System.Linq
+Imports AttributeRouting.Web.Http
+Imports System.Data.SqlClient
+Imports System.Web.Script.Serialization
+Imports log4net
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace CalcmenuAPI
+    Public Class TranslationController
+        Inherits ControllerBase
+
+        Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType)
+
+		<HttpGet> <[GET]("/api/Translation/{codesite:int}")> _
+		Public Function GetTranslationList(codesite As Integer) As List(Of Models.GenericList)
+			Try
+				Dim ds As New DataSet
+				Using cmd As New SqlCommand
+					With cmd
+						Using cn As New SqlConnection(ConnectionString)
+							Try
+								.Connection = cn
+								.CommandType = CommandType.StoredProcedure
+								.CommandText = "[dbo].[GET_TRANSLATIONCODENAME]"
+								.Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+								.Parameters.Add("@Status", SqlDbType.Bit).Value = True
+								cn.Open()
+								Dim _da As New SqlDataAdapter(cmd)
+								_da.Fill(ds)
+							Finally
+								If Not cn Is Nothing Then
+									cn.Close()
+									CType(cn, IDisposable).Dispose()
+								End If
+							End Try
+						End Using
+					End With
+				End Using
+
+				Dim translations As New List(Of Models.GenericList)
+				For Each r In ds.Tables(0).Rows
+					translations.Add(New Models.GenericList With {
+									.Code = GetInt(r("Code")), _
+									.Value = GetStr(r("Name"))})
+				Next
+
+				Return translations.ToList
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpGet> <[GET]("/api/Translation/Dict/{codetrans:int}/{codesite:int}")> _
+        Public Function GetCodeDict(codetrans As Integer, codesite As Integer) As Integer 'As Models.GenericTranslation
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[sp_EgswTranslationGetList]"
+                                .Parameters.Add("@intCode", SqlDbType.Int).Value = codetrans
+                                .Parameters.Add("@intCodeSite", SqlDbType.Int).Value = codesite
+                                '.Parameters.Add("@Status", SqlDbType.Int).Value = 255
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim translation As New Models.GenericTranslation
+                For Each r In ds.Tables(0).Rows
+                    With translation
+                        .Code = GetInt(r("CodeDictionary"))
+                    End With
+
+                Next
+
+                Return translation.Code
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpGet> <[GET]("/api/translation/ingredient/{codeliste:int}/{codesite?}/{excludecodetrans?}")> _
+        Public Function GetIngredientTranslation(codeliste As Integer, Optional codesite As Integer = -1, Optional excludecodetrans As Integer = -1) As List(Of Models.RecipeIngredientTranslation)
+            Try
+                Dim ingredients As New List(Of Models.RecipeIngredientTranslation)
+
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "API_GET_IngredientTranslation"
+                                .Parameters.Add("@CodeListe", SqlDbType.Int).Value = codeliste
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@ExcludeCodeTrans", SqlDbType.Int).Value = excludecodetrans
+                                cn.Open()
+
+                                Using dr As SqlDataReader = cmd.ExecuteReader()
+                                    While dr.Read
+                                        ingredients.Add(New Models.RecipeIngredientTranslation With {
+                                            .CodeTrans = GetInt(dr("CodeTrans")), _
+                                            .Name = GetStr(dr("Name")), _
+                                            .Complement = GetStr(dr("Complement")), _
+                                            .Preparation = GetStr(dr("Preparation")), _
+                                            .AlternativeIngredient = GetStr(dr("AlternativeIngredient")), _
+                                            .CodeUnitDisplaySelection = GetInt(dr("CodeUnitDisplaySelection")), _
+                                            .IsGenderSensitive = GetBool(dr("IsGenderSensitive")), _
+                                            .PrefixCode = GetInt(dr("PrefixCode")), _
+                                            .PrefixGender = IIf(GetBool(dr("IsFemale")) = True, "Feminine", "Masculine")
+                                        })
+                                    End While
+                                    dr.Close()
+                                End Using
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Return ingredients
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpGet> <[GET]("/api/translation/recipe/ingredient/{codeliste:int}/{codesite?}/{excludecodetrans?}")> _
+        Public Function GetRecipeIngredientTranslation(codeliste As Integer, Optional codesite As Integer = -1, Optional excludecodetrans As Integer = -1) As List(Of Models.RecipeIngredientTranslation)
+            Try
+                Dim ingredients As New List(Of Models.RecipeIngredientTranslation)
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "API_GET_RecipeIngredientTranslation"
+                                .Parameters.Add("@CodeListe", SqlDbType.Int).Value = codeliste
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@ExcludeCodeTrans", SqlDbType.Int).Value = excludecodetrans
+                                cn.Open()
+
+                                Using dr As SqlDataReader = cmd.ExecuteReader()
+                                    While dr.Read
+                                        ingredients.Add(New Models.RecipeIngredientTranslation With {
+                                            .ItemId = GetInt(dr("Id")), _
+                                            .CodeTrans = GetInt(dr("CodeTrans")), _
+                                            .Name = GetStr(dr("Name")), _
+                                            .Complement = GetStr(dr("Complement")), _
+                                            .Preparation = GetStr(dr("Preparation")), _
+                                            .AlternativeIngredient = GetStr(dr("AlternativeIngredient"))
+                                        })
+                                    End While
+                                    dr.Close()
+                                End Using
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Return ingredients
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpGet> <[GET]("/api/translation/recipe/procedure/{codeliste:int}/{excludecodetrans?}")> _
+        Public Function GetRecipeProcedureTranslation(codeliste As Integer, Optional excludecodetrans As Integer = -1) As List(Of Models.RecipeProcedureTranslation)
+            Try
+                Dim ingredients As New List(Of Models.RecipeProcedureTranslation)
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "API_GET_RecipeProcedureTranslation"
+                                .Parameters.Add("@CodeListe", SqlDbType.Int).Value = codeliste
+                                .Parameters.Add("@ExcludeCodeTrans", SqlDbType.Int).Value = excludecodetrans
+                                cn.Open()
+
+                                Using dr As SqlDataReader = cmd.ExecuteReader()
+                                    While dr.Read
+                                        ingredients.Add(New Models.RecipeProcedureTranslation With {
+                                            .NoteId = GetInt(dr("NoteId")), _
+                                            .CodeTrans = GetInt(dr("CodeTrans")), _
+                                            .Note = GetStr(dr("Note")), _
+                                            .AbbrevNote = GetStr(dr("AbbrevNote"))
+                                        })
+                                    End While
+                                    dr.Close()
+                                End Using
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Return ingredients
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+    End Class
+End Namespace

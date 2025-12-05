@@ -1,0 +1,215 @@
+﻿Imports System
+Imports System.Web
+Imports System.Collections.Generic
+Imports System.Linq
+Imports AttributeRouting.Web.Http
+Imports System.Data.SqlClient
+Imports System.Web.Script.Serialization
+Imports Newtonsoft.Json
+Imports log4net
+Imports System.Net
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace CalcmenuAPI
+	Public Class CommonController
+        'Inherits AppDomainManager
+        Inherits ControllerBase
+
+		Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType)
+
+        ''' <summary>
+        ''' Get autonumber
+        ''' </summary>
+        ''' <returns></returns>
+        ''' <remarks>RBAJ-2014.03.28</remarks>
+        <HttpGet> <[GET]("/api/autonumber/{codesite:int}/{codeuser:int}/{type:int}/{category:int?}")> _
+        Public Function GetAutoNumber(codesite As Integer, codeuser As Integer, type As Integer, Optional category As Integer = -1) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim resultCode As Integer = 0
+            Try
+                Dim strNumber As String = String.Empty
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_AutoNumber]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@CodeUser", SqlDbType.Int).Value = codeuser
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = type
+                                .Parameters.Add("@CodeCategory", SqlDbType.Int).Value = category
+
+                                .Parameters.Add("@Number", SqlDbType.VarChar, 50).Direction = ParameterDirection.Output
+                                .Parameters.Add("@ERR", SqlDbType.Int).Direction = ParameterDirection.ReturnValue
+                                cn.Open()
+                                .ExecuteNonQuery()
+
+                                strNumber = GetStr(.Parameters("@Number").Value)
+                                resultCode = GetInt(.Parameters("@ERR").Value)
+
+                                If resultCode <> 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Get Autonumber failed", resultCode))
+                                End If
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = strNumber
+                                response.Status = True
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.Status = False
+                                response.Message = "Get Autonumber failed"
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                response.Code = 400
+                response.Message = "Missing or invalid parameters"
+                response.Parameters = New List(Of Models.param) From {New Models.param With {.name = "data", .value = "RecipeData"}}
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+            End Try
+            Return response
+        End Function
+
+        <HttpGet> <[GET]("/api/common/sharing/{codeegstable:int}/{codesite:int}/{code:int}")> _
+        Public Function GetSharing(codeegstable As Integer, codesite As Integer, code As Integer) As List(Of Models.TreeNode)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandText = "[dbo].[API_GET_SharingAll]"
+                                .CommandType = CommandType.StoredProcedure
+                                .Parameters.Clear()
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@Code", SqlDbType.Int).Value = code
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = -1
+                                .Parameters.Add("@CodeEgswTable", SqlDbType.Int).Value = codeegstable
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim sharings As New List(Of Models.GenericTree)
+                For Each r In ds.Tables(0).Rows
+                    sharings.Add(New Models.GenericTree With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name")), _
+                                    .ParentCode = GetInt(r("ParentCode")), _
+                                    .ParentName = GetStr(r("ParentName")), _
+                                    .Flagged = GetBool(r("Flagged")), _
+                                    .Type = GetInt(r("Type")), _
+                                    .Global = GetBool(r("Global"))})
+                Next
+
+                Dim sharingdata As New List(Of Models.TreeNode)
+
+                Dim parents = sharings.Where(Function(obj) obj.ParentCode = 0 And obj.Type = 1).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each p In parents
+                    Dim parent As New Models.TreeNode
+                    parent.title = p.Name
+                    parent.key = p.Code
+                    parent.icon = False
+                    parent.children = CreateChildrenSharing(sharings, p.Code)
+                    parent.select = p.Flagged
+                    parent.selected = p.Flagged
+                    parent.parenttitle = p.ParentName
+                    parent.groupLevel = GroupLevel.Property     'MKAM 2014.11.11
+                    If parent.children.Count > 0 Then sharingdata.Add(parent)
+                Next
+
+                Return sharingdata
+
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + "(" + codeegstable + ")" + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + "(" + codeegstable + ")" + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + "(" + codeegstable + ")" + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpGet> <[GET]("/api/common/translation/{codeegstable:int}/{codesite:int}/{code:int}")> _
+        Public Function GetTranslation(codeegstable As Integer, codesite As Integer, code As Integer) As List(Of Models.GenericTranslation)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "API_GET_TranslationAll"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@Code", SqlDbType.Int).Value = code
+                                .Parameters.Add("@CodeEgswTable", SqlDbType.Int).Value = codeegstable
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim translations As New List(Of Models.GenericTranslation)
+                For Each r In ds.Tables(0).Rows
+                    translations.Add(New Models.GenericTranslation With {
+                                    .CodeTrans = GetInt(r("CodeTrans")), _
+                                    .TranslationName = GetStr(r("TranslationName")), _
+                                    .Name = GetStr(r("Name"))})
+                Next
+
+                Return translations.ToList
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + "(" + codeegstable + ")" + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + "(" + codeegstable + ")" + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + "(" + codeegstable + ")" + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+    End Class
+End Namespace

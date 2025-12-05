@@ -1,0 +1,1553 @@
+﻿Imports System
+Imports System.Web
+Imports System.Collections.Generic
+Imports System.Linq
+Imports AttributeRouting.Web.Http
+Imports System.Data.SqlClient
+Imports System.Web.Script.Serialization
+Imports log4net
+Imports System.Net
+Imports Newtonsoft.Json
+Imports System.Drawing
+Imports System.IO
+Imports System.Threading
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace CalcmenuAPI
+    Public Class CookbookController
+        Inherits ControllerBase
+
+        Private m_PictureNames As String
+        Private m_TempPictureNames As String
+
+        Private arrPictures As String()
+
+        Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType)
+
+        <HttpGet> <[GET]("/api/cookbook/{codeliste:int}")> _
+        Public Function GetCookbookById(codeliste As Integer) As Models.CookbookData
+            Dim data As New Models.CookbookData
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_ProjectInfo]"
+                                .Parameters.Add("@CodeProject", SqlDbType.Int).Value = codeliste
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+                If ds IsNot Nothing AndAlso ds.Tables.Count = 3 Then
+                    Dim tblInfo As DataTable = ds.Tables(0),
+                        tblSites As DataTable = ds.Tables(1),
+                        tblUser As DataTable = ds.Tables(2)
+
+                    For Each dr As DataRow In tblInfo.Rows
+                        data.Info = New Models.Cookbook
+                        data.Info.Code = GetInt(dr("Code"))
+                        data.Info.Name = GetStr(dr("Name"))
+                        data.Info.ParentCode = GetInt(dr("ParentCode"))
+                        data.Info.CodeSite = GetInt(dr("CodeSite"))
+                        data.Info.CodeOwner = GetInt(dr("CodeOwner"))
+                        data.Info.Global = GetBool(dr("Global"))
+                        data.Info.CanBeParent = GetBool(dr("CanBeParent"))
+                        data.Info.Picture = GetStr(dr("Picture"))
+                        If data.Info.Picture = "" Then
+                            data.Info.Picture = "default.png"
+                        End If
+                        data.Info.hasPicture = GetBool(dr("hasPicture"))
+                    Next
+
+                    If tblSites.Rows.Count > 0 Then
+                        data.Sharing = New List(Of Models.GenericList)
+                        For Each dr In tblSites.Rows
+                            data.Sharing.Add(New Models.GenericList With {.Code = GetInt(dr("Code")), .Value = GetStr(dr("Name"))})
+                        Next
+                    End If
+
+                    If tblUser.Rows.Count > 0 Then
+                        data.Users = New List(Of Models.GenericList)
+                        For Each dr In tblUser.Rows
+                            data.Users.Add(New Models.GenericList With {.Code = GetInt(dr("CodeUser")), .Value = GetStr(dr("IsAssigned")), .Name = GetStr(dr("Name")), .Value2 = GetInt(dr("CodeSite"))})
+                        Next
+                    End If
+
+                End If
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+            Return data
+        End Function
+
+        <HttpGet> <[GET]("/api/cookbook/{codesite:int}/{codetrans:int}/{type:int}/{tree:int}/{codeliste:int}/{codeproperty?}/{name?}")> _
+        Public Function GetCookbookByName(codesite As Integer, _
+                                 codetrans As Integer, _
+                                 type As Integer, _
+                                 tree As Integer, _
+                                 codeliste As Integer, _
+                                 Optional codeproperty As Integer = -1,
+                                 Optional name As String = "") As List(Of Models.TreeNode)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_Projects]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = type
+                                .Parameters.Add("@CodeListe", SqlDbType.Int).Value = codeliste
+                                .Parameters.Add("@CodeProperty", SqlDbType.Int).Value = codeproperty
+
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim projects As New List(Of Models.GenericTree)
+                For Each r In ds.Tables(0).Rows
+                    projects.Add(New Models.GenericTree With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name")), _
+                                    .ParentCode = GetInt(r("ParentCode")), _
+                                    .ParentName = GetStr(r("ParentName")), _
+                                    .Picture = GetStr(r("ParentName")), _
+                                    .hasPicture = GetBool(r("hasPicture")), _
+                                    .Flagged = GetBool(r("Flagged"))})
+                Next
+
+                If name.Trim <> "" Then
+                    Dim projectschildren As New List(Of Models.GenericTree)
+                    Dim projectsresult As New List(Of Models.GenericTree)
+
+                    Dim arrNames() As String = name.Trim.Split(",")
+                    For Each word In arrNames
+                        For Each k In projects
+                            If k.Name.ToLower.Contains(Common.ReplaceSpecialCharacters(word.Trim.ToLower)) Then
+                                If projectschildren.IndexOf(k) = -1 Then
+                                    projectschildren.Add(k)
+                                End If
+                            End If
+                        Next
+                    Next
+
+                    For Each kid In projectschildren
+                        projectsresult.Add(kid)
+                        Dim _currentParentCode As Integer = kid.ParentCode
+                        While _currentParentCode > 0
+                            Dim _currentParent As Models.GenericTree = GetParent(_currentParentCode, projects)
+                            projectsresult.Add(_currentParent)
+                            _currentParentCode = _currentParent.ParentCode
+                        End While
+                    Next
+                    projects = projectsresult
+
+                End If
+
+                Dim projectdata As New List(Of Models.TreeNode)
+
+                Dim parents = projects.Where(Function(obj) obj.ParentCode = Nothing).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each p In parents
+                    If projectdata.Where(Function(obj) obj.key = p.Code).Count = 0 Then
+                        Dim parent As New Models.TreeNode
+                        parent.title = p.Name
+                        parent.key = p.Code
+                        parent.icon = False
+                        parent.children = CreateChildren(projects, p.Code)
+                        parent.select = p.Flagged
+                        parent.selected = p.Flagged     'MKAM: FancyTree uses "selected" property
+                        parent.parenttitle = p.ParentName
+                        projectdata.Add(parent)
+                    End If
+                Next
+
+                Return projectdata
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+        <HttpGet> <[GET]("/api/cookbooklist/{codesite:int}/{codetrans:int}/{type:int}/{tree:int}/{codeliste:int}/{name?}")> _
+        Public Function GetCookbookAll(codesite As Integer, _
+                                 codetrans As Integer, _
+                                 type As Integer, _
+                                 tree As Integer, _
+                                 codeliste As Integer, _
+                                 Optional name As String = "",
+                                 Optional skip As Integer = 0,
+                                 Optional take As Integer = 10) As Models.ResponseCookBook
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_ProjectList]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = type
+                                .Parameters.Add("@CodeListe", SqlDbType.Int).Value = codeliste
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim projects As New List(Of Models.GenericTree)
+                For Each r In ds.Tables(0).Rows
+                    projects.Add(New Models.GenericTree With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name") + " (" + GetStr(r("RecipeCount")) + ")"), _
+                                    .ParentCode = GetInt(r("ParentCode")), _
+                                    .ParentName = GetStr(r("ParentName")), _
+                                    .Flagged = GetBool(r("Flagged"))})
+                Next
+
+                If name.Trim <> "" Then
+                    Dim projectschildren As New List(Of Models.GenericTree)
+                    Dim projectsresult As New List(Of Models.GenericTree)
+
+                    Dim arrNames() As String = name.Trim.Split(",")
+                    For Each word In arrNames
+                        For Each k In projects
+                            If k.Name.ToLower.Contains(Common.ReplaceSpecialCharacters(word.Trim.ToLower)) Then
+                                If projectschildren.IndexOf(k) = -1 Then
+                                    projectschildren.Add(k)
+                                End If
+                            End If
+                        Next
+                    Next
+
+                    For Each kid In projectschildren
+                        projectsresult.Add(kid)
+                        Dim _currentParentCode As Integer = kid.ParentCode
+                        While _currentParentCode > 0
+                            Dim _currentParent As Models.GenericTree = GetParent(_currentParentCode, projects)
+                            projectsresult.Add(_currentParent)
+                            _currentParentCode = _currentParent.ParentCode
+                        End While
+                    Next
+                    projects = projectsresult
+
+                End If
+
+                Dim projectdata As New List(Of Models.TreeNode)
+
+                Dim parents = projects.Where(Function(obj) obj.ParentCode = Nothing).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each p In parents
+                    If projectdata.Where(Function(obj) obj.key = p.Code).Count = 0 Then
+                        Dim parent As New Models.TreeNode
+                        parent.title = p.Name
+                        parent.key = p.Code
+                        parent.icon = False
+                        parent.children = CreateChildren(projects, p.Code)
+                        parent.select = p.Flagged
+                        parent.selected = p.Flagged     'MKAM FancyTree uses "selected" property
+                        parent.parenttitle = p.ParentName
+                        projectdata.Add(parent)
+                    End If
+                Next
+                'RBAJ-2013.12.10 Fixed paging
+                Dim totalCount As Integer = projectdata.Count
+                take = IIf(take > totalCount + 1, totalCount, take) ' Prevent overflow of take
+                take = IIf(take <= 0, 1, take) ' Prevent overflow of take
+                Dim totalPages As Integer = Math.Ceiling(totalCount / take)
+                skip = IIf(skip > totalPages, totalPages, skip) ' Prevent overflow of skip
+                skip = IIf(skip < 1, 0, skip) ' Prevent overflow of skip
+
+                Return New Models.ResponseCookBook(projectdata.Skip(take * skip).Take(take).ToList, totalCount)
+
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+        <HttpGet> <[GET]("/api/cookbook/list/{codesite:int}/{codetrans:int}/{type:int}/{codeuser:int}/{codekey:int}/{name?}")> _
+        Public Function GetCookbookListAll(codesite As Integer, _
+                                 codetrans As Integer, _
+                                 type As Integer, _
+                                  codeuser As Integer, _
+                                 codekey As Integer, _
+                                 Optional name As String = "",
+                                 Optional skip As Integer = 0,
+                                 Optional take As Integer = 10) As Models.ResponseTreeGeneric
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_ProjectList]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@CodeUser", SqlDbType.Int).Value = codeuser
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = type
+                                .Parameters.Add("@CodeKey", SqlDbType.Int).Value = codekey
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim projects As New List(Of Models.GenericTree)
+                For Each r In ds.Tables(0).Rows
+                    projects.Add(New Models.GenericTree With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name") + " (" + GetStr(r("RecipeCount")) + ")"), _
+                                    .ParentCode = GetInt(r("ParentCode")), _
+                                    .ParentName = GetStr(r("ParentName")), _
+                                    .Flagged = GetBool(r("Flagged"))})
+                Next
+
+                If name.Trim <> "" Then
+                    name = System.Text.ASCIIEncoding.ASCII.GetString(Convert.FromBase64String(name))
+                    Dim projectschildren As New List(Of Models.GenericTree)
+                    Dim projectsresult As New List(Of Models.GenericTree)
+
+                    Dim arrNames() As String = name.Trim.Split(",")
+                    For Each word In arrNames
+                        For Each k In projects
+                            If k.Name.ToLower.Contains(Common.ReplaceSpecialCharacters(word.Trim.ToLower)) Then
+                                If projectschildren.IndexOf(k) = -1 Then
+                                    projectschildren.Add(k)
+                                End If
+                            End If
+                        Next
+                    Next
+
+                    For Each kid In projectschildren
+                        projectsresult.Add(kid)
+                        Dim _currentParentCode As Integer = kid.ParentCode
+                        While _currentParentCode > 0
+                            Dim _currentParent As Models.GenericTree = GetParent(_currentParentCode, projects)
+                            projectsresult.Add(_currentParent)
+                            _currentParentCode = _currentParent.ParentCode
+                        End While
+                    Next
+                    projects = projectsresult
+
+                End If
+
+                Dim projectdata As New List(Of Models.GenericTreeNode)
+
+                Dim parents = projects.Where(Function(obj) obj.ParentCode = Nothing).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each p In parents
+                    If projectdata.Where(Function(obj) obj.id = p.Code).Count = 0 Then
+                        Dim parent As New Models.GenericTreeNode
+                        parent.title = p.Name
+                        parent.id = p.Code
+
+                        parent.children = CreateChildrenGeneric(projects, p.Code)
+                        projectdata.Add(parent)
+                    End If
+                Next
+                'RBAJ-2013.12.10 Fixed paging
+                Dim totalCount As Integer = projectdata.Count
+                take = IIf(take > totalCount + 1, totalCount, take) ' Prevent overflow of take
+                take = IIf(take <= 0, 1, take) ' Prevent overflow of take
+                Dim totalPages As Integer = Math.Ceiling(totalCount / take)
+                skip = IIf(skip > totalPages, totalPages, skip) ' Prevent overflow of skip
+                skip = IIf(skip < 1, 0, skip) ' Prevent overflow of skip
+
+                Return New Models.ResponseTreeGeneric(projectdata.Skip(take * skip).Take(take).ToList, totalCount)
+
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpGet> <[GET]("/api/cookbookrecipe/{codesite:int}/{codetrans:int}/{type:int}/{codeuser:int}/{codekey:int}/{name?}")> _
+        Public Function GetCookbookRecipeByName(codesite As Integer, _
+                                             codetrans As Integer, _
+                                             type As Integer, _
+                                             codeuser As Integer, _
+                                             codekey As Integer, _
+                                             Optional name As String = "", _
+                                             Optional page As Integer = 0, _
+                                             Optional limit As Integer = 10) As Models.ResponseCookBookRecipe
+            Try
+
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_ProjectList]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@CodeUser", SqlDbType.Int).Value = codeuser
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = type
+                                .Parameters.Add("@CodeKey", SqlDbType.Int).Value = codekey
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim projects As New List(Of Models.GenericTree)
+                For Each r In ds.Tables(0).Rows
+                    projects.Add(New Models.GenericTree With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name"))})
+                Next
+                Dim recipeChild As New List(Of Models.TreeGridNode)
+                For Each p In projects
+                    Dim projectList As New Models.TreeGridNode
+                    projectList.title = p.Name
+                    projectList.key = p.Code
+                    recipeChild.Add(projectList)
+                Next
+                ds.Clear()
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_ProjectRecipeList]"   ' JDO-2014.04.21 Changed the Stored Procedure to filter out results by codetrans
+                                .Parameters.Add("@CodeKey", SqlDbType.Int).Value = codekey
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@CodeUser", SqlDbType.Int).Value = codeuser
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+                Dim recipe As New List(Of Models.ProjectRecipe)
+                For Each r In ds.Tables(0).Rows
+                    recipe.Add(New Models.ProjectRecipe With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("name")), _
+                                    .Subname = GetStr(r("SubTitle")), _
+                                    .PrimaryBrand = GetStr(r("PrimaryBrand")), _
+                                    .SecondaryBrand = GetStr(r("SecondaryBrand")), _
+                                    .Status = GetStr(r("RecipeStatus")), _
+                                    .Image = GetBool(r("ImageDisplay")), _
+                                    .Nutrition = GetBool(r("DisplayNutrition")), _
+                                    .CheckoutUser = GetInt(r("CheckoutUser")), _
+                                    .Number = GetStr(r("Number")), _
+                                    .Picture = GetStr(r("PictureName")), _
+                                    .isLocked = GetBool(r("IsLocked"))})
+                Next
+
+                For Each r In recipe
+                    Dim recipeList As New Models.TreeGridNode
+                    recipeList.title = r.Name
+                    recipeList.key = r.Code
+                    recipeList.expanded = False
+                    recipeList.image = r.Image
+                    recipeList.leaf = True
+                    recipeList.number = r.Number
+                    recipeList.nutrition = r.Nutrition
+                    recipeList.primarybrand = r.PrimaryBrand
+                    recipeList.secondarybrand = r.SecondaryBrand
+                    recipeList.status = r.Status
+                    recipeList.subname = r.Subname
+                    recipeList.CheckoutUser = r.CheckoutUser
+                    recipeList.Picture = r.Picture
+                    recipeList.IsLocked = r.isLocked
+                    recipeChild.Add(recipeList)
+                Next
+                'RBAJ-2013.12.10 Fixed paging
+                Dim totalCount As Integer = recipeChild.Count
+                limit = IIf(limit > totalCount + 1, totalCount, limit) ' Prevent overflow of limit
+                limit = IIf(limit <= 0, 1, limit) ' Prevent overflow of limit
+                Dim totalPages As Integer = Math.Ceiling(totalCount / limit)
+                page = IIf(page > totalPages, totalPages, page) ' Prevent overflow of page
+                page = IIf(page < 1, 0, page) ' Prevent overflow of page
+                Return New Models.ResponseCookBookRecipe(recipeChild.Skip(limit * (page - 1)).Take(limit).ToList, totalCount)
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+        <HttpGet> <[GET]("/api/cookbook/{codesite:int}/{codeuser:int}/{codeproperty?}/{name?}")> _
+        Public Function GetCookbook(codesite As Integer, _
+                              codeuser As Integer, _
+                              Optional codeproperty As Integer = -1,
+                              Optional name As String = "") As List(Of Models.TreeNode)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_Projects]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = -1
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = -1
+                                .Parameters.Add("@CodeListe", SqlDbType.Int).Value = -1
+
+                                If Not codeuser = -1 Then
+                                    .Parameters.Add("@CodeUser", SqlDbType.Int).Value = codeuser
+                                End If
+
+                                '' .Parameters.Add("@CodeProperty", SqlDbType.Int).Value = codeproperty
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim cookbooks As New List(Of Models.GenericTree)
+                For Each r In ds.Tables(0).Rows
+                    cookbooks.Add(New Models.GenericTree With {
+                                   .Code = GetInt(r("Code")), _
+                                   .Name = GetStr(r("Name")), _
+                                   .ParentCode = GetInt(r("ParentCode")), _
+                                   .ParentName = GetStr(r("ParentName")), _
+                                   .Flagged = GetBool(r("Flagged")), _
+                                   .Global = GetBool(r("Global")), _
+                                   .Type = 0, _
+                                   .Note = GetStr(r("CodeUser")) & "|" & GetStr(r("DateUpdated")) & "|" & GetStr(r("UserName"))})
+                Next
+
+                If codeuser > 0 Then
+                    Dim cookbookschildren As New List(Of Models.GenericTree)
+                    Dim cookbooksresult As New List(Of Models.GenericTree)
+
+                    For Each k In cookbooks
+                        Dim arrNote() = k.Note.Trim.Split("|")
+                        If arrNote.Length > 0 Then
+                            If GetInt(arrNote(0)) = codeuser Then ''And k.ParentCode > 0
+                                If cookbookschildren.IndexOf(k) = -1 Then
+                                    cookbookschildren.Add(k)
+                                End If
+                            End If
+                        End If
+                    Next
+
+                    For Each kid In cookbookschildren
+                        cookbooksresult.Add(kid)
+                        Dim _currentParentCode As Integer = kid.ParentCode
+                        While _currentParentCode > 0
+                            Dim _currentParent As Models.GenericTree = GetParent(_currentParentCode, cookbooks)
+                            If cookbooksresult.IndexOf(_currentParent) = -1 Then
+                                cookbooksresult.Add(_currentParent)
+                            End If
+                            _currentParentCode = _currentParent.ParentCode
+                        End While
+                    Next
+                    cookbooks = cookbooksresult
+                End If
+
+                If name.Trim <> "" Then
+                    Dim cookbookschildren As New List(Of Models.GenericTree)
+                    Dim cookbooksresult As New List(Of Models.GenericTree)
+
+                    Dim arrNames() As String = name.Trim.Split(",")
+                    For Each word In arrNames
+                        For Each k In cookbooks
+                            If k.Name.ToLower.Contains(Common.ReplaceSpecialCharacters(word.Trim.ToLower)) Then ''And k.ParentCode > 0
+                                If cookbookschildren.IndexOf(k) = -1 Then
+                                    cookbookschildren.Add(k)
+                                End If
+                            End If
+                        Next
+                    Next
+
+                    For Each kid In cookbookschildren
+                        cookbooksresult.Add(kid)
+                        Dim _currentParentCode As Integer = kid.ParentCode
+                        While _currentParentCode > 0
+                            Dim _currentParent As Models.GenericTree = GetParent(_currentParentCode, cookbooks)
+                            If cookbooksresult.IndexOf(_currentParent) = -1 Then
+                                cookbooksresult.Add(_currentParent)
+                            End If
+                            _currentParentCode = _currentParent.ParentCode
+                        End While
+                    Next
+                    cookbooks = cookbooksresult
+                End If
+
+                Dim cookbookdata As New List(Of Models.TreeNode)
+                Dim parents = cookbooks.Where(Function(obj) obj.ParentCode = Nothing Or obj.ParentCode = 0).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each p In parents
+                    Dim parent As New Models.TreeNode
+                    parent.title = p.Name
+                    parent.key = p.Code
+                    parent.icon = False
+                    parent.children = CreateChildren(cookbooks, p.Code)
+                    parent.select = p.Flagged
+                    parent.selected = p.Flagged     'MKAM FancyTree uses "selected" property
+                    parent.parenttitle = p.ParentName
+                    parent.note = p.Note
+                    cookbookdata.Add(parent)
+                Next
+
+                Return cookbookdata
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+
+        'START - Raqi Pinili 08.26.2015
+        <HttpPost> <[POST]("/api/cookbook/search")> _
+        Public Function GetCookbook2(data As Models.ConfigurationcSearch) As List(Of Models.TreeNode)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_Projects]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.CodeSite
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = data.CodeTrans '-1
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = -1
+                                .Parameters.Add("@CodeListe", SqlDbType.Int).Value = -1
+
+                                If Not data.CodeUser = -1 Then
+                                    .Parameters.Add("@CodeUser", SqlDbType.Int).Value = data.CodeUser
+                                End If
+
+                                '' .Parameters.Add("@CodeProperty", SqlDbType.Int).Value = codeproperty
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim cookbooks As New List(Of Models.GenericTree)
+                For Each r In ds.Tables(0).Rows
+                    cookbooks.Add(New Models.GenericTree With {
+                                   .Code = GetInt(r("Code")), _
+                                   .Name = GetStr(r("Name")), _
+                                   .ParentCode = GetInt(r("ParentCode")), _
+                                   .ParentName = GetStr(r("ParentName")), _
+                                   .Flagged = GetBool(r("Flagged")), _
+                                   .Global = GetBool(r("Global")), _
+                                   .Type = 0, _
+                                   .Note = GetStr(r("CodeUser")) & "|" & GetStr(r("DateUpdated")) & "|" & GetStr(r("UserName"))})
+                Next
+
+                If data.CodeUser > 0 Then
+                    Dim cookbookschildren As New List(Of Models.GenericTree)
+                    Dim cookbooksresult As New List(Of Models.GenericTree)
+
+                    For Each k In cookbooks
+                        Dim arrNote() = k.Note.Trim.Split("|")
+                        If arrNote.Length > 0 Then
+                            If GetInt(arrNote(0)) = data.CodeUser Then ''And k.ParentCode > 0
+                                If cookbookschildren.IndexOf(k) = -1 Then
+                                    cookbookschildren.Add(k)
+                                End If
+                            End If
+                        End If
+                    Next
+
+                    For Each kid In cookbookschildren
+                        cookbooksresult.Add(kid)
+                        Dim _currentParentCode As Integer = kid.ParentCode
+                        While _currentParentCode > 0
+                            Dim _currentParent As Models.GenericTree = GetParent(_currentParentCode, cookbooks)
+                            If cookbooksresult.IndexOf(_currentParent) = -1 Then
+                                cookbooksresult.Add(_currentParent)
+                            End If
+                            _currentParentCode = _currentParent.ParentCode
+                        End While
+                    Next
+                    cookbooks = cookbooksresult
+                End If
+
+                If data.Name <> Nothing Then
+                    If data.Name.Trim <> "" Then
+                        Dim cookbookschildren As New List(Of Models.GenericTree)
+                        Dim cookbooksresult As New List(Of Models.GenericTree)
+
+                        Dim arrNames() As String = data.Name.Trim.Split(",")
+                        For Each word In arrNames
+                            For Each k In cookbooks
+                                If k.Name.ToLower.Contains(Common.ReplaceSpecialCharacters(word.Trim.ToLower)) Then ''And k.ParentCode > 0
+                                    If cookbookschildren.IndexOf(k) = -1 Then
+                                        cookbookschildren.Add(k)
+                                    End If
+                                End If
+                            Next
+                        Next
+
+                        For Each kid In cookbookschildren
+                            cookbooksresult.Add(kid)
+                            Dim _currentParentCode As Integer = kid.ParentCode
+                            While _currentParentCode > 0
+                                Dim _currentParent As Models.GenericTree = GetParent(_currentParentCode, cookbooks)
+                                If cookbooksresult.IndexOf(_currentParent) = -1 Then
+                                    cookbooksresult.Add(_currentParent)
+                                End If
+                                _currentParentCode = _currentParent.ParentCode
+                            End While
+                        Next
+                        cookbooks = cookbooksresult
+                    End If
+                End If
+
+                Dim cookbookdata As New List(Of Models.TreeNode)
+                Dim parents = cookbooks.Where(Function(obj) obj.ParentCode = Nothing Or obj.ParentCode = 0).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each p In parents
+                    Dim parent As New Models.TreeNode
+                    parent.title = p.Name
+                    parent.key = p.Code
+                    parent.icon = False
+                    parent.children = CreateChildren(cookbooks, p.Code)
+                    parent.select = p.Flagged
+                    parent.selected = p.Flagged     'MKAM FancyTree uses "selected" property
+                    parent.parenttitle = p.ParentName
+                    parent.note = p.Note
+                    cookbookdata.Add(parent)
+                Next
+
+                Return cookbookdata
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+        'END - Raqi Pinili 08.26.2015
+
+        <HttpGet> <[GET]("/api/cookbooklist/{codesite:int}/{code:int}/{parentOnly:bool?}")> _
+        Public Function GetCookbookList(codesite As Integer, code As Integer, Optional parentOnly As Boolean = False) As List(Of Models.GenericList)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_Projects]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@Code", SqlDbType.Int).Value = code
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = -1
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = -1
+                                .Parameters.Add("@CodeListe", SqlDbType.Int).Value = -1
+                                .Parameters.Add("@ParentOnly", SqlDbType.Bit).Value = parentOnly 'AGL 2014.06.13
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim cookbooks As New List(Of Models.GenericList)
+                For Each r In ds.Tables(0).Rows
+                    cookbooks.Add(New Models.GenericList With {
+                                  .Code = GetInt(r("Code")), _
+                                  .Value = GetStr(r("Name"))})
+                Next
+
+                Return cookbooks
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+
+        <HttpGet> <[GET]("/api/cookbook/sharing/{codeproject:int}")> _
+        Public Function GetCookbookSharing(codeproject As Integer) As List(Of Models.TreeNode)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_SharingProject]"
+                                .Parameters.Add("@CodeProject", SqlDbType.Int).Value = codeproject
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+
+                Dim sharings As New List(Of Models.GenericTree)
+                For Each r In ds.Tables(0).Rows
+                    sharings.Add(New Models.GenericTree With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name")), _
+                                    .ParentCode = GetInt(r("ParentCode")), _
+                                    .ParentName = GetStr(r("ParentName")), _
+                                    .Flagged = GetBool(r("Flagged")), _
+                                    .Type = GetInt(r("Type")), _
+                                    .Global = GetBool(r("Global"))})
+                Next
+
+                Dim sharingdata As New List(Of Models.TreeNode)
+
+                Dim parents = sharings.Where(Function(obj) obj.ParentCode = 0 And obj.Type = 1).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each p In parents
+                    Dim parent As New Models.TreeNode
+                    parent.title = p.Name
+                    parent.key = p.Code
+                    parent.icon = False
+                    parent.children = CreateChildrenSharing(sharings, p.Code)
+                    parent.select = p.Flagged
+                    parent.selected = p.Flagged
+                    parent.parenttitle = p.ParentName
+                    parent.groupLevel = GroupLevel.Property     'MKAM 2014.11.11
+                    If parent.children.Count > 0 Then sharingdata.Add(parent)
+                Next
+
+                Return sharingdata
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+
+
+        <HttpPost> <POST("api/cookbook")> _
+        Public Function SaveCookbook(data As Models.CookbookData) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim resultCode As Integer = 0
+            Dim _trans As SqlTransaction = Nothing
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + JsonConvert.SerializeObject(data, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+                ' Validation
+                If data Is Nothing Then
+                    Throw (New ArgumentNullException("cookbook data is empty"))
+                End If
+                If data.Info Is Nothing Then
+                    Throw (New ArgumentNullException("invalid cookbook data"))
+                End If
+
+                Dim intCodeProject As Integer = GetInt(data.Info.Code)
+
+                Using cmd As New SqlCommand
+                    With cmd
+
+                        Dim arrSharing As New ArrayList
+                        For Each sh In data.Sharing
+                            If arrSharing.IndexOf(sh.Code) = -1 Then arrSharing.Add(sh.Code)
+                        Next
+                        Dim _codeSiteList As String = Common.Join(arrSharing, "(", ")", ",")
+                        _codeSiteList = Common.Join(arrSharing, "", "", ",")
+
+                        Using cn = New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = SP_API_UPDATE_Project
+                                .Parameters.Clear()
+                                .Parameters.Add("@Code", SqlDbType.Int).Value = data.Info.Code
+                                .Parameters.Add("@Name", SqlDbType.NVarChar, 150).Value = data.Info.Name
+                                .Parameters.Add("@Global", SqlDbType.Bit).Value = data.Info.Global
+                                .Parameters.Add("@CodeParent", SqlDbType.Int).Value = data.Info.ParentCode
+                                .Parameters.Add("@CodeOwner", SqlDbType.Int).Value = data.Info.CodeOwner
+                                .Parameters.Add("@CanBeParent", SqlDbType.Bit).Value = data.Info.CanBeParent
+                                .Parameters.Add("@Picture", SqlDbType.NVarChar, 400).Value = data.Info.Picture
+
+
+                                .Parameters.Add("@CodeSiteList", SqlDbType.NVarChar, 2000).Value = _codeSiteList    'RDTC 2015.08.13
+                                .Parameters.Add("@CodeUser", SqlDbType.Int).Value = data.Profile.Code               'RDTC 2015.08.13
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.Profile.CodeSite           'RDTC 2015.08.13
+
+
+                                .Parameters("@Code").Direction = ParameterDirection.InputOutput
+                                .Parameters.Add("@Return", SqlDbType.Int).Direction = ParameterDirection.Output
+                                cn.Open()
+                                _trans = cn.BeginTransaction
+                                .Transaction = _trans
+                                .ExecuteNonQuery()
+
+                                intCodeProject = GetInt(.Parameters("@Code").Value, -1)
+                                resultCode = GetInt(.Parameters("@Return").Value, -1)
+                                If resultCode <> 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Save cookbook data failed", resultCode))
+                                End If
+                                If intCodeProject <= 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Cookbook not created", resultCode))
+                                End If
+
+                                ' Update sharing
+                                If data.Sharing IsNot Nothing Then
+                                    Dim sharingList = (From row In data.Sharing.AsEnumerable() Select row.Code).Distinct().ToList()
+                                    Dim codeSharedTo As String = String.Join(",", sharingList)
+
+                                    .CommandText = SP_API_UPDATE_Sharing
+                                    .Parameters.Clear()
+                                    .Parameters.Add("@Code", SqlDbType.Int).Value = intCodeProject
+                                    .Parameters.Add("@CodeOwner", SqlDbType.Int).Value = data.Info.CodeOwner
+                                    .Parameters.Add("@CodeSharedToList", SqlDbType.VarChar, 4000).Value = codeSharedTo
+                                    .Parameters.Add("@Type", SqlDbType.Int).Value = 1
+                                    .Parameters.Add("@CodeEgswTable", SqlDbType.Int).Value = 152
+                                    .Parameters.Add("@IsGlobal", SqlDbType.Bit).Value = data.Info.Global
+                                    .Parameters.Add("@Return", SqlDbType.Int).Direction = ParameterDirection.ReturnValue
+                                    .ExecuteNonQuery()
+                                    resultCode = GetInt(.Parameters("@Return").Value, -1)
+                                    If resultCode <> 0 Then
+                                        Throw New DatabaseException(String.Format("[{0}] Save cookbook sharing failed", resultCode))
+                                    End If
+                                End If
+
+                                ' Update cookbook users
+                                If data.Users IsNot Nothing Then
+                                    Dim userList = (From row In data.Users.AsEnumerable() Where row.Value = "1" Select row.Code).Distinct().ToList()
+                                    Dim codeusers As String = String.Join(",", userList)
+
+                                    .CommandText = SP_API_UPDATE_ProjectUser
+                                    .Parameters.Clear()
+                                    .Parameters.Add("@CodeProject", SqlDbType.Int).Value = intCodeProject
+                                    .Parameters.Add("@CodeUsers", SqlDbType.VarChar, 4000).Value = codeusers
+                                    .Parameters.Add("@Return", SqlDbType.Int).Direction = ParameterDirection.ReturnValue
+                                    .ExecuteNonQuery()
+                                    resultCode = GetInt(.Parameters("@Return").Value, -1)
+                                    If resultCode <> 0 Then
+                                        Throw New DatabaseException(String.Format("[{0}] Save cookbook users failed", resultCode))
+                                    End If
+                                End If
+                                Dim procpics As String = data.Info.Picture + ";"
+                                m_PictureNames = procpics
+                                m_TempPictureNames = data.Info.Picture
+                                arrPictures = procpics.Split(";")
+                                Log.Info("arrayPictures" + arrPictures.ToString)
+                                Dim NewThread As Thread = New Thread(AddressOf SavePictures)
+                                NewThread.Priority = ThreadPriority.Lowest
+                                NewThread.Start()
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = intCodeProject
+                                response.Status = True
+                                _trans.Commit()
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                Try
+                                    _trans.Rollback()
+                                    If Not _trans Is Nothing Then
+                                        CType(_trans, IDisposable).Dispose()
+                                    End If
+                                Catch
+                                End Try
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.Status = False
+                                response.Message = "Save cookbook failed"
+                                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Cookbook")
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+
+                End Using
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                response.Code = 400
+                response.Message = "Missing or invalid parameters"
+                response.Parameters = New List(Of Models.param) From {New Models.param With {.name = "data", .value = "RecipeData"}}
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), aex.Message.ToString(), aex.StackTrace.ToString(), "Cookbook")
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), hex.Message.ToString(), hex.StackTrace.ToString(), "Cookbook")
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Cookbook")
+            End Try
+            Return response
+        End Function
+
+        <HttpPost> <POST("api/cookbook/delete")> _
+        Public Function DeleteCookbook(data As Models.GenericDeleteData) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim resultCode As Integer = 0
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + JsonConvert.SerializeObject(data, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+                Using cmd As New SqlCommand
+                    Dim arrProjectCodes As New ArrayList
+                    For Each c In data.CodeList
+                        If arrProjectCodes.IndexOf(c.Code) = -1 Then arrProjectCodes.Add(c.Code)
+                    Next
+                    Dim _codeProjectList As String = Common.Join(arrProjectCodes, "", "", ",")
+
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandText = "API_DELETE_Generic"
+                                .CommandType = CommandType.StoredProcedure
+                                .Parameters.Clear()
+                                .Parameters.Add("@CodeList", SqlDbType.VarChar, 4000).Value = _codeProjectList
+                                .Parameters.Add("@TableName", SqlDbType.VarChar, 200).Value = "PROJECT"
+                                .Parameters.Add("@CodeUser", SqlDbType.Int).Value = data.CodeUser                    ''codeuser
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.CodeSite                    ''codesite                                                        
+                                .Parameters.Add("@ForceDelete", SqlDbType.Bit).Value = data.ForceDelete              ''force delete
+                                .Parameters.Add("@SkipList", SqlDbType.VarChar, 4000).Direction = ParameterDirection.Output
+                                .Parameters.Add("@Return", SqlDbType.Int)
+                                .Parameters("@Return").Direction = ParameterDirection.ReturnValue
+
+                                cn.Open()
+                                .ExecuteNonQuery()
+                                resultCode = GetInt(.Parameters("@Return").Value, -1) ' RBAJ-2014.01.14                               
+                                If resultCode <> 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Delete cookbook failed", resultCode))
+                                End If
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = GetStr(.Parameters("@SkipList").Value)
+                                response.Status = True
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.Status = False
+                                response.ReturnValue = GetStr(.Parameters("@SkipList").Value) ''JDO 1.21.2014
+                                response.Message = "Delete cookbook failed"
+                                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Cookbook")
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+
+                End Using
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                response.Code = 400
+                response.Message = "Missing or invalid parameters"
+                response.Parameters = New List(Of Models.param) From {New Models.param With {.name = "data", .value = "RecipeData"}}
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), aex.Message.ToString(), aex.StackTrace.ToString(), "Cookbook")
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), hex.Message.ToString(), hex.StackTrace.ToString(), "Cookbook")
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Cookbook")
+            End Try
+            Return response
+        End Function
+
+        Private Function GetParent(ByVal _parentcode As Integer, ByVal _keywords As List(Of Models.GenericTree)) As Models.GenericTree
+            'MKAM 2014.10.29
+            'Return _keywords.Where(Function(obj) obj.Code = _parentcode).Single()
+            Dim k = _keywords.Where(Function(obj) obj.Code = _parentcode)
+            If k.Count > 0 Then
+                Return k.First()
+            Else
+                Return New Models.GenericTree
+            End If
+        End Function
+
+        Private Function CreateChildren(_keyworddata As List(Of Models.GenericTree),
+                                        _code As Integer) As List(Of Models.TreeNode)
+
+            Dim children As New List(Of Models.TreeNode)
+
+            If _keyworddata IsNot Nothing Then
+                Dim kids = _keyworddata.Where(Function(obj) obj.Code <> _code And obj.ParentCode = _code And _code > 0).OrderBy(Function(obj) obj.Name).ToList() ' RBAJ-2014.04.23 Fixed infinite loop "obj.Code <> _code"
+
+                For Each k In kids
+                    Dim child As New Models.TreeNode
+                    child.title = k.Name
+                    child.key = k.Code
+                    child.icon = False
+                    child.children = CreateChildren(_keyworddata, k.Code)
+                    children.Add(child)
+                    child.select = k.Flagged
+                    child.selected = k.Flagged     'MKAM FancyTree uses "selected" property
+                    child.parenttitle = k.ParentName
+                    child.note = k.Note
+                Next
+            End If
+
+            Return children
+
+        End Function
+        Private Function CreateChildrenGeneric(_keyworddata As List(Of Models.GenericTree),
+                                _code As Integer) As List(Of Models.GenericTreeNode)
+
+            Dim children As New List(Of Models.GenericTreeNode)
+
+            If _keyworddata IsNot Nothing Then
+                Dim kids = _keyworddata.Where(Function(obj) obj.Code <> _code And obj.ParentCode = _code And _code > 0).OrderBy(Function(obj) obj.Name).ToList() ' RBAJ-2014.04.23 Fixed infinite loop "obj.Code <> _code"
+
+                For Each k In kids
+                    Dim child As New Models.GenericTreeNode
+                    child.title = k.Name
+                    child.id = k.Code
+
+                    child.children = CreateChildrenGeneric(_keyworddata, k.Code)
+                    children.Add(child)
+                Next
+            End If
+
+            Return children
+
+        End Function
+        Private Function CreateChildrenRecipe(_keyworddata As List(Of Models.GenericTree),
+                                _code As Integer) As List(Of Models.TreeGridNode)
+
+            Dim children As New List(Of Models.TreeGridNode)
+
+            If _keyworddata IsNot Nothing Then
+                Dim kids = _keyworddata.Where(Function(obj) obj.Code <> _code And obj.ParentCode = _code And _code > 0).OrderBy(Function(obj) obj.Name).ToList() ' RBAJ-2014.04.23 Fixed infinite loop "obj.Code <> _code"
+
+                For Each k In kids
+                    Dim child As New Models.TreeGridNode
+
+
+
+                    Dim ds As New DataSet
+                    Using cmd As New SqlCommand
+                        With cmd
+                            Using cn As New SqlConnection(ConnectionString)
+                                Try
+                                    .Connection = cn
+                                    .CommandType = CommandType.StoredProcedure
+                                    .CommandText = "[dbo].[GET_ProjectRecipeList]"
+                                    .Parameters.Add("@CodeKey", SqlDbType.Int).Value = k.Code
+                                    .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = 1
+                                    .Parameters.Add("@CodeSite", SqlDbType.Int).Value = 1
+                                    .Parameters.Add("@CodeUser", SqlDbType.Int).Value = 1
+                                    cn.Open()
+                                    Dim _da As New SqlDataAdapter(cmd)
+                                    _da.Fill(ds)
+                                Finally
+                                    If Not cn Is Nothing Then
+                                        cn.Close()
+                                        CType(cn, IDisposable).Dispose()
+                                    End If
+                                End Try
+                            End Using
+                        End With
+                    End Using
+                    Dim recipe As New List(Of Models.ProjectRecipe)
+                    For Each r In ds.Tables(0).Rows
+                        recipe.Add(New Models.ProjectRecipe With {
+                                        .Code = GetInt(r("Code")), _
+                                        .Name = GetStr(r("name")), _
+                                        .Subname = GetStr(r("SubTitle")), _
+                                        .PrimaryBrand = GetStr(r("PrimaryBrand")), _
+                                        .SecondaryBrand = GetStr(r("SecondaryBrand")), _
+                                        .Status = GetStr(r("RecipeStatus")), _
+                                        .Image = GetBool(r("ImageDisplay")), _
+                                        .Nutrition = GetBool(r("DisplayNutrition")), _
+                                        .CheckoutUser = GetInt(r("CheckoutUser")), _
+                                        .Number = GetStr(r("Number"))})
+                    Next
+                    Dim recipeChild As New List(Of Models.TreeGridNode)
+                    For Each r In recipe
+                        Dim recipeList As New Models.TreeGridNode
+                        recipeList.title = r.Name
+                        recipeList.key = r.Code
+                        recipeList.expanded = False
+
+                        recipeList.image = r.Image
+                        recipeList.leaf = True
+                        recipeList.number = r.Number
+                        recipeList.nutrition = r.Nutrition
+                        recipeList.primarybrand = r.PrimaryBrand
+                        recipeList.secondarybrand = r.SecondaryBrand
+                        recipeList.status = r.Status
+                        recipeList.subname = r.Subname
+
+                        recipeList.children = recipeChild
+                        recipeList.parenttitle = k.Name
+                        recipeList.CheckoutUser = r.CheckoutUser
+
+
+
+
+                        children.Add(recipeList)
+                    Next
+                    child.title = k.Name
+
+                    child.key = k.Code
+                    child.note = recipe.Count
+                    child.leaf = False
+                    child.expanded = False
+
+                    child.children = CreateChildrenRecipe(_keyworddata, k.Code)
+                    children.Add(child)
+
+                    child.parenttitle = k.ParentName
+                Next
+            End If
+
+            Return children
+
+        End Function
+
+        'Private Function CreateChildrenSharing(_sharingdata As List(Of Models.GenericTree),
+        '                                       _code As Integer) As List(Of Models.TreeNode)
+        '    Dim children As New List(Of Models.TreeNode)
+        '    If _sharingdata IsNot Nothing Then
+        '        Dim kids = _sharingdata.Where(Function(obj) obj.ParentCode = _code And obj.Type = 2).OrderBy(Function(obj) obj.Name).ToList() ' RBAJ-2014.04.23 Fixed infinite loop "obj.Code <> _code"
+        '        For Each k In kids
+        '            Dim child As New Models.TreeNode
+        '            child.title = k.Name
+        '            child.key = k.Code
+        '            child.icon = False
+        '            child.children = Nothing
+        '            children.Add(child)
+        '            child.select = k.Flagged
+        '            child.selected = k.Flagged     'MKAM FancyTree uses "selected" property
+        '            child.parenttitle = k.ParentName
+        '            child.groupLevel = GroupLevel.Site     'MKAM 2014.11.11
+        '            child.note = k.Global
+        '        Next
+        '    End If
+        '    Return children
+        'End Function
+
+        Private Sub SavePictures()
+            Try
+
+                Dim strTempFolder As String = TempFolder2
+
+                If m_PictureNames.Trim.Length > 0 Then
+                    Dim arrPictureNames() As String = m_PictureNames.Trim.Split(";")
+                    m_PictureNames = String.Join(";", arrPictures)
+                    If arrPictureNames.Length > 0 Then
+                        For ctr As Integer = 0 To arrPictureNames.Length - 1
+                            If arrPictureNames(ctr).Trim.Length > 0 Then
+
+                                Dim pic As String = arrPictureNames(ctr)
+                                Dim _source As String
+                                If pic.Trim.IndexOf("| DAM") <> -1 Then
+
+                                    pic = pic.Substring(0, pic.IndexOf("|")).Trim
+                                    _source = DamFolder & pic
+                                    File.Copy(_source, strTempFolder & arrPictures(ctr))
+                                    pic = arrPictures(ctr)
+                                End If
+                                _source = strTempFolder & pic
+                                If File.Exists(_source) Then
+
+                                    'Save picoriginal
+                                    File.Copy(_source, PicOriginalFolder & pic)
+                                    'Save picnormal
+                                    fctResizeConvertImage(_source, PicNormalFolder & pic, 300, 300, False)
+
+                                    'Save picthumbnail
+                                    fctResizeConvertImage(_source, PicThumbnailFolder & pic, 200, 200, False)
+                                    Log.Info("Picture saved:" + _source)
+                                End If
+                            End If
+                        Next
+                    End If
+                End If
+
+                ''Remove pictures stored in the temp and those in picnormal, picthumbnail, picoriginal
+                If m_TempPictureNames.Length > 0 Then
+                    Dim arrPictureNames() As String = m_TempPictureNames.Trim.Split(";")
+                    If arrPictureNames.Length > 0 Then
+                        For Each pic As String In arrPictureNames
+
+                            If pic.Trim.Length > 0 Then
+                                If pic.Trim.LastIndexOf("| DAM") = -1 Then
+                                    Dim _source As String = strTempFolder & pic
+                                    If File.Exists(_source) Then
+                                        File.Delete(_source)
+
+                                    End If
+
+                                    If m_PictureNames.IndexOf(pic) = -1 Then
+                                        'Delete from picoriginal
+                                        If File.Exists(PicOriginalFolder & pic) Then
+                                            File.Delete(PicOriginalFolder & pic)
+                                        End If
+
+                                        'Delete from picnormal
+                                        If File.Exists(PicNormalFolder & pic) Then
+                                            File.Delete(PicNormalFolder & pic)
+                                        End If
+
+                                        'Delete from picthumbnail
+                                        If File.Exists(PicThumbnailFolder & pic) Then
+                                            File.Delete(PicThumbnailFolder & pic)
+                                        End If
+                                        Log.Info("Picture deleted:" + pic)
+                                    End If
+
+                                End If
+                            End If
+
+                        Next
+                    End If
+                End If
+
+            Catch ex As Exception
+                Log.Error("Save pictures failed", ex)
+            End Try
+        End Sub
+
+        Public ReadOnly Property TempFolder2() As String
+            Get
+                Dim tmp As String = GetStr(ConfigurationManager.AppSettings("temp")).Trim()
+                If tmp.Equals(String.Empty) Then
+                    tmp = Common.MapPath("temp")
+                End If
+                Return tmp.TrimEnd("\") + "\"
+            End Get
+        End Property
+
+        Public ReadOnly Property DamFolder() As String
+            Get
+                Dim tmp As String = GetStr(ConfigurationManager.AppSettings("dam")).Trim()
+                If tmp.Equals(String.Empty) Then
+                    tmp = Common.MapPath("DigitalAssets")
+                End If
+                Return tmp.TrimEnd("\") + "\"
+            End Get
+        End Property
+        Public ReadOnly Property PicNormalFolder() As String
+            Get
+                Dim tmp As String = GetStr(ConfigurationManager.AppSettings("picnormal")).Trim()
+                If tmp.Equals(String.Empty) Then
+                    tmp = Common.MapPath("picnormal")
+                End If
+                Return tmp.TrimEnd("\") + "\"
+            End Get
+        End Property
+
+        Public ReadOnly Property PicThumbnailFolder() As String
+            Get
+                Dim tmp As String = GetStr(ConfigurationManager.AppSettings("picthumbnail")).Trim()
+                If tmp.Equals(String.Empty) Then
+                    tmp = Common.MapPath("picthumbnail")
+                End If
+                Return tmp.TrimEnd("\") + "\"
+            End Get
+        End Property
+        Public ReadOnly Property PicOriginalFolder() As String
+            Get
+                Dim tmp As String = GetStr(ConfigurationManager.AppSettings("picoriginal")).Trim()
+                If tmp.Equals(String.Empty) Then
+                    tmp = Common.MapPath("picoriginal")
+                End If
+                Return tmp.TrimEnd("\") + "\"
+            End Get
+        End Property
+
+        Private Function fctResizeConvertImage(ByVal strFile As String, _
+                                               ByVal strDestination As String, _
+                                               ByVal newWidth As Integer, _
+                                               ByVal newHeight As Integer, _
+                                               Optional ByVal blnDelete As Boolean = False) As Boolean
+            Try
+                Dim dblTempW As Double
+                Dim dblTempH As Double
+                Dim H1 As Integer
+                Dim W1 As Integer
+                Dim strNewFile As String
+
+                Dim FileToResize As String = strFile 'Server.MapPath("~/images/1.jpg")
+                Dim originalBitmap As Bitmap = Bitmap.FromFile(FileToResize, True)
+                Dim WidthVsHeightRatio = CDec(originalBitmap.Height) / CDec(originalBitmap.Width)
+
+                If newHeight > newWidth Then
+                    dblTempH = CDbl(newHeight)
+                    dblTempW = dblTempH / WidthVsHeightRatio
+                Else
+                    dblTempW = CDbl(newWidth)
+                    dblTempH = dblTempW * WidthVsHeightRatio
+                End If
+                Do While (dblTempW > CDbl(newWidth) Or dblTempH > CDbl(newHeight))
+                    dblTempW = (dblTempW * 0.999)
+                    dblTempH = (dblTempH * 0.999)
+                Loop
+                W1 = CInt(dblTempW)
+                H1 = CInt(dblTempH)
+
+                Dim newbmp As Bitmap = New Bitmap(W1, H1)
+                Using newg As Graphics = Graphics.FromImage(newbmp)
+                    newg.SmoothingMode = Drawing2D.SmoothingMode.HighQuality
+                    newg.Clear(Color.White)
+                    newg.DrawImage(originalBitmap, 0, 0, W1, H1)
+                    newg.Save()
+                End Using
+                strNewFile = Replace(Path.GetFileName(strFile), Path.GetExtension(strFile), ".jpg")
+                newbmp.Save(strDestination, System.Drawing.Imaging.ImageFormat.Jpeg)
+                originalBitmap.Dispose()
+                If blnDelete Then File.Delete(strFile)
+
+            Catch ex As Exception
+                Log.Error("ResizeConvertImage failed", ex)
+                Return False
+            End Try
+            Return True
+        End Function
+
+    End Class
+
+End Namespace
+

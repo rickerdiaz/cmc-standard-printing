@@ -1,0 +1,349 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{7BEA4227-92FD-41D9-91AF-01965976A6CA}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>EgsReport_CMC</RootNamespace>
+    <AssemblyName>EgsReport_CMC</AssemblyName>
+    <FileAlignment>512</FileAlignment>
+    <MyType>Windows</MyType>
+    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DocumentationFile>EgsReport_CMC.xml</DocumentationFile>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DocumentationFile>EgsReport_CMC.xml</DocumentationFile>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionExplicit>On</OptionExplicit>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionCompare>Binary</OptionCompare>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionStrict>Off</OptionStrict>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OptionInfer>On</OptionInfer>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="DevExpress.BonusSkins.v6.3, Version=6.3.9.0, Culture=neutral, PublicKeyToken=95fc6c5621878f0a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.BonusSkins.v6.3.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Data.v6.3, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.Data.v6.3.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Data.v6.3.Compact, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.Data.v6.3.Compact.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Tutorials.v6.3, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.Tutorials.v6.3.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Utils.v6.3, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.Utils.v6.3.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Web.ASPxClasses.v6.3, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.Web.ASPxClasses.v6.3.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Web.ASPxDataControls.v6.3, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.Web.ASPxDataControls.v6.3.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Web.ASPxGrid.v6.3, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.Web.ASPxGrid.v6.3.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Web.ASPxMenu.v6.3, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.Web.ASPxMenu.v6.3.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Web.ASPxNavBar.v6.3, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.Web.ASPxNavBar.v6.3.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Web.ASPxPivotGrid.v6.3, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.Web.ASPxPivotGrid.v6.3.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Web.ASPxPopupControl.v6.3, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.Web.ASPxPopupControl.v6.3.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Web.ASPxSiteMapControl.v6.3, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.Web.ASPxSiteMapControl.v6.3.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Web.ASPxTabControl.v6.3, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.Web.ASPxTabControl.v6.3.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpo.v6.3, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.Xpo.v6.3.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpo.v6.3.Compact, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.Xpo.v6.3.Compact.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpo.v6.3.Design, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.Xpo.v6.3.Design.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpo.v6.3.Providers, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.Xpo.v6.3.Providers.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.Xpo.v6.3.Providers.Compact, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.Xpo.v6.3.Providers.Compact.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraBars.v6.3, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.XtraBars.v6.3.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraBars.v6.3.Design, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.XtraBars.v6.3.Design.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraCharts.v6.3, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.XtraCharts.v6.3.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraCharts.v6.3.Design, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.XtraCharts.v6.3.Design.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraCharts.v6.3.UI, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.XtraCharts.v6.3.UI.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraEditors.v6.3, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.XtraEditors.v6.3.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraEditors.v6.3.Design, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.XtraEditors.v6.3.Design.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraGrid.v6.3, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.XtraGrid.v6.3.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraGrid.v6.3.Design, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.XtraGrid.v6.3.Design.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraLayout.v6.3, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.XtraLayout.v6.3.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraLayout.v6.3.Design, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.XtraLayout.v6.3.Design.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraNavBar.v6.3, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.XtraNavBar.v6.3.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraNavBar.v6.3.Design, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.XtraNavBar.v6.3.Design.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraPivotGrid.v6.3, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.XtraPivotGrid.v6.3.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraPivotGrid.v6.3.Core, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.XtraPivotGrid.v6.3.Core.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraPivotGrid.v6.3.Design, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.XtraPivotGrid.v6.3.Design.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraPrinting.v6.3, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.XtraPrinting.v6.3.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraPrinting.v6.3.Design, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.XtraPrinting.v6.3.Design.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraReports.v6.3, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.XtraReports.v6.3.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraReports.v6.3.Design, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.XtraReports.v6.3.Design.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraReports.v6.3.Import, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.XtraReports.v6.3.Import.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraRichTextEdit.v6.3, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.XtraRichTextEdit.v6.3.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraScheduler.v6.3, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.XtraScheduler.v6.3.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraScheduler.v6.3.Design, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.XtraScheduler.v6.3.Design.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraScheduler.v6.3.OutlookExchange, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.XtraScheduler.v6.3.OutlookExchange.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraScheduler.v6.3.VCalendarExchange, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.XtraScheduler.v6.3.VCalendarExchange.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraTreeList.v6.3, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.XtraTreeList.v6.3.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraTreeList.v6.3.Design, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.XtraTreeList.v6.3.Design.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraVerticalGrid.v6.3, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.XtraVerticalGrid.v6.3.dll</HintPath>
+    </Reference>
+    <Reference Include="DevExpress.XtraVerticalGrid.v6.3.Design, Version=6.3.9.0, Culture=neutral, PublicKeyToken=79868b8147b5eae4, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\DevExpress.XtraVerticalGrid.v6.3.Design.dll</HintPath>
+    </Reference>
+    <Reference Include="EgsData, Version=7.0.42879.48, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP_Supermarket\EgsData\bin\Debug\EgsData.dll</HintPath>
+    </Reference>
+    <Reference Include="log4net">
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\log4net.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Office.Interop.Excel, Version=14.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\Microsoft.Office.Interop.Excel.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Office.Interop.Owc11">
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\Microsoft.Office.Interop.Owc11.dll</HintPath>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+    </Reference>
+    <Reference Include="Microsoft.Office.Interop.Word, Version=14.0.0.0, Culture=neutral, PublicKeyToken=71e9bce111e9429c, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <EmbedInteropTypes>True</EmbedInteropTypes>
+      <HintPath>..\..\CalcmenuWeb_2015_V48_COOP\CalcmenuWeb\Bin\Microsoft.Office.Interop.Word.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+  </ItemGroup>
+  <ItemGroup>
+    <Import Include="Microsoft.VisualBasic" />
+    <Import Include="System" />
+    <Import Include="System.Collections" />
+    <Import Include="System.Collections.Generic" />
+    <Import Include="System.Data" />
+    <Import Include="System.Diagnostics" />
+    <Import Include="System.Linq" />
+    <Import Include="System.Xml.Linq" />
+    <Import Include="System.Threading.Tasks" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="clsGenericDevExpress.vb">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="clsGlobal.vb" />
+    <Compile Include="clsReport.vb" />
+    <Compile Include="GlobalSuppressions.vb" />
+    <Compile Include="My Project\AssemblyInfo.vb" />
+    <Compile Include="My Project\Application.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Application.myapp</DependentUpon>
+    </Compile>
+    <Compile Include="My Project\Resources.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="My Project\Settings.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <Compile Include="StandardDetail.vb">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="xrReports.vb">
+      <SubType>Component</SubType>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="clsGenericDevExpress.resx" />
+    <EmbeddedResource Include="My Project\Resources.resx">
+      <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.vb</LastGenOutput>
+      <CustomToolNamespace>My.Resources</CustomToolNamespace>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="StandardDetail.resx" />
+    <EmbeddedResource Include="xrReports.resx" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="My Project\Application.myapp">
+      <Generator>MyApplicationCodeGenerator</Generator>
+      <LastGenOutput>Application.Designer.vb</LastGenOutput>
+    </None>
+    <None Include="My Project\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <CustomToolNamespace>My</CustomToolNamespace>
+      <LastGenOutput>Settings.Designer.vb</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

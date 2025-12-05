@@ -1,0 +1,48 @@
+﻿Imports System.Drawing
+Imports DevExpress.XtraPrinting
+
+Public Module ReportingTextUtils
+
+    ' Measures text size with a maximum width, including DevExpress PaddingInfo.
+    ' Use ReportingTextUtils.MeasureText(text, font, maxWidth, StringFormat.GenericDefault, padding)
+    Public Function MeasureText(text As String,
+                                font As Font,
+                                maxWidth As Integer,
+                                format As StringFormat,
+                                padding As PaddingInfo) As Size
+
+        Dim padW As Integer = padding.Left + padding.Right
+        Dim padH As Integer = padding.Top + padding.Bottom
+
+        If String.IsNullOrEmpty(text) Then
+            ' Approximate base height even for empty text
+            Dim baseH As Integer
+            Using bmp As New Bitmap(1, 1)
+                Using g As Graphics = Graphics.FromImage(bmp)
+                    baseH = CInt(Math.Ceiling(g.MeasureString("A", font).Height))
+                End Using
+            End Using
+            Return New Size(padW, baseH + padH)
+        End If
+
+        Using bmp As New Bitmap(1, 1)
+            Using g As Graphics = Graphics.FromImage(bmp)
+                g.PageUnit = GraphicsUnit.Pixel
+                Dim layoutWidth As Integer = If(maxWidth <= 0, Integer.MaxValue, Math.Max(1, maxWidth))
+                Dim measured As SizeF = g.MeasureString(text, font, layoutWidth, format)
+                Return New Size(
+                    CInt(Math.Ceiling(measured.Width)) + padW,
+                    CInt(Math.Ceiling(measured.Height)) + padH
+                )
+            End Using
+        End Using
+    End Function
+
+    ' Overload without padding (defaults to zero padding)
+    Public Function MeasureText(text As String,
+                                font As Font,
+                                maxWidth As Integer,
+                                format As StringFormat) As Size
+        Return MeasureText(text, font, maxWidth, format, New PaddingInfo(0, 0, 0, 0))
+    End Function
+End Module

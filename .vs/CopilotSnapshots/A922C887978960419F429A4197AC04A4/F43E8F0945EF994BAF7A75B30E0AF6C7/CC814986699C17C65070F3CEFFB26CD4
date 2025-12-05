@@ -1,0 +1,561 @@
+﻿Imports System
+Imports System.Web
+Imports System.Collections.Generic
+Imports System.Linq
+Imports AttributeRouting.Web.Http
+Imports System.Data.SqlClient
+Imports System.Web.Script.Serialization
+Imports log4net
+Imports System.Net
+Imports Newtonsoft.Json
+Imports System.Text
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace CalcmenuAPI
+    Public Class DictionaryController
+        Inherits ControllerBase
+
+        Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType)
+
+        <HttpPost> <[POST]("/api/dictionary/search")> _
+        Public Function GetDictionaryByName2(data As Models.ConfigurationcSearch) As List(Of Models.Dictionary)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_MANAGE_Generic]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.CodeSite
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = 1
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = data.CodeTrans
+                                .Parameters.Add("@Status", SqlDbType.Int).Value = 1
+                                .Parameters.Add("@TableName", SqlDbType.NVarChar, 200).Value = "EGSWDICTIONARY"
+                                .Parameters.Add("@CodeProperty", SqlDbType.Int).Value = data.CodeProperty
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+                Dim dictionary As New List(Of Models.Dictionary)
+                For Each r In ds.Tables(0).Rows
+                    dictionary.Add(New Models.Dictionary With {
+                                    .CodeGroup = GetInt(r("CodeGroup")), _
+                                   .Name = GetStr(r("Name")), _
+                                    .CodeDictionary = GetInt(r("CodeDictionary"))
+                                })
+                Next
+
+                If data.Name.Trim <> "" Then
+
+                    Dim dictionaryresult As New List(Of Models.Dictionary)
+
+                    Dim arrNames() As String = data.Name.Trim.Split(",")
+                    For Each word In arrNames
+                        If word.Trim.ToString <> "" Then    'RDTC 2015.08.10; added this otherwise the rows are getting duplicated
+
+                            For Each s In dictionary
+                                If s.Name.ToLower.Contains(Common.ReplaceSpecialCharacters(word.Trim.ToLower)) Then
+                                    dictionaryresult.Add(s)
+                                End If
+                            Next
+                        End If
+                    Next
+                    dictionary = dictionaryresult
+
+                End If
+
+                Return dictionary.ToList
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+
+        <HttpGet> <[GET]("/api/dictionary/sharing/{codesite:int}/{type:int}/{tree:int}/{codedictionary:int}")> _
+        Public Function GetdictionarySharing(codesite As Integer, _
+                                  type As Integer, _
+                                  tree As Integer, _
+                                  codedictionary As Integer) As List(Of Models.TreeNode)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_SharingAll]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = type
+                                .Parameters.Add("@Code", SqlDbType.Int).Value = codedictionary
+                                .Parameters.Add("@CodeEgswTable", SqlDbType.Int).Value = 117
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim sharings As New List(Of Models.GenericTree)
+                For Each r In ds.Tables(0).Rows
+                    sharings.Add(New Models.GenericTree With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name")), _
+                                    .ParentCode = GetInt(r("ParentCode")), _
+                                    .ParentName = GetStr(r("ParentName")), _
+                                    .Flagged = GetBool(r("Flagged")), _
+                                    .Type = GetInt(r("Type")), _
+                                    .Global = GetBool(r("Global"))})
+                Next
+
+                Dim sharingdata As New List(Of Models.TreeNode)
+
+                Dim parents = sharings.Where(Function(obj) obj.ParentCode = 0 And obj.Type = 1).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each p In parents
+                    If sharingdata.Where(Function(obj) obj.key = p.Code).Count = 0 Then
+                        Dim parent As New Models.TreeNode
+                        parent.title = p.Name
+                        parent.key = p.Code
+                        parent.icon = False
+                        parent.children = CreateChildrenSharing(sharings, p.Code)
+                        parent.select = p.Flagged
+                        parent.selected = p.Flagged
+                        parent.parenttitle = p.ParentName
+                        parent.groupLevel = GroupLevel.Property     'MKAM 2014.11.11
+                        If parent.children.Count > 0 Then sharingdata.Add(parent)
+                    End If
+                Next
+
+                Return sharingdata
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+
+        <HttpGet> <[GET]("/api/dictionary/translation/{code:int}/{codesite:int}")> _
+        Public Function GetDictionaryTranslation(code As Integer, _
+                                          codesite As Integer) As List(Of Models.RecipeTranslation)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_DictionaryTranslation]"
+                                .Parameters.Add("@Code", SqlDbType.Int).Value = code
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+                Dim isArchive As Boolean
+                Dim isActual As Boolean
+                Dim archive As Integer
+
+
+                Dim translations As New List(Of Models.RecipeTranslation)
+                For Each r In ds.Tables(0).Rows
+
+
+                    If isArchive = True Then
+                        archive = 2
+                    ElseIf isActual = True Then
+                        archive = 1
+                    Else
+                        archive = 0
+                    End If
+                    translations.Add(New Models.RecipeTranslation With {
+                                    .CodeTrans = GetInt(r("CodeTrans")), _
+                                    .TranslationName = GetStr(r("TranslationName")), _
+                                    .Name = GetStr(r("Name"))})
+                Next
+
+                Return translations.ToList
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpPost> <POST("api/dictionary")>
+        Public Function SaveDictionary(data As Models.DictionaryData) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim resultCode As Integer = 0
+            Dim _trans As SqlTransaction = Nothing
+
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + JsonConvert.SerializeObject(data, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                cn.Open()
+
+                                Dim codeDictionary = data.Info.CodeDictionary
+
+                                .CommandText = "MANAGE_DICTIONARYVALIDATION"
+                                .CommandType = CommandType.StoredProcedure
+                                For Each t In data.Translation
+                                    .Parameters.Clear()
+                                    .Parameters.Add("@CodeGroup", SqlDbType.Int).Value = data.Info.CodeGroup
+                                    .Parameters.Add("@Name", SqlDbType.NVarChar, 600).Value = t.Name
+                                    .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = t.CodeTrans
+                                    .Parameters.Add("@CodeDictionary", SqlDbType.Int).Value = codeDictionary
+                                    '.Parameters("@CodeDictionary").Direction = ParameterDirection.InputOutput
+                                    .Parameters.Add("@retval", SqlDbType.Int).Direction = ParameterDirection.ReturnValue
+                                    .ExecuteNonQuery()
+                                    'codeDictionary = GetInt(.Parameters("@CodeDictionary").Value, -1)
+                                    resultCode = GetInt(.Parameters("@retval").Value, -1)
+                                    If resultCode <> 0 Then
+                                        Throw New DatabaseException(String.Format("[{0}] Save dictionary failed", resultCode))
+                                    End If
+                                Next
+
+                                codeDictionary = data.Info.CodeDictionary
+
+                                .CommandText = "MANAGE_DICTIONARYUPDATE"
+                                .CommandType = CommandType.StoredProcedure
+                                For Each t In data.Translation
+                                    .Parameters.Clear()
+                                    .Parameters.Add("@CodeGroup", SqlDbType.Int).Value = data.Info.CodeGroup
+                                    .Parameters.Add("@Name", SqlDbType.NVarChar, 600).Value = t.Name
+                                    .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = t.CodeTrans
+                                    .Parameters.Add("@CodeTransMain", SqlDbType.Int).Value = data.Info.CodeTransMain
+                                    .Parameters.Add("@CodeDictionary", SqlDbType.Int).Value = codeDictionary
+                                    .Parameters("@CodeDictionary").Direction = ParameterDirection.InputOutput
+                                    .Parameters.Add("@retval", SqlDbType.Int).Direction = ParameterDirection.ReturnValue
+                                    .ExecuteNonQuery()
+                                    codeDictionary = GetInt(.Parameters("@CodeDictionary").Value, -1)
+                                    resultCode = GetInt(.Parameters("@retval").Value, -1)
+                                    If resultCode <> 0 Then
+                                        Throw New DatabaseException(String.Format("[{0}] Save dictionary failed", resultCode))
+                                    End If
+                                Next
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = codeDictionary
+                                response.Status = True
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.Status = False
+                                response.Message = "Save dictionary failed"
+                                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Dictionary")
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+
+                End Using
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                response.Code = 400
+                response.Message = "Missing or invalid parameters"
+                response.Parameters = New List(Of Models.param) From {New Models.param With {.name = "data", .value = "RecipeData"}}
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), aex.Message.ToString(), aex.StackTrace.ToString(), "Dictionary")
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), hex.Message.ToString(), hex.StackTrace.ToString(), "Dictionary")
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Dictionary")
+            End Try
+            Return response
+
+        End Function
+
+
+
+        <HttpPost> <POST("api/dictionary/delete")> _
+        Public Function DeleteDictionary(data As Models.GenericDeleteData) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim resultCode As Integer = 0
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + JsonConvert.SerializeObject(data, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+                Dim arrDictionaryCodes As New ArrayList
+                For Each c In data.CodeList
+                    If arrDictionaryCodes.IndexOf(c.CodeDictionary) = -1 Then arrDictionaryCodes.Add(c.CodeDictionary)
+                Next
+                Dim _codeDictionaryList As String = Common.Join(arrDictionaryCodes, "", "", ",")
+
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandText = "API_DELETE_Generic"
+                                .CommandType = CommandType.StoredProcedure
+                                .Parameters.Clear()
+                                .Parameters.Add("@CodeList", SqlDbType.VarChar, 4000).Value = _codeDictionaryList
+                                .Parameters.Add("@TableName", SqlDbType.VarChar, 200).Value = "EGSWDICTIONARY"
+                                .Parameters.Add("@CodeUser", SqlDbType.Int).Value = data.CodeUser                    ''codeuser
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.CodeSite                    ''codesite                                                        
+                                .Parameters.Add("@ForceDelete", SqlDbType.Bit).Value = data.ForceDelete              ''force delete
+                                .Parameters.Add("@SkipList", SqlDbType.NVarChar, 4000).Direction = ParameterDirection.Output
+                                .Parameters.Add("@Return", SqlDbType.Int)
+                                .Parameters("@Return").Direction = ParameterDirection.ReturnValue
+
+                                cn.Open()
+                                .ExecuteNonQuery()
+                                resultCode = GetInt(.Parameters("@Return").Value, -1) ' RBAJ-2014.01.14                               
+                                If resultCode <> 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Delete dictionary failed", resultCode))
+                                End If
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = GetStr(.Parameters("@SkipList").Value)
+                                response.Status = True
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.Status = False
+                                response.ReturnValue = GetStr(.Parameters("@SkipList").Value)
+                                response.Message = "Delete dictionary failed"
+                                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Dictionary")
+                            Catch exc As Exception
+
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+
+                End Using
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                response.Code = 400
+                response.Message = "Missing or invalid parameters"
+                response.Parameters = New List(Of Models.param) From {New Models.param With {.name = "data", .value = "RecipeData"}}
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), aex.Message.ToString(), aex.StackTrace.ToString(), "Dictionary")
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), hex.Message.ToString(), hex.StackTrace.ToString(), "Dictionary")
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Dictionary")
+            End Try
+            Return response
+
+        End Function
+
+
+        <HttpGet> <[GET]("/api/dictionary/{codesite:int}/{codetrans:int}/{codegroup:int}")> _
+        Public Function GetDictionaryList(codesite As Integer, _
+                                 codetrans As Integer, _
+                                 codegroup As Integer) As List(Of Models.GenericList)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "sp_PMDictionaryGetList"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans
+                                .Parameters.Add("@CodeGroup", SqlDbType.Int).Value = codegroup
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim dictionary As New List(Of Models.GenericList)
+                For Each r In ds.Tables(0).Rows
+                    dictionary.Add(New Models.GenericList With {.Code = GetInt(r("CodeDictionary")), .Value = GetStr(r("Name"))})
+                Next
+
+                Return dictionary
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+        'JOP 04-08-2016 
+        <HttpGet> <[GET]("/api/dictionary/{codesite:int}/{codetrans:int}/{codegroup:int}/{codegroup2:int}")> _
+        Public Function GetDictionaryListAll(codesite As Integer, _
+                                 codetrans As Integer, _
+                                 codegroup As Integer, _
+                                 codegroup2 As Integer) As List(Of Models.GenericList)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "sp_PMDictionaryGetListALL"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans
+                                .Parameters.Add("@CodeGroup", SqlDbType.Int).Value = codegroup
+                                .Parameters.Add("@CodeGroup2", SqlDbType.Int).Value = codegroup2
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim dictionary As New List(Of Models.GenericList)
+                For Each r In ds.Tables(0).Rows
+                    dictionary.Add(New Models.GenericList With {.Code = GetInt(r("CodeDictionary")), .Value = GetStr(r("Name"))})
+                Next
+
+                Return dictionary
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpGet> <[GET]("/api/manordictionary/{codetrans:int}/{codegroup:int}")> _
+        Public Function GetDictionaryList_Manor(codetrans As Integer, codegroup As Integer) As List(Of Models.GenericList)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "sp_ManorGetDictionaryList"
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans
+                                .Parameters.Add("@CodeGroup", SqlDbType.Int).Value = codegroup
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim dictionary As New List(Of Models.GenericList)
+                For Each r In ds.Tables(0).Rows
+                    dictionary.Add(New Models.GenericList With {.Code = GetInt(r("CodeDictionary")), .Value = GetStr(r("Name"))})
+                Next
+
+                Return dictionary
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+
+    End Class
+End Namespace

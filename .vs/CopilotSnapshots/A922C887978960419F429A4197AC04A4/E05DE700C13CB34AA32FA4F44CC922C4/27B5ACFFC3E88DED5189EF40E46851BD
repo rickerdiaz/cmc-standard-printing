@@ -1,0 +1,1052 @@
+﻿Imports System
+Imports System.Web
+Imports System.Collections.Generic
+Imports System.Linq
+Imports AttributeRouting.Web.Http
+Imports System.Data.SqlClient
+Imports System.Web.Script.Serialization
+Imports log4net
+Imports System.Net
+Imports Newtonsoft.Json
+Imports System.Text
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace CalcmenuAPI
+    Public Class KeywordController
+        Inherits ControllerBase
+
+        Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType)
+
+        <HttpGet> <[GET]("/api/keyword/{codesite:int}/{codetrans:int}/{type:int}")> _
+        Public Function GetKeyword(codesite As Integer, _
+                                 codetrans As Integer, _
+                                 type As Integer) As List(Of Models.GenericTree)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = Common.SP_GET_KEYWORDCODENAME
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans
+                                .Parameters.Add("@ListeType", SqlDbType.Int).Value = type
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim keywords As New List(Of Models.GenericTree)
+                For Each r In ds.Tables(0).Rows
+                    keywords.Add(New Models.GenericTree With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name")), _
+                                    .ParentCode = GetInt(r("ParentCode")), _
+                                    .ParentName = GetStr(r("ParentName")), _
+                                    .Flagged = False})
+                Next
+
+                Return keywords.ToList
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpGet> <[GET]("/api/keyword/{codesite:int}/{codetrans:int}/{type:int}/{tree:int}/{codeliste:int}/{codeproperty?}/{name?}")> _
+        Public Function GetKeywordByName(codesite As Integer, _
+                                 codetrans As Integer, _
+                                 type As Integer, _
+                                 tree As Integer, _
+                                 codeliste As Integer, _
+                                 Optional codeproperty As Integer = -1,
+                                 Optional name As String = "") As List(Of Models.TreeNode)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                If (name Is Nothing Or name = "" Or name = "null" Or name = "undefined") Then name = ""
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_Keywords]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = type
+                                .Parameters.Add("@CodeListe", SqlDbType.Int).Value = codeliste
+                                .Parameters.Add("@name", SqlDbType.NVarChar).Value = name
+                                .Parameters.Add("@CodeProperty", SqlDbType.Int).Value = codeproperty
+                                .Connection.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                                .Connection.Close()
+                            Finally
+                                If Not cn Is Nothing Then
+                                    .Connection.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim keywords As New List(Of Models.GenericTree)
+                For Each r In ds.Tables(0).Rows
+                    keywords.Add(New Models.GenericTree With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name")), _
+                                    .ParentCode = GetInt(r("ParentCode")), _
+                                    .ParentName = GetStr(r("ParentName")), _
+                                    .Flagged = GetBool(r("Flagged")), _
+                                    .Note = GetStr(r("Inheritable"))})
+                Next
+
+                ''If name.Trim <> "" Then
+                ''    Dim keywordschildren As New List(Of Models.GenericTree)
+                ''    Dim keywordsresult As New List(Of Models.GenericTree)
+
+                ''    Dim arrNames() As String = name.Trim.Split(",")
+                ''    For Each word In arrNames
+                ''        For Each k In keywords
+                ''            If k.Name.ToLower.Contains(Common.ReplaceSpecialCharacters(word.Trim.ToLower)) Then
+                ''                If keywordschildren.IndexOf(k) = -1 Then
+                ''                    keywordschildren.Add(k)
+                ''                End If
+                ''            End If
+                ''        Next
+                ''    Next
+
+                ''    For Each kid In keywordschildren
+                ''        keywordsresult.Add(kid)
+                ''        Dim _currentParentCode As Integer = kid.ParentCode
+                ''        While _currentParentCode > 0
+                ''            Dim _currentParent As Models.GenericTree
+                ''            Try
+                ''                _currentParent = GetParent(_currentParentCode, keywords)
+                ''                keywordsresult.Add(_currentParent)
+                ''                _currentParentCode = _currentParent.ParentCode
+                ''            Catch ex As Exception
+                ''                _currentParentCode = 0
+                ''            End Try
+                ''        End While
+                ''    Next
+                ''    keywords = keywordsresult
+
+                ''End If
+
+                Dim keyworddata As New List(Of Models.TreeNode)
+
+                Dim parents = keywords.Where(Function(obj) obj.ParentCode = Nothing Or obj.ParentCode = -1).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each p In parents
+                    If keyworddata.Where(Function(obj) obj.key = p.Code).Count = 0 Then
+                        Dim parent As New Models.TreeNode
+                        parent.title = p.Name
+                        parent.key = p.Code
+                        parent.icon = False
+                        parent.children = CreateChildren(keywords, p.Code)
+                        parent.select = p.Flagged
+                        parent.selected = p.Flagged
+                        parent.parenttitle = p.ParentName
+                        parent.note = p.Note
+                        keyworddata.Add(parent)
+                    End If
+                Next
+
+                Return keyworddata
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpPost> <[POST]("/api/keyword/search")> _
+        Public Function GetKeywordByName2(data As Models.ConfigurationcSearch) As List(Of Models.TreeNode)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                If (data.Name Is Nothing Or data.Name = "" Or data.Name = "null" Or data.Name = "undefined") Then data.Name = ""
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_Keywords]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.CodeSite
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = data.CodeTrans
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = data.Type
+                                .Parameters.Add("@CodeListe", SqlDbType.Int).Value = data.CodeListe
+                                .Parameters.Add("@name", SqlDbType.NVarChar).Value = data.Name
+                                .Parameters.Add("@CodeProperty", SqlDbType.Int).Value = data.CodeProperty
+                                .Connection.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                                .Connection.Close()
+                            Finally
+                                If Not cn Is Nothing Then
+                                    .Connection.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim keywords As New List(Of Models.GenericTree)
+                For Each r In ds.Tables(0).Rows
+                    keywords.Add(New Models.GenericTree With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name")), _
+                                    .ParentCode = GetInt(r("ParentCode")), _
+                                    .ParentName = GetStr(r("ParentName")), _
+                                    .Flagged = GetBool(r("Flagged")), _
+                                    .Note = GetStr(r("Inheritable"))})
+                Next
+
+                ''If name.Trim <> "" Then
+                ''    Dim keywordschildren As New List(Of Models.GenericTree)
+                ''    Dim keywordsresult As New List(Of Models.GenericTree)
+
+                ''    Dim arrNames() As String = name.Trim.Split(",")
+                ''    For Each word In arrNames
+                ''        For Each k In keywords
+                ''            If k.Name.ToLower.Contains(Common.ReplaceSpecialCharacters(word.Trim.ToLower)) Then
+                ''                If keywordschildren.IndexOf(k) = -1 Then
+                ''                    keywordschildren.Add(k)
+                ''                End If
+                ''            End If
+                ''        Next
+                ''    Next
+
+                ''    For Each kid In keywordschildren
+                ''        keywordsresult.Add(kid)
+                ''        Dim _currentParentCode As Integer = kid.ParentCode
+                ''        While _currentParentCode > 0
+                ''            Dim _currentParent As Models.GenericTree
+                ''            Try
+                ''                _currentParent = GetParent(_currentParentCode, keywords)
+                ''                keywordsresult.Add(_currentParent)
+                ''                _currentParentCode = _currentParent.ParentCode
+                ''            Catch ex As Exception
+                ''                _currentParentCode = 0
+                ''            End Try
+                ''        End While
+                ''    Next
+                ''    keywords = keywordsresult
+
+                ''End If
+
+                Dim keyworddata As New List(Of Models.TreeNode)
+
+                Dim parents = keywords.Where(Function(obj) obj.ParentCode = Nothing Or obj.ParentCode = -1).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each p In parents
+                    If keyworddata.Where(Function(obj) obj.key = p.Code).Count = 0 Then
+                        Dim parent As New Models.TreeNode
+                        parent.title = p.Name
+                        parent.key = p.Code
+                        parent.icon = False
+                        parent.children = CreateChildren(keywords, p.Code)
+                        parent.select = p.Flagged
+                        parent.parenttitle = p.ParentName
+                        parent.note = p.Note
+                        keyworddata.Add(parent)
+                    End If
+                Next
+
+                Return keyworddata
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpGet> <[GET]("/api/keywordlist/{codesite:int}/{codetrans:int}/{type:int}")> _
+        Public Function GetKeywordList(codesite As Integer, _
+                                  codetrans As Integer, _
+                                  type As Integer) As List(Of Models.GenericList)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_Keywords]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = type
+                                .Parameters.Add("@CodeListe", SqlDbType.Int).Value = -1
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim keywords As New List(Of Models.GenericList)
+                For Each r In ds.Tables(0).Rows
+                    keywords.Add(New Models.GenericList With {
+                                 .Code = GetInt(r("Code")), _
+                                 .Value = GetStr(r("Name"))})
+                Next
+
+                Return keywords
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpGet> <[GET]("/api/keyword/translation/{codekeyword:int}/{codesite:int}")> _
+        Public Function GetKeywordTranslation(codekeyword As Integer, _
+                                           codesite As Integer) As List(Of Models.RecipeTranslation)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "API_GET_KeywordTranslation"
+                                .Parameters.Add("@CodeKeyword", SqlDbType.Int).Value = codekeyword
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim translations As New List(Of Models.RecipeTranslation)
+                For Each r In ds.Tables(0).Rows
+                    translations.Add(New Models.RecipeTranslation With {
+                                    .CodeTrans = GetInt(r("CodeTrans")), _
+                                    .TranslationName = GetStr(r("TranslationName")), _
+                                    .Name = GetStr(r("Name"))})
+                Next
+
+                Return translations.ToList
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpGet> <[GET]("/api/keyword/sharing/{codekeyword:int}")> _
+        Public Function GetKeywordSharing(codekeyword As Integer) As List(Of Models.TreeNode)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_SharingKeyword]"
+                                .Parameters.Add("@CodeKeyword", SqlDbType.Int).Value = codekeyword
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                'Dim sharings As New List(Of Models.GenericTree)
+                'For Each r In ds.Tables(0).Rows
+                '    sharings.Add(New Models.GenericTree With {
+                '                    .Code = GetInt(r("Code")), _
+                '                    .Name = GetStr(r("Name")), _
+                '                    .ParentCode = GetInt(r("ParentCode")), _
+                '                    .ParentName = GetStr(r("ParentName")), _
+                '                    .Flagged = GetBool(r("Flagged")), _
+                '                    .Type = GetInt(r("Type")), _
+                '                    .Global = GetBool(r("Global"))})
+                'Next
+
+                'Dim sharingdata As New List(Of Models.TreeNode)
+
+                'Dim parents = sharings.Where(Function(obj) obj.ParentCode = 0 And obj.Type = 1).OrderBy(Function(obj) obj.Name).ToList()
+
+                'For Each p In parents
+                '    Dim parent As New Models.TreeNode
+                '    parent.title = p.Name
+                '    parent.key = p.Code
+                '    parent.icon = False
+                '    parent.children = CreateChildren(sharings, p.Code)
+                '    parent.select = p.Flagged
+                '    parent.parenttitle = p.ParentName
+                '    sharingdata.Add(parent)
+                'Next
+
+                'Return sharingdata
+
+                Dim sharings As New List(Of Models.GenericTree)
+                For Each r In ds.Tables(0).Rows
+                    sharings.Add(New Models.GenericTree With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name")), _
+                                    .ParentCode = GetInt(r("ParentCode")), _
+                                    .ParentName = GetStr(r("ParentName")), _
+                                    .Flagged = GetBool(r("Flagged")), _
+                                    .Type = GetInt(r("Type")), _
+                                    .Global = GetBool(r("Global"))})
+                Next
+
+                Dim sharingdata As New List(Of Models.TreeNode)
+
+                Dim parents = sharings.Where(Function(obj) obj.ParentCode = 0 And obj.Type = 1).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each p In parents
+                    Dim parent As New Models.TreeNode
+                    parent.title = p.Name
+                    parent.key = p.Code
+                    parent.icon = False
+                    parent.children = CreateChildrenSharing(sharings, p.Code)
+                    parent.select = p.Flagged
+                    parent.selected = p.Flagged
+                    parent.parenttitle = p.ParentName
+                    parent.groupLevel = GroupLevel.Property     'MKAM 2014.11.11
+                    If parent.children.Count > 0 Then sharingdata.Add(parent)
+                Next
+
+                Return sharingdata
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpPost> <POST("api/keyword")> _
+        Public Function SaveKeyword(data As Models.KeywordData) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim resultCode As Integer = 0
+            Dim _trans As SqlTransaction = Nothing
+            Dim strCodesToMerge As String = ""
+
+
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + JsonConvert.SerializeObject(data, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+                Using cmd As New SqlCommand
+                    Dim arrSharing As New ArrayList
+                    For Each sh In data.Sharing
+                        If arrSharing.IndexOf(sh.Code) = -1 Then arrSharing.Add(sh.Code)
+                    Next
+                    Dim _codeSiteList As String = Common.Join(arrSharing, "(", ")", ",")
+                    _codeSiteList = Common.Join(arrSharing, "", "", ",")
+                    ''If _codeSiteList = "" Then _codeSiteList = "(" & data.Info.CodeSite.ToString & ")"
+
+
+                    If data.MergeList.Count > 0 Then
+                        'RDTC 2015.08.07
+                        'the codes of the keywords being merged must be passed as parameter; 
+                        'otherwise the system will complain if the new merged name is the same as one of the items being merged
+                        For Each s As Integer In data.MergeList
+                            If strCodesToMerge = "" Then
+                                strCodesToMerge = s.ToString
+                            Else
+                                strCodesToMerge = strCodesToMerge & "," & s.ToString
+                            End If
+                        Next
+                    End If
+
+
+
+                    With cmd
+                        Using cn = New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                ''.CommandText = "[MANAGE_KEYWORDUPDATE]"
+                                .CommandText = "[API_Manage_Keyword_Update]"
+                                .Parameters.Add("@Code", SqlDbType.Int).Value = data.Info.Code
+                                .Parameters("@Code").Direction = ParameterDirection.InputOutput
+                                .Parameters.Add("@Name", SqlDbType.NVarChar, 150).Value = data.Info.Name
+                                .Parameters.Add("@Parent", SqlDbType.Int).Value = data.Info.ParentCode
+                                .Parameters.Add("@ListeType", SqlDbType.Int).Value = data.Info.Type
+                                .Parameters.Add("@IsInheritable", SqlDbType.Bit).Value = data.Info.Inheritable
+                                .Parameters.Add("@IsGlobal", SqlDbType.Bit).Value = data.Info.Global
+                                .Parameters.Add("@Picture", SqlDbType.NVarChar, 2000).Value = ""
+                                .Parameters.Add("@CodeSiteList", SqlDbType.NVarChar, 2000).Value = _codeSiteList
+                                .Parameters.Add("@CodeUser", SqlDbType.Int).Value = data.Profile.Code
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.Info.CodeSite
+                                .Parameters.Add("@CodesToMerge", SqlDbType.NVarChar, 2000).Value = strCodesToMerge
+
+                                .Parameters.Add("@retval", SqlDbType.Int).Direction = ParameterDirection.ReturnValue
+                                cn.Open()
+                                _trans = cn.BeginTransaction ' RBAJ-2014.01.13
+                                .Transaction = _trans
+                                .ExecuteNonQuery()
+
+                                Dim codeKeyword = CInt(.Parameters("@Code").Value)
+                                resultCode = GetInt(.Parameters("@retval").Value, -1)
+                                If resultCode <> 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Save keyword failed", resultCode))
+                                End If
+
+                                If codeKeyword > -1 Then
+                                    For Each t In data.Translation
+                                        .CommandText = "sp_EgswItemTranslationUpdate"
+                                        .CommandType = CommandType.StoredProcedure
+                                        .Parameters.Clear()
+                                        .Parameters.Add("@intCode", SqlDbType.Int).Value = codeKeyword
+                                        .Parameters.Add("@nvcName", SqlDbType.NVarChar, 260).Value = t.Name
+                                        .Parameters.Add("@nvcName2", SqlDbType.NVarChar, 150).Value = t.Name2
+                                        .Parameters.Add("@intCodeTrans", SqlDbType.Int).Value = t.CodeTrans
+                                        .Parameters.Add("@intCodeSite", SqlDbType.Int).Value = t.CodeSite
+                                        .Parameters.Add("@tntListType", SqlDbType.Int).Value = 6
+                                        .Parameters.Add("@intCodeUser", SqlDbType.Int).Value = data.Profile.Code
+                                        .Parameters.Add("@tntType", SqlDbType.Int).Value = data.Info.Type
+                                        .Parameters.Add("@nvcPlural", SqlDbType.NVarChar, 150).Value = t.NamePlural
+                                        .Parameters.Add("@retval", SqlDbType.Int).Direction = ParameterDirection.ReturnValue
+                                        .ExecuteNonQuery()
+                                        resultCode = GetInt(.Parameters("@retval").Value, -1)
+                                        If resultCode <> 0 Then
+                                            Throw New DatabaseException(String.Format("[{0}] Update keyword translation failed", resultCode))
+                                        End If
+                                    Next
+
+
+                                    For Each kiosk In data.KioskList
+                                        With cmd
+                                            .Connection = cn
+                                            .CommandType = CommandType.StoredProcedure
+                                            .CommandText = "DELETE_KeywordsBrandSite"
+
+                                            .Parameters.Clear()
+                                            .Parameters.Add("@CodeKeyword", SqlDbType.Int, 4).Value = codeKeyword
+                                            .Parameters.Add("@CodeBrandSite", SqlDbType.Int, 4).Value = kiosk.Code
+
+                                            .ExecuteNonQuery()
+
+
+                                        End With
+
+                                        With cmd
+                                            .Connection = cn
+                                            .CommandType = CommandType.StoredProcedure
+                                            .CommandText = "UPDATE_KeywordsBrandSite"
+
+                                            .Parameters.Clear()
+                                            .Parameters.Add("@CodeKeyword", SqlDbType.Int, 4).Value = codeKeyword
+                                            .Parameters.Add("@CodeBrandSite", SqlDbType.Int, 4).Value = kiosk.Code
+
+                                            .ExecuteNonQuery()
+
+
+                                        End With
+
+                                    Next
+
+                                    If data.KioskList.Count = 0 Then
+                                        With cmd
+                                            .Connection = cn
+                                            .CommandText = "DELETE FROM EgswBrandSiteKeywords WHERE CodeKeyword=" & codeKeyword
+                                            .CommandType = CommandType.Text
+                                            .Parameters.Clear()
+                                            .ExecuteNonQuery()
+                                        End With
+                                    End If
+
+
+
+                                End If
+                                If data.ActionType = 5 Then
+                                    If data.MergeList.Count > 0 Then
+                                        Dim arrSites As New ArrayList
+                                        For Each s As Integer In data.MergeList
+                                            If arrSites.IndexOf(s) = -1 Then arrSites.Add(s)
+                                        Next
+
+                                        Dim sql As New StringBuilder
+                                        ' CWM-13896 - JPJA 2014.04.24
+                                        ' Added this so that recipes in categories to be merged are transferred to the newly created category
+                                        Dim arrMergeList As New ArrayList
+                                        For Each sh In data.MergeList
+                                            If arrMergeList.IndexOf(sh) = -1 Then arrMergeList.Add(sh)
+                                        Next
+                                        Dim _mergeList As String = Common.Join(arrMergeList, "(", ")", ",")
+                                        sql.Clear()
+                                        sql.Append("Delete from EgswSharing WHERE Code IN" & _mergeList & "AND CodeEgswTable=43 AND TYPE=" & data.Info.Type)
+                                        .CommandText = sql.ToString
+                                        .CommandType = CommandType.Text
+                                        .Parameters.Clear()
+                                        cmd.ExecuteNonQuery()
+
+                                        sql.Clear()
+                                        sql.Append("UPDATE EgswKeyword SET Parent=@Code where Parent IN " & _mergeList & "AND Type=" & data.Info.Type)
+                                        .CommandText = sql.ToString
+                                        .CommandType = CommandType.Text
+                                        .Parameters.Clear()
+                                        .Parameters.Add("@Code", SqlDbType.Int).Value = codeKeyword
+                                        .ExecuteNonQuery()
+
+
+                                        sql.Clear()
+                                        sql.Append("DECLARE @MyTable Table ( CodeListe int, Derived int ); ")
+                                        sql.Append(" INSERT INTO @MyTable SELECT   CodeListe, MIN( CONVERT(INT, Derived) ) FROM EgswKeyDetails  WHERE CodeKey in " & _mergeList & " GROUP BY CodeListe; ")
+                                        sql.Append(" DELETE FROM EgswKeyDetails WHERE CodeKey in " & _mergeList & " ;")
+                                        sql.Append(" INSERT INTO EgswKeyDetails (CodeListe, CodeKey, Derived) SELECT a.CodeListe, @newCode , a.Derived From @MyTable a; ")
+                                        .CommandText = sql.ToString
+                                        .CommandType = CommandType.Text
+                                        .Parameters.Clear()
+                                        .Parameters.Add("@newCode", SqlDbType.Int).Value = codeKeyword
+                                        Dim rowsAffected As Integer
+                                        rowsAffected = cmd.ExecuteNonQuery()
+
+                                        ' Delete merged items // RBAJ-2014.04.03
+                                        .CommandText = "API_DELETE_Generic"
+                                        .CommandType = CommandType.StoredProcedure
+                                        For Each code In arrSites
+                                            .Parameters.Clear()
+                                            .Parameters.Add("@CodeList", SqlDbType.VarChar, 4000).Value = GetInt(code)
+                                            .Parameters.Add("@TableName", SqlDbType.VarChar, 200).Value = "EGSWKEYWORD"
+                                            .Parameters.Add("@CodeUser", SqlDbType.Int).Value = data.Profile.Code
+                                            .Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.Profile.CodeSite
+                                            .Parameters.Add("@ForceDelete", SqlDbType.Bit).Value = False
+                                            .Parameters.Add("@SkipList", SqlDbType.NVarChar, 4000).Direction = ParameterDirection.Output
+                                            .Parameters.Add("@Return", SqlDbType.Int)
+                                            .Parameters("@Return").Direction = ParameterDirection.ReturnValue
+                                            .ExecuteNonQuery()
+                                            resultCode = GetInt(.Parameters("@Return").Value, -1) ' RBAJ-2014.01.14                               
+                                            If resultCode <> 0 Then
+                                                Throw New DatabaseException(String.Format("[{0}] Delete merged keyword failed", resultCode))
+                                            End If
+                                        Next
+                                    End If
+                                End If
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = codeKeyword
+                                response.Status = True
+                                _trans.Commit()
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                Try
+                                    _trans.Rollback()
+                                    If Not _trans Is Nothing Then
+                                        CType(_trans, IDisposable).Dispose()
+                                    End If
+                                Catch
+                                End Try
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.Status = False
+                                response.Message = "Save keyword failed"
+                                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Keyword")
+                            Catch ex As Exception
+                                Try
+                                    _trans.Rollback()
+                                    If Not _trans Is Nothing Then
+                                        CType(_trans, IDisposable).Dispose()
+                                    End If
+                                Catch
+                                End Try
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.Status = False
+                                response.Message = "DB Error"
+                                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Keyword")
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+
+                End Using
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                response.Code = 400
+                response.Message = "Missing or invalid parameters"
+                response.Parameters = New List(Of Models.param) From {New Models.param With {.name = "data", .value = "RecipeData"}}
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), aex.Message.ToString(), aex.StackTrace.ToString(), "Keyword")
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), hex.Message.ToString(), hex.StackTrace.ToString(), "Keyword")
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Keyword")
+            End Try
+            Return response
+        End Function
+
+        <HttpPost> <POST("api/keyword/delete")> _
+        Public Function DeleteKeyword(data As Models.GenericDeleteData) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim resultCode As Integer = 0
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + JsonConvert.SerializeObject(data, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+                Using cmd As New SqlCommand
+                    Dim arrKeywordCodes As New ArrayList
+                    For Each c In data.CodeList
+                        If arrKeywordCodes.IndexOf(c.Code) = -1 Then arrKeywordCodes.Add(c.Code)
+                    Next
+                    Dim _codeKeywordList As String = Common.Join(arrKeywordCodes, "", "", ",")
+                    With cmd
+                        Using cn = New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "API_DELETE_Generic"
+                                .Parameters.Add("@CodeList", SqlDbType.VarChar, 4000).Value = _codeKeywordList
+                                .Parameters.Add("@TableName", SqlDbType.VarChar, 200).Value = "EGSWKEYWORD"
+                                .Parameters.Add("@CodeUser", SqlDbType.Int).Value = data.CodeUser                    ''codeuser
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.CodeSite                    ''codesite                                                        
+                                .Parameters.Add("@ForceDelete", SqlDbType.Bit).Value = data.ForceDelete              ''force delete
+                                .Parameters.Add("@SkipList", SqlDbType.VarChar, 4000).Direction = ParameterDirection.Output
+                                .Parameters.Add("@Return", SqlDbType.Int)
+                                .Parameters("@Return").Direction = ParameterDirection.ReturnValue
+
+                                cn.Open()
+                                .ExecuteNonQuery()
+                                resultCode = GetInt(.Parameters("@Return").Value, -1) ' RBAJ-2014.01.14                               
+                                If resultCode <> 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Delete keyword failed", resultCode))
+                                End If
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = GetStr(.Parameters("@SkipList").Value)
+                                response.Status = True
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.ReturnValue = GetStr(.Parameters("@SkipList").Value) ''JDO 1.21.2014
+                                response.Status = False
+                                response.Message = "Delete keyword failed"
+                                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Keyword")
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+
+                End Using
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Keyword")
+            End Try
+            Return response
+        End Function
+
+        Public Function GetParent(ByVal _parentcode As Integer, ByVal _keywords As List(Of Models.GenericTree)) As Models.GenericTree
+            Return _keywords.Where(Function(obj) obj.Code = _parentcode).Single()
+        End Function
+
+        Private Function CreateChildren(_keyworddata As List(Of Models.GenericTree),
+                                        _code As Integer) As List(Of Models.TreeNode)
+
+            Dim children As New List(Of Models.TreeNode)
+
+            If _keyworddata IsNot Nothing Then
+                Dim kids = _keyworddata.Where(Function(obj) obj.Code <> _code And obj.ParentCode = _code And _code > 0).OrderBy(Function(obj) obj.Name).ToList() ' RBAJ-2014.04.23 Fixed infinite loop
+
+                For Each k In kids
+                    Dim child As New Models.TreeNode
+                    child.title = k.Name
+                    child.key = k.Code
+                    child.icon = False
+                    child.children = CreateChildren(_keyworddata, k.Code)
+                    children.Add(child)
+                    child.select = k.Flagged
+                    child.selected = k.Flagged
+                    child.parenttitle = k.ParentName
+                    child.note = k.Note
+                Next
+            End If
+
+            Return children
+
+            'Dim children As New List(Of Models.TreeNode)
+
+            'If _keyworddata IsNot Nothing Then
+            '    Dim kids = _keyworddata.Where(Function(obj) obj.ParentCode = _code And obj.Type = 2).OrderBy(Function(obj) obj.Name).ToList() ' RBAJ-2014.04.23 Fixed infinite loop "obj.Code <> _code"
+
+            '    For Each k In kids
+            '        Dim child As New Models.TreeNode
+            '        child.title = k.Name
+            '        child.key = k.Code
+            '        child.icon = False
+            '        child.children = Nothing
+            '        children.Add(child)
+            '        child.select = k.Flagged
+            '        child.parenttitle = k.ParentName
+            '        child.note = k.Global
+            '    Next
+            'End If
+
+            'Return children
+
+        End Function
+
+        'Private Function CreateChildrenSharing(_sharingdata As List(Of Models.GenericTree),
+        '                                       _code As Integer) As List(Of Models.TreeNode)
+
+        '    'Dim children As New List(Of Models.TreeNode)
+
+        '    'If _sharingdata IsNot Nothing Then
+        '    '    Dim kids = _sharingdata.Where(Function(obj) obj.ParentCode = _code And obj.Type = 2).OrderBy(Function(obj) obj.Name).ToList() ' RBAJ-2014.04.23 Fixed infinite loop "obj.Code <> _code"
+
+        '    '    For Each k In kids
+        '    '        Dim child As New Models.TreeNode
+        '    '        child.title = k.Name
+        '    '        child.key = k.Code
+        '    '        child.icon = False
+        '    '        child.children = CreateChildren(_sharingdata, k.Code)
+        '    '        children.Add(child)
+        '    '        child.select = k.Flagged
+        '    '        child.parenttitle = k.ParentName
+        '    '        child.note = k.Global
+        '    '    Next
+        '    'End If
+
+        '    'Return children
+
+        '    Dim children As New List(Of Models.TreeNode)
+
+        '    If _sharingdata IsNot Nothing Then
+        '        Dim kids = _sharingdata.Where(Function(obj) obj.ParentCode = _code And obj.Type = 2).OrderBy(Function(obj) obj.Name).ToList() ' RBAJ-2014.04.23 Fixed infinite loop "obj.Code <> _code"
+
+        '        For Each k In kids
+        '            Dim child As New Models.TreeNode
+        '            child.title = k.Name
+        '            child.key = k.Code
+        '            child.icon = False
+        '            child.children = Nothing
+        '            children.Add(child)
+        '            child.select = k.Flagged
+        '            child.selected = k.Flagged
+        '            child.parenttitle = k.ParentName
+        '            child.groupLevel = GroupLevel.Site     'MKAM 2014.11.11
+        '            child.note = k.Global
+        '        Next
+        '    End If
+
+        '    Return children
+
+        'End Function
+
+        <HttpGet> <[GET]("/api/keywordkiosk/{codesite:int}/{codebrand:int}")> _
+        Public Function GetBrandKiosk(codesite As Integer, _
+                              codebrand As Integer) As List(Of Models.TreeNode)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_MANAGE_Generic]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = 1
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@Status", SqlDbType.Int).Value = 1
+                                .Parameters.Add("@TableName", SqlDbType.NVarChar, 200).Value = "BRANDSITE"
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim keywords As New List(Of Models.GenericTree)
+                For Each r In ds.Tables(0).Rows
+                    keywords.Add(New Models.GenericTree With {
+                                        .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name")), _
+                                    .ParentCode = 0, _
+                                    .ParentName = ""})
+                Next
+
+                Dim keywordsdata As New List(Of Models.TreeNode)
+
+
+                Dim parents = keywords.Where(Function(obj) obj.ParentCode = 0).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each p In parents
+                    If keywordsdata.Where(Function(obj) obj.key = p.Code).Count = 0 Then
+                        Dim parent As New Models.TreeNode
+                        parent.title = p.Name
+                        parent.key = p.Code
+                        parent.icon = False
+                        parent.select = CheckifSelected(codebrand, p.Code)
+                        parent.children = CreateChildren1(keywords, codebrand, p.Name)
+                        parent.parenttitle = p.ParentName
+                        keywordsdata.Add(parent)
+                    End If
+                Next
+
+                Return keywordsdata
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        Private Function CheckifSelected(codekeyword As Integer, codebrandsite As Integer) As Boolean
+
+            Dim isSelected As Boolean
+
+            Dim sb As New System.Text.StringBuilder
+
+            sb.Append("Select @isSelected = CASE WHEN (COUNT(*)>0)  THEN 1 ELSE 0 END FROM EgswBrandSiteKeywords WHERE codekeyword =  @codekeyword AND CodeBrandSite = @codebrandsite")
+
+            Try
+                Using cn As SqlConnection = New SqlConnection(ConnectionString)
+                    Using cmd As SqlCommand = New SqlCommand(sb.ToString, cn)
+                        With cmd
+                            .CommandType = CommandType.Text
+                            .Parameters.Add("codekeyword", SqlDbType.Int).Value = codekeyword
+                            .Parameters.Add("@codebrandsite", SqlDbType.Int).Value = codebrandsite
+                            .Parameters.Add("@isSelected", SqlDbType.Bit).Direction = ParameterDirection.Output
+                            .Connection.Open()
+                            .ExecuteNonQuery()
+                            .Connection.Close()
+
+                            isSelected = CBool(.Parameters("@isSelected").Value)
+
+                        End With
+                    End Using
+                End Using
+            Catch ex As Exception
+
+            End Try
+
+            Return isSelected
+        End Function
+
+
+        Private Function CreateChildren1(_keyworddata As List(Of Models.GenericTree), _code As Integer, _parentname As String) As List(Of Models.TreeNode)
+
+            Dim children As New List(Of Models.TreeNode)
+
+            If _keyworddata IsNot Nothing Then
+                Dim kids = _keyworddata.Where(Function(obj) obj.Code <> _code And obj.ParentCode = _code And _code > 0).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each k In kids
+                    Dim child As New Models.TreeNode
+                    child.title = k.Name
+                    child.key = k.Code
+                    child.icon = False
+                    child.children = CreateChildren1(_keyworddata, k.Code, k.Name)
+                    children.Add(child)
+                    child.select = k.Flagged
+                    child.selected = k.Flagged
+                    child.parenttitle = _parentname ''k.ParentName
+                    child.ParentCode = k.ParentCode
+                    child.note = k.Note
+                    child.CanBeParent = k.CanBeParent
+                Next
+            End If
+
+            Return children
+
+        End Function
+    End Class
+End Namespace
+
+

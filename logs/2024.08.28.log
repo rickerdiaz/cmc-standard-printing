@@ -1,0 +1,260 @@
+2024-08-28 10:46:58,014 [5] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2024-08-28 10:46:58,193 [5] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2024-08-28 10:46:58,196 [5] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2024-08-28 10:46:58,197 [5] INFO  CalcmenuAPI.Global_asax - File does not exist.
+2024-08-28 10:46:58,197 [5] INFO  CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2024-08-28 10:46:58,319 [6] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2024-08-28 10:46:58,320 [6] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2024-08-28 10:46:58,320 [6] INFO  CalcmenuAPI.Global_asax - File does not exist.
+2024-08-28 10:46:58,320 [6] INFO  CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2024-08-28 11:13:32,723 [7] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2024-08-28 11:13:42,634 [7] INFO  EgsReport.clsReport - CreateReport_Test
+2024-08-28 11:13:42,638 [7] INFO  EgsReport.clsReport - 1
+2024-08-28 11:13:42,914 [7] INFO  EgsReport.clsReport - 2
+2024-08-28 11:14:00,151 [7] INFO  EgsReport.xrReports - StrCode: 55648 | CodeUser: 1 | CodePrintList: 0 | strCodeParent: lblID | strCodeMain: lblID
+2024-08-28 11:14:00,152 [7] INFO  EgsReport.xrReports - strID: lblID | strFilter3: Code = 55648
+2024-08-28 11:14:01,727 [7] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderPath: C:\inetpub\wwwroot\calcmenuapi_v48_coop\temp\\Export_133692884226259908.pdf
+2024-08-28 11:14:01,727 [7] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderURL: http://localhost/calcmenuapi_v48_coop/temp//Export_133692884226259908.pdf
+2024-08-28 11:24:30,895 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2024-08-28 11:24:41,636 [5] INFO  EgsReport.clsReport - CreateReport_Test
+2024-08-28 11:24:41,636 [5] INFO  EgsReport.clsReport - 1
+2024-08-28 11:24:41,825 [5] INFO  EgsReport.clsReport - 2
+2024-08-28 11:25:27,525 [5] INFO  EgsReport.xrReports - StrCode: 55648 | CodeUser: 1 | CodePrintList: 0 | strCodeParent: lblID | strCodeMain: lblID
+2024-08-28 11:25:27,526 [5] INFO  EgsReport.xrReports - strID: lblID | strFilter3: Code = 55648
+2024-08-28 11:25:28,825 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderPath: C:\inetpub\wwwroot\calcmenuapi_v48_coop\temp\\Export_133692890816353192.pdf
+2024-08-28 11:25:28,826 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderURL: http://localhost/calcmenuapi_v48_coop/temp//Export_133692890816353192.pdf
+2024-08-28 11:25:51,543 [17] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2024-08-28 11:25:57,707 [17] INFO  EgsReport.clsReport - CreateReport_Test
+2024-08-28 11:25:57,708 [17] INFO  EgsReport.clsReport - 1
+2024-08-28 11:25:57,893 [17] INFO  EgsReport.clsReport - 2
+2024-08-28 11:27:26,293 [17] INFO  EgsReport.xrReports - StrCode: 55648 | CodeUser: 1 | CodePrintList: 0 | strCodeParent: lblID | strCodeMain: lblID
+2024-08-28 11:27:26,293 [17] INFO  EgsReport.xrReports - strID: lblID | strFilter3: Code = 55648
+2024-08-28 12:46:33,283 [17] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderPath: C:\inetpub\wwwroot\calcmenuapi_v48_coop\temp\\Export_133692891577073969.pdf
+2024-08-28 12:46:33,284 [17] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderURL: http://localhost/calcmenuapi_v48_coop/temp//Export_133692891577073969.pdf
+2024-08-28 12:48:22,574 [13] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2024-08-28 12:48:22,676 [13] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2024-08-28 12:48:22,676 [13] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2024-08-28 12:48:22,677 [13] INFO  CalcmenuAPI.Global_asax - File does not exist.
+2024-08-28 12:48:22,677 [13] INFO  CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2024-08-28 12:50:11,534 [31] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2024-08-28 12:50:19,276 [31] INFO  EgsReport.clsReport - CreateReport_Test
+2024-08-28 12:50:19,278 [31] INFO  EgsReport.clsReport - 1
+2024-08-28 12:50:19,491 [31] INFO  EgsReport.clsReport - 2
+2024-08-28 12:50:37,008 [31] INFO  EgsReport.xrReports - StrCode: 55648 | CodeUser: 1 | CodePrintList: 0 | strCodeParent: lblID | strCodeMain: lblID
+2024-08-28 12:50:37,009 [31] INFO  EgsReport.xrReports - strID: lblID | strFilter3: Code = 55648
+2024-08-28 12:50:40,746 [31] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderPath: C:\inetpub\wwwroot\calcmenuapi_v48_coop\temp\\Export_133692942192706576.pdf
+2024-08-28 12:50:40,747 [31] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderURL: http://localhost/calcmenuapi_v48_coop/temp//Export_133692942192706576.pdf
+2024-08-28 12:52:43,318 [5] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2024-08-28 12:52:43,522 [6] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2024-08-28 12:52:43,524 [6] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2024-08-28 12:52:43,538 [6] INFO  CalcmenuAPI.Global_asax - File does not exist.
+2024-08-28 12:52:43,551 [6] INFO  CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2024-08-28 12:52:43,559 [5] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2024-08-28 12:52:43,560 [5] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2024-08-28 12:52:43,561 [5] INFO  CalcmenuAPI.Global_asax - File does not exist.
+2024-08-28 12:52:43,561 [5] INFO  CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2024-08-28 12:53:36,579 [8] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2024-08-28 12:53:43,941 [8] INFO  EgsReport.clsReport - CreateReport_Test
+2024-08-28 12:53:43,942 [8] INFO  EgsReport.clsReport - 1
+2024-08-28 12:53:44,177 [8] INFO  EgsReport.clsReport - 2
+2024-08-28 12:54:03,195 [8] INFO  EgsReport.xrReports - StrCode: 55648 | CodeUser: 1 | CodePrintList: 0 | strCodeParent: lblID | strCodeMain: lblID
+2024-08-28 12:54:03,197 [8] INFO  EgsReport.xrReports - strID: lblID | strFilter3: Code = 55648
+2024-08-28 12:55:02,634 [8] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderPath: C:\inetpub\wwwroot\calcmenuapi_v48_coop\temp\\Export_133692944239305686.pdf
+2024-08-28 12:55:02,634 [8] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderURL: http://localhost/calcmenuapi_v48_coop/temp//Export_133692944239305686.pdf
+2024-08-28 12:55:44,183 [6] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2024-08-28 12:55:50,348 [6] INFO  EgsReport.clsReport - CreateReport_Test
+2024-08-28 12:55:50,349 [6] INFO  EgsReport.clsReport - 1
+2024-08-28 12:55:50,538 [6] INFO  EgsReport.clsReport - 2
+2024-08-28 12:56:07,481 [6] INFO  EgsReport.xrReports - StrCode: 55648 | CodeUser: 1 | CodePrintList: 0 | strCodeParent: lblID | strCodeMain: lblID
+2024-08-28 12:56:07,482 [6] INFO  EgsReport.xrReports - strID: lblID | strFilter3: Code = 55648
+2024-08-28 12:58:57,163 [6] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderPath: C:\inetpub\wwwroot\calcmenuapi_v48_coop\temp\\Export_133692945503489174.pdf
+2024-08-28 12:58:57,163 [6] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderURL: http://localhost/calcmenuapi_v48_coop/temp//Export_133692945503489174.pdf
+2024-08-28 13:00:03,728 [5] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2024-08-28 13:00:03,791 [5] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2024-08-28 13:00:03,792 [5] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2024-08-28 13:00:03,792 [5] INFO  CalcmenuAPI.Global_asax - File does not exist.
+2024-08-28 13:00:03,792 [5] INFO  CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2024-08-28 13:01:11,539 [8] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2024-08-28 13:01:18,789 [8] INFO  EgsReport.clsReport - CreateReport_Test
+2024-08-28 13:01:18,790 [8] INFO  EgsReport.clsReport - 1
+2024-08-28 13:01:18,996 [8] INFO  EgsReport.clsReport - 2
+2024-08-28 13:01:36,595 [8] INFO  EgsReport.xrReports - StrCode: 55648 | CodeUser: 1 | CodePrintList: 0 | strCodeParent: lblID | strCodeMain: lblID
+2024-08-28 13:01:36,595 [8] INFO  EgsReport.xrReports - strID: lblID | strFilter3: Code = 55648
+2024-08-28 13:02:26,309 [8] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderPath: C:\inetpub\wwwroot\calcmenuapi_v48_coop\temp\\Export_133692948787816297.pdf
+2024-08-28 13:02:26,310 [8] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderURL: http://localhost/calcmenuapi_v48_coop/temp//Export_133692948787816297.pdf
+2024-08-28 13:05:56,648 [5] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2024-08-28 13:05:56,765 [5] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2024-08-28 13:05:56,766 [5] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2024-08-28 13:05:56,766 [5] INFO  CalcmenuAPI.Global_asax - File does not exist.
+2024-08-28 13:05:56,767 [5] INFO  CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2024-08-28 13:06:00,048 [7] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2024-08-28 13:06:07,304 [7] INFO  EgsReport.clsReport - CreateReport_Test
+2024-08-28 13:06:07,306 [7] INFO  EgsReport.clsReport - 1
+2024-08-28 13:06:07,540 [7] INFO  EgsReport.clsReport - 2
+2024-08-28 13:06:24,689 [7] INFO  EgsReport.xrReports - StrCode: 55648 | CodeUser: 1 | CodePrintList: 0 | strCodeParent: lblID | strCodeMain: lblID
+2024-08-28 13:06:24,690 [7] INFO  EgsReport.xrReports - strID: lblID | strFilter3: Code = 55648
+2024-08-28 13:06:47,704 [7] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - The given path's format is not supported.
+2024-08-28 13:07:11,228 [12] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2024-08-28 13:07:17,435 [12] INFO  EgsReport.clsReport - CreateReport_Test
+2024-08-28 13:07:17,436 [12] INFO  EgsReport.clsReport - 1
+2024-08-28 13:07:17,625 [12] INFO  EgsReport.clsReport - 2
+2024-08-28 13:07:34,546 [12] INFO  EgsReport.xrReports - StrCode: 55648 | CodeUser: 1 | CodePrintList: 0 | strCodeParent: lblID | strCodeMain: lblID
+2024-08-28 13:07:34,546 [12] INFO  EgsReport.xrReports - strID: lblID | strFilter3: Code = 55648
+2024-08-28 13:08:01,138 [12] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - The given path's format is not supported.
+2024-08-28 13:12:27,882 [5] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2024-08-28 13:12:27,946 [5] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2024-08-28 13:12:27,946 [5] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2024-08-28 13:12:27,947 [5] INFO  CalcmenuAPI.Global_asax - File does not exist.
+2024-08-28 13:12:27,947 [5] INFO  CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2024-08-28 13:12:38,784 [17] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2024-08-28 13:12:51,491 [17] INFO  EgsReport.clsReport - CreateReport_Test
+2024-08-28 13:12:51,492 [17] INFO  EgsReport.clsReport - 1
+2024-08-28 13:12:51,694 [17] INFO  EgsReport.clsReport - 2
+2024-08-28 13:13:10,270 [17] INFO  EgsReport.xrReports - StrCode: 55648 | CodeUser: 1 | CodePrintList: 0 | strCodeParent: lblID | strCodeMain: lblID
+2024-08-28 13:13:10,270 [17] INFO  EgsReport.xrReports - strID: lblID | strFilter3: Code = 55648
+2024-08-28 13:13:32,488 [17] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderPath: C:\inetpub\wwwroot\calcmenuapi_v48_coop\temp\\Export_133692955714805452.pdf
+2024-08-28 13:13:32,488 [17] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderURL: http://localhost/calcmenuapi_v48_coop/temp//Export_133692955714805452.pdf
+2024-08-28 13:14:53,239 [5] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2024-08-28 13:14:53,317 [5] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2024-08-28 13:14:53,317 [5] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2024-08-28 13:14:53,318 [5] INFO  CalcmenuAPI.Global_asax - File does not exist.
+2024-08-28 13:14:53,318 [5] INFO  CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2024-08-28 13:14:57,281 [7] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2024-08-28 13:15:04,721 [7] INFO  EgsReport.clsReport - CreateReport_Test
+2024-08-28 13:15:04,722 [7] INFO  EgsReport.clsReport - 1
+2024-08-28 13:15:24,973 [5] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2024-08-28 13:15:25,130 [5] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2024-08-28 13:15:25,132 [5] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2024-08-28 13:15:25,132 [5] INFO  CalcmenuAPI.Global_asax - File does not exist.
+2024-08-28 13:15:25,132 [5] INFO  CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2024-08-28 13:16:15,869 [8] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2024-08-28 13:16:23,123 [8] INFO  EgsReport.clsReport - CreateReport_Test
+2024-08-28 13:16:23,123 [8] INFO  EgsReport.clsReport - 1
+2024-08-28 13:16:23,355 [8] INFO  EgsReport.clsReport - 2
+2024-08-28 13:16:40,507 [8] INFO  EgsReport.xrReports - StrCode: 55648 | CodeUser: 1 | CodePrintList: 0 | strCodeParent: lblID | strCodeMain: lblID
+2024-08-28 13:16:40,507 [8] INFO  EgsReport.xrReports - strID: lblID | strFilter3: Code = 55648
+2024-08-28 13:17:05,739 [8] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderPath: C:\inetpub\wwwroot\calcmenuapi_v48_coop\temp\\Export_133692957831130423.pdf
+2024-08-28 13:17:05,739 [8] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderURL: http://localhost/calcmenuapi_v48_coop/temp//Export_133692957831130423.pdf
+2024-08-28 13:25:22,354 [5] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2024-08-28 13:25:22,420 [5] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2024-08-28 13:25:22,421 [5] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2024-08-28 13:25:22,421 [5] INFO  CalcmenuAPI.Global_asax - File does not exist.
+2024-08-28 13:25:22,421 [5] INFO  CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStepImpl(IExecutionStep step)
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2024-08-28 13:25:48,921 [9] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2024-08-28 13:25:56,088 [9] INFO  EgsReport.clsReport - CreateReport_Test
+2024-08-28 13:25:56,089 [9] INFO  EgsReport.clsReport - 1
+2024-08-28 13:25:56,291 [9] INFO  EgsReport.clsReport - 2
+2024-08-28 13:26:13,677 [9] INFO  EgsReport.xrReports - StrCode: 55648 | CodeUser: 1 | CodePrintList: 0 | strCodeParent: lblID | strCodeMain: lblID
+2024-08-28 13:26:13,678 [9] INFO  EgsReport.xrReports - strID: lblID | strFilter3: Code = 55648
+2024-08-28 13:26:23,282 [9] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderPath: C:\inetpub\wwwroot\calcmenuapi_v48_coop\temp\\Export_133692963560765943.pdf
+2024-08-28 13:26:23,282 [9] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderURL: http://localhost/calcmenuapi_v48_coop/temp//Export_133692963560765943.pdf

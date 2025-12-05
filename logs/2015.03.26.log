@@ -1,0 +1,32 @@
+2015-03-26 17:39:48,858 [5] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2015-03-26 17:39:49,491 [5] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2015-03-26 17:39:49,494 [5] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2015-03-26 17:40:28,257 [5] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2015-03-26 17:40:28,298 [5] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2015-03-26 17:40:28,300 [5] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2015-03-26 17:40:28,330 [6] ERROR CalcmenuAPI.Global_asax - File does not exist.
+2015-03-26 17:40:28,332 [6] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
+   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
+   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+2015-03-26 18:12:35,253 [5] WARN  CalcmenuAPI.CalcmenuAPI.BrandController - GetBrandBySite: Missing or invalid parameters
+System.ArgumentException: Column 'ParentName' does not belong to table Table.
+   at Microsoft.VisualBasic.CompilerServices.Symbols.Container.InvokeMethod(Method TargetProcedure, Object[] Arguments, Boolean[] CopyBack, BindingFlags Flags)
+   at Microsoft.VisualBasic.CompilerServices.NewLateBinding.CallMethod(Container BaseReference, String MethodName, Object[] Arguments, String[] ArgumentNames, Type[] TypeArguments, Boolean[] CopyBack, BindingFlags InvocationFlags, Boolean ReportErrors, ResolutionFailure& Failure)
+   at Microsoft.VisualBasic.CompilerServices.NewLateBinding.InternalLateIndexGet(Object Instance, Object[] Arguments, String[] ArgumentNames, Boolean ReportErrors, ResolutionFailure& Failure, Boolean[] CopyBack)
+   at Microsoft.VisualBasic.CompilerServices.NewLateBinding.ObjectLateInvokeDefault(Object Instance, Object[] Arguments, String[] ArgumentNames, Boolean ReportErrors, Boolean[] CopyBack)
+   at Microsoft.VisualBasic.CompilerServices.NewLateBinding.LateIndexGet(Object Instance, Object[] Arguments, String[] ArgumentNames)
+   at CalcmenuAPI.CalcmenuAPI.BrandController.GetBrandBySite(Int32 codesite, Int32 codetrans, String name, Boolean activeonly, Boolean tree) in D:\Data\Projects\ASPNET\MVC\CalcmenuAPI\Controllers\BrandController.vb:line 101
+2015-03-26 18:12:35,434 [12] ERROR CalcmenuAPI.Global_asax - Object '/8d574923_c717_4521_892d_803cb9ac9430/2n2tgxnfmztpctjpo7z88dsb_24.rem' has been disconnected or does not exist at the server.
+2015-03-26 18:12:35,437 [12] ERROR CalcmenuAPI.Global_asax -    at System.Web.Http.WebHost.HttpControllerHandler.EndProcessRequest(IAsyncResult result)
+   at System.Web.Http.WebHost.HttpControllerHandler.System.Web.IHttpAsyncHandler.EndProcessRequest(IAsyncResult result)
+   at System.Web.HttpApplication.CallHandlerExecutionStep.OnAsyncHandlerCompletion(IAsyncResult ar)

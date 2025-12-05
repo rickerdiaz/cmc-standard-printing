@@ -1,0 +1,86 @@
+2025-09-12 15:54:05,949 [1] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2025-09-12 15:54:19,390 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-09-12 15:55:36,562 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - A network-related or instance-specific error occurred while establishing a connection to SQL Server. The server was not found or was not accessible. Verify that the instance name is correct and that SQL Server is configured to allow remote connections. (provider: SQL Network Interfaces, error: 26 - Error Locating Server/Instance Specified)
+2025-09-12 15:56:06,311 [25] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2025-09-12 15:56:08,105 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-09-12 15:56:57,482 [5] INFO  EgsReport.clsReport - CreateReport_Test
+2025-09-12 15:57:28,257 [5] INFO  EgsReport.clsReport - 1
+2025-09-12 15:57:41,973 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - There is no row at position 0.
+2025-09-12 15:57:48,221 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-09-12 15:57:54,642 [5] INFO  EgsReport.clsReport - CreateReport_Test
+2025-09-12 15:57:54,643 [5] INFO  EgsReport.clsReport - 1
+2025-09-12 15:58:36,756 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - There is no row at position 0.
+2025-09-12 15:58:41,099 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-09-12 15:59:11,716 [5] INFO  EgsReport.clsReport - CreateReport_Test
+2025-09-12 16:03:46,007 [5] INFO  EgsReport.clsReport - 1
+2025-09-12 16:03:48,486 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - There is no row at position 0.
+2025-09-12 16:04:17,995 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-09-12 16:04:27,359 [5] INFO  EgsReport.clsReport - CreateReport_Test
+2025-09-12 16:04:29,198 [5] INFO  EgsReport.clsReport - 1
+2025-09-12 16:04:32,528 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - There is no row at position 0.
+2025-09-12 16:04:45,573 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-09-12 16:04:47,980 [5] INFO  EgsReport.clsReport - CreateReport_Test
+2025-09-12 16:04:50,012 [5] INFO  EgsReport.clsReport - 1
+2025-09-12 16:04:51,583 [5] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - There is no row at position 0.
+2025-09-12 16:07:22,591 [6] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-09-12 16:07:24,769 [6] INFO  EgsReport.clsReport - CreateReport_Test
+2025-09-12 16:07:25,453 [6] INFO  EgsReport.clsReport - 1
+2025-09-12 16:07:27,018 [6] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - There is no row at position 0.
+2025-09-12 16:11:47,328 [34] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-09-12 16:11:52,587 [34] INFO  EgsReport.clsReport - CreateReport_Test
+2025-09-12 16:23:00,924 [34] INFO  EgsReport.clsReport - 1
+2025-09-12 16:23:01,632 [34] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - There is no row at position 0.
+2025-09-12 16:23:15,357 [51] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-09-12 16:23:17,692 [51] INFO  EgsReport.clsReport - CreateReport_Test
+2025-09-12 16:26:15,396 [51] INFO  EgsReport.clsReport - 1
+2025-09-12 16:26:15,939 [51] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - There is no row at position 0.
+2025-09-12 16:31:08,469 [51] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-09-12 16:31:11,203 [51] INFO  EgsReport.clsReport - CreateReport_Test
+2025-09-12 16:31:20,691 [51] INFO  EgsReport.clsReport - 1
+2025-09-12 16:31:22,436 [51] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - There is no row at position 0.
+2025-09-12 16:31:27,637 [51] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-09-12 16:31:30,634 [51] INFO  EgsReport.clsReport - CreateReport_Test
+2025-09-12 16:34:47,505 [1] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2025-09-12 16:34:49,115 [8] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-09-12 16:35:49,656 [8] INFO  EgsReport.clsReport - CreateReport_Test
+2025-09-12 16:35:51,681 [8] INFO  EgsReport.clsReport - 1
+2025-09-12 16:35:54,127 [8] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - There is no row at position 0.
+2025-09-12 16:35:59,227 [8] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-09-12 16:36:01,773 [8] INFO  EgsReport.clsReport - CreateReport_Test
+2025-09-12 16:36:20,908 [8] INFO  EgsReport.clsReport - 1
+2025-09-12 16:36:20,919 [8] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - There is no row at position 0.
+2025-09-12 16:37:43,515 [1] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2025-09-12 16:37:44,232 [8] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-09-12 16:37:46,660 [8] INFO  EgsReport.clsReport - CreateReport_Test
+2025-09-12 16:37:49,882 [8] INFO  EgsReport.clsReport - 1
+2025-09-12 16:37:50,652 [8] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - There is no row at position 0.
+2025-09-12 16:38:08,075 [9] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-09-12 16:38:11,739 [9] INFO  EgsReport.clsReport - CreateReport_Test
+2025-09-12 16:40:13,535 [9] INFO  EgsReport.clsReport - 1
+2025-09-12 16:40:13,959 [9] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - There is no row at position 0.
+2025-09-12 16:40:20,402 [8] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-09-12 16:40:25,535 [8] INFO  EgsReport.clsReport - CreateReport_Test
+2025-09-12 16:42:25,002 [8] INFO  EgsReport.clsReport - 1
+2025-09-12 16:42:25,898 [8] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - There is no row at position 0.
+2025-09-12 16:44:55,940 [17] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-09-12 16:44:56,131 [17] INFO  EgsReport.clsReport - CreateReport_Test
+2025-09-12 16:46:20,421 [17] INFO  EgsReport.clsReport - 1
+2025-09-12 16:46:26,074 [17] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - There is no row at position 0.
+2025-09-12 16:50:37,602 [1] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2025-09-12 16:50:38,928 [8] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-09-12 16:50:39,193 [8] INFO  EgsReport.clsReport - CreateReport_Test
+2025-09-12 16:51:57,875 [8] INFO  EgsReport.clsReport - 1
+2025-09-12 16:52:00,130 [8] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - There is no row at position 0.
+2025-09-12 16:55:22,681 [1] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2025-09-12 16:55:23,276 [10] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-09-12 16:55:23,412 [10] INFO  EgsReport.clsReport - CreateReport_Test
+2025-09-12 16:55:50,985 [10] INFO  EgsReport.clsReport - 1
+2025-09-12 16:55:51,642 [10] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - There is no row at position 0.
+2025-09-12 16:57:58,821 [10] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-09-12 16:57:59,002 [10] INFO  EgsReport.clsReport - CreateReport_Test
+2025-09-12 16:58:13,750 [10] INFO  EgsReport.clsReport - 1
+2025-09-12 16:58:15,515 [10] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - There is no row at position 0.
+2025-09-12 16:58:31,179 [19] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-09-12 16:58:31,348 [19] INFO  EgsReport.clsReport - CreateReport_Test
+2025-09-12 17:02:07,608 [19] INFO  EgsReport.clsReport - 1
+2025-09-12 17:02:10,007 [19] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - There is no row at position 0.

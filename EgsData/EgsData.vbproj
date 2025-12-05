@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>
+    </ProductVersion>
+    <SchemaVersion>
+    </SchemaVersion>
+    <ProjectGuid>{C5A2577E-7712-4721-981A-7912C494D7CF}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>EgsData</RootNamespace>
+    <AssemblyName>EgsData</AssemblyName>
+    <FileAlignment>512</FileAlignment>
+    <MyType>Windows</MyType>
+    <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+    <TargetFrameworkProfile />
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <OptionExplicit>On</OptionExplicit>
+    <OptionCompare>Binary</OptionCompare>
+    <OptionStrict>Off</OptionStrict>
+    <OptionInfer>On</OptionInfer>
+    <AssemblyTitle>EgsData</AssemblyTitle>
+    <Description>EgsData</Description>
+    <Company>EGS</Company>
+    <Product>EgsData</Product>
+    <Copyright>Copyright © Microsoft 2010</Copyright>
+    <AssemblyVersion>7.0.42879.48</AssemblyVersion>
+    <FileVersion>7.0.42879.48</FileVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <DefineDebug>true</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DocumentationFile>EgsData.xml</DocumentationFile>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <DefineDebug>false</DefineDebug>
+    <DefineTrace>true</DefineTrace>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DocumentationFile>EgsData.xml</DocumentationFile>
+    <NoWarn>42016,41999,42017,42018,42019,42032,42036,42020,42021,42022</NoWarn>
+    <Prefer32Bit>false</Prefer32Bit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Import Include="Microsoft.VisualBasic" />
+    <Import Include="System" />
+    <Import Include="System.Collections" />
+    <Import Include="System.Collections.Generic" />
+    <Import Include="System.Data" />
+    <Import Include="System.Diagnostics" />
+    <Import Include="System.Linq" />
+    <Import Include="System.Xml.Linq" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="clsAllergen.vb" />
+    <Compile Include="clsApproval.vb" />
+    <Compile Include="clsAuditing.vb" />
+    <Compile Include="clsBrand.vb" />
+    <Compile Include="clsCategory.vb" />
+    <Compile Include="clsClient.vb" />
+    <Compile Include="clsCMO.vb" />
+    <Compile Include="clsConfig.vb" />
+    <Compile Include="clsCSV.vb" />
+    <Compile Include="clsCurrency.vb" />
+    <Compile Include="clsDBRoutine.vb" />
+    <Compile Include="clsEGSDB.vb" />
+    <Compile Include="clsEGSLanguage.vb" />
+    <Compile Include="clsEncryptionMACTripleDES.vb" />
+    <Compile Include="clsImportRecipe.vb" />
+    <Compile Include="clsInventory.vb" />
+    <Compile Include="clsIssuanceType.vb" />
+    <Compile Include="clsItem.vb" />
+    <Compile Include="clsKeyword.vb" />
+    <Compile Include="clsLanguage.vb" />
+    <Compile Include="clsLinkFbRnPos.vb" />
+    <Compile Include="clsListe.vb" />
+    <Compile Include="clsLocation.vb" />
+    <Compile Include="clsMail.vb" />
+    <Compile Include="clsMark.vb" />
+    <Compile Include="clsMasterPlan.vb" />
+    <Compile Include="clsMenuEngineering.vb" />
+    <Compile Include="clsMenuplan.vb" />
+    <Compile Include="clsNotes.vb" />
+    <Compile Include="clsNutrient.vb" />
+    <Compile Include="clsNutrientRules.vb" />
+    <Compile Include="clsNutrientSet.vb" />
+    <Compile Include="clsPlacement.vb" />
+    <Compile Include="clsPOS.vb" />
+    <Compile Include="clsPrintList.vb" />
+    <Compile Include="clsPrintProfile.vb" />
+    <Compile Include="clsProduct.vb" />
+    <Compile Include="clsProductionPlace.vb" />
+    <Compile Include="clsProject.vb" />
+    <Compile Include="clsProperty.vb" />
+    <Compile Include="clsRoles.vb" />
+    <Compile Include="clsSales.vb" />
+    <Compile Include="clsSalesItem.vb" />
+    <Compile Include="clsSetPrice.vb" />
+    <Compile Include="clsShopping.vb" />
+    <Compile Include="clsSite.vb" />
+    <Compile Include="clsSource.vb" />
+    <Compile Include="clsSupplier.vb" />
+    <Compile Include="clsSystem.vb" />
+    <Compile Include="clsTax.vb" />
+    <Compile Include="clsTerminal.vb" />
+    <Compile Include="clsTime.vb" />
+    <Compile Include="clsTranslation.vb" />
+    <Compile Include="clsUnit.vb" />
+    <Compile Include="clsUpload.vb" />
+    <Compile Include="clsUser.vb" />
+    <Compile Include="mod.vb" />
+    <Compile Include="modDateTime.vb" />
+    <Compile Include="modFunctions.vb" />
+    <Compile Include="modGlobalDeclarations.vb" />
+    <Compile Include="modTem.vb" />
+    <Compile Include="My Project\AssemblyInfo.vb" />
+    <Compile Include="My Project\Application.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Application.myapp</DependentUpon>
+      <DesignTime>True</DesignTime>
+    </Compile>
+    <Compile Include="My Project\Resources.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="My Project\Settings.Designer.vb">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="My Project\Resources.resx">
+      <Generator>VbMyResourcesResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.vb</LastGenOutput>
+      <CustomToolNamespace>My.Resources</CustomToolNamespace>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Library\Aspose.Excel.lic" />
+    <None Include="My Project\Application.myapp">
+      <Generator>MyApplicationCodeGenerator</Generator>
+      <LastGenOutput>Application.Designer.vb</LastGenOutput>
+    </None>
+    <None Include="My Project\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <CustomToolNamespace>My</CustomToolNamespace>
+      <LastGenOutput>Settings.Designer.vb</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Library\Aspose.Excel.dll" />
+    <Content Include="Library\c1.c1zip.dll" />
+    <Content Include="Library\FusionCharts.dll" />
+    <Content Include="Library\Zip.dll" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\EgsWebFTB\EgsWebFTB.vbproj">
+      <Project>{3695c750-6388-4fac-9b34-160dd5116863}</Project>
+      <Name>EgsWebFTB</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

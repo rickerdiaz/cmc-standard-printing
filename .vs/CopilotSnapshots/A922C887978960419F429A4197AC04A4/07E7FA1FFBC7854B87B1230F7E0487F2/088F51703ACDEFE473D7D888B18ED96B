@@ -1,0 +1,569 @@
+﻿Imports System
+Imports System.Web
+Imports System.Collections.Generic
+Imports System.Linq
+Imports AttributeRouting.Web.Http
+Imports System.Data.SqlClient
+Imports System.Web.Script.Serialization
+Imports log4net
+Imports System.Net
+Imports Newtonsoft.Json
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace CalcmenuAPI
+	Public Class TaxController
+		Inherits ControllerBase
+
+		Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType)
+
+		<HttpGet> <[GET]("/api/tax/{codesite:int}")> _
+		Public Function GetTax(codesite As Integer) As List(Of Models.Tax)
+			Try
+				Dim ds As New DataSet
+				Using cmd As New SqlCommand
+					With cmd
+						Using cn As New SqlConnection(ConnectionString)
+							Try
+								.Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+								.CommandText = "[dbo].[API_GET_Generic]"
+								.Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+								.Parameters.Add("@TableName", SqlDbType.NVarChar, 200).Value = "EGSWTAX"
+								cn.Open()
+								Dim _da As New SqlDataAdapter(cmd)
+								_da.Fill(ds)
+							Finally
+								If Not cn Is Nothing Then
+									cn.Close()
+									CType(cn, IDisposable).Dispose()
+								End If
+							End Try
+						End Using
+					End With
+				End Using
+
+				Dim taxes As New List(Of Models.Tax)
+				For Each r In ds.Tables(0).Rows
+					taxes.Add(New Models.Tax With {
+									.TaxCode = GetInt(r("Code")), _
+									.TaxValue = GetDbl(r("Value")), _
+									.TaxName = GetStr(r("Description")), _
+									.Global = GetBool(r("Global"))})
+				Next
+
+				Return taxes.ToList
+			Catch aex As ArgumentException
+				Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+				Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+			Catch hex As HttpResponseException
+				Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+				Throw hex
+			Catch ex As Exception
+				Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+				Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+			End Try
+		End Function
+
+        <HttpGet> <[GET]("/api/tax/{codesite:int}/{type:int}/{codeproperty?}/{name?}")> _
+        Public Function GetTaxByName(codesite As Integer, _
+                            type As Integer, _
+                            Optional codeproperty As Integer = -1,
+                            Optional name As String = "") As List(Of Models.Tax)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_MANAGE_Generic]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = 1
+                                .Parameters.Add("@Status", SqlDbType.Int).Value = 1
+                                .Parameters.Add("@TableName", SqlDbType.NVarChar, 200).Value = "EGSWTAX"
+                                .Parameters.Add("@CodeProperty", SqlDbType.Int).Value = codeproperty
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+                Dim taxes As New List(Of Models.Tax)
+                For Each r In ds.Tables(0).Rows
+                    taxes.Add(New Models.Tax With {
+                                    .TaxCode = GetInt(r("Code")), _
+                                    .TaxValue = GetDbl(r("Value")), _
+                                    .TaxName = GetStr(r("Description")), _
+                                    .Global = GetBool(r("Global"))})
+                Next
+
+
+                If name.Trim <> "" Then
+
+                    Dim taxresult As New List(Of Models.Tax)
+
+                    Dim arrNames() As String = name.Trim.Split(",")
+                    For Each word In arrNames
+                        If word.Trim.ToString <> "" Then    'RDTC 2015.08.10; added this otherwise the rows are getting duplicated
+                            For Each s In taxes
+                                If s.TaxValue.ToString.ToLower.Contains(Common.ReplaceSpecialCharacters(word.Trim.ToLower)) Or _
+                                    s.TaxName.ToString.ToLower.Contains(Common.ReplaceSpecialCharacters(word.Trim.ToLower)) Then
+                                    taxresult.Add(s)
+                                End If
+                            Next
+                        End If
+                    Next
+                    taxes = taxresult
+
+                End If
+
+                Return taxes.ToList
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        'START - NBG 9.11.2015
+        <HttpPost> <[POST]("/api/tax/search")> _
+        Public Function GetTaxByName2(data As Models.ConfigurationcSearch) As List(Of Models.Tax)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_MANAGE_Generic]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.CodeSite
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = 1
+                                .Parameters.Add("@Status", SqlDbType.Int).Value = 1
+                                .Parameters.Add("@TableName", SqlDbType.NVarChar, 200).Value = "EGSWTAX"
+                                .Parameters.Add("@CodeProperty", SqlDbType.Int).Value = data.CodeProperty
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+                Dim taxes As New List(Of Models.Tax)
+                For Each r In ds.Tables(0).Rows
+                    taxes.Add(New Models.Tax With {
+                                    .TaxCode = GetInt(r("Code")), _
+                                    .TaxValue = GetDbl(r("Value")), _
+                                    .TaxName = GetStr(r("Description")), _
+                                    .Global = GetBool(r("Global"))})
+                Next
+
+                If data.Name.Trim <> "" Then
+
+                    Dim taxresult As New List(Of Models.Tax)
+
+                    Dim arrNames() As String = data.Name.Trim.Split(",")
+                    For Each word In arrNames
+                        If word.Trim.ToString <> "" Then    'RDTC 2015.08.10; added this otherwise the rows are getting duplicated
+                            For Each s In taxes
+                                If s.TaxValue.ToString.ToLower.Contains(Common.ReplaceSpecialCharacters(word.Trim.ToLower)) Or _
+                                    s.TaxName.ToString.ToLower.Contains(Common.ReplaceSpecialCharacters(word.Trim.ToLower)) Then
+                                    taxresult.Add(s)
+                                End If
+                            Next
+                        End If
+                    Next
+                    taxes = taxresult
+
+                End If
+
+                Return taxes.ToList
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+        'END - NBG 9.11.2015
+
+
+        <HttpGet> <[GET]("/api/GetTax/{codesite:int}/{codetax:int}")> _
+        Public Function GetTaxList(codesite As Integer, codetax As Integer) As List(Of Models.Tax)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_TAXCODEVALUEDESC]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@ActiveOnly", SqlDbType.Bit).Value = True
+                                .Parameters.Add("@CodeTax", SqlDbType.Int).Value = codetax
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim taxes As New List(Of Models.Tax)
+                For Each r In ds.Tables(0).Rows
+                    taxes.Add(New Models.Tax With {
+                                    .TaxCode = GetInt(r("Code")), _
+                                    .TaxValue = GetDbl(r("Value")), _
+                                    .TaxName = GetStr(r("Description"))})
+                Next
+
+                Return taxes.ToList
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpGet> <[GET]("/api/tax/sharing/{codesite:int}/{type:int}/{tree:int}/{codetax:int}")> _
+        Public Function GetTaxSharing(codesite As Integer, _
+                                  type As Integer, _
+                                  tree As Integer, _
+                                  codetax As Integer) As List(Of Models.TreeNode)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_SharingAll]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = type
+                                .Parameters.Add("@Code", SqlDbType.Int).Value = codetax
+                                .Parameters.Add("@CodeEgswTable", SqlDbType.Int).Value = 126
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim sharings As New List(Of Models.GenericTree)
+                For Each r In ds.Tables(0).Rows
+                    sharings.Add(New Models.GenericTree With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name")), _
+                                    .ParentCode = GetInt(r("ParentCode")), _
+                                    .ParentName = GetStr(r("ParentName")), _
+                                    .Flagged = GetBool(r("Flagged")), _
+                                    .Type = GetInt(r("Type")), _
+                                    .Global = GetBool(r("Global"))})
+                Next
+
+                Dim sharingdata As New List(Of Models.TreeNode)
+
+                Dim parents = sharings.Where(Function(obj) obj.ParentCode = 0 And obj.Type = 1).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each p In parents
+                    If sharingdata.Where(Function(obj) obj.key = p.Code).Count = 0 Then
+                        Dim parent As New Models.TreeNode
+                        parent.title = p.Name
+                        parent.key = p.Code
+                        parent.icon = False
+                        parent.children = CreateChildrenSharing(sharings, p.Code)
+                        parent.select = p.Flagged
+                        parent.selected = p.Flagged
+                        parent.parenttitle = p.ParentName
+                        parent.groupLevel = GroupLevel.Property     'MKAM 2014.11.11
+                        If parent.children.Count > 0 Then sharingdata.Add(parent)
+                    End If
+                Next
+
+                Return sharingdata
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpPost> <POST("api/Tax/")> _
+        Public Function SaveTax(data As Models.TaxData) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim resultCode As Integer
+
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + JsonConvert.SerializeObject(data, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+                Using cmd As New SqlCommand
+                    Dim arrSharing As New ArrayList
+                    For Each sh In data.Sharing
+                        If arrSharing.IndexOf(sh.Code) = -1 Then arrSharing.Add(sh.Code)
+                    Next
+                    Dim _codeSiteList As String = Common.Join(arrSharing, "(", ")", ",")
+                    Dim tran As Integer
+                    If data.Info.TaxCode = -1 Then
+                        tran = 1
+                    ElseIf data.Info.TaxCode = -2 Then
+                        tran = 4
+                    Else
+                        tran = 2
+                    End If
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                If tran <> 4 Then
+                                    .Connection = cn
+                                    .CommandType = CommandType.StoredProcedure
+                                    .CommandText = "sp_EgswTaxUpdate"
+                                    .Parameters.Clear()
+                                    .Parameters.Add("@intCodeUser", SqlDbType.Int).Value = data.Profile.Code
+                                    .Parameters.Add("@intCodeSite", SqlDbType.Int).Value = data.Profile.CodeSite
+                                    .Parameters.Add("@intCode", SqlDbType.Int).Value = data.Info.TaxCode
+                                    .Parameters.Add("@nvcDesc", SqlDbType.NVarChar, 50).Value = data.Info.TaxName
+                                    .Parameters.Add("@fltValue", SqlDbType.Float).Value = data.Info.TaxValue
+                                    .Parameters.Add("@nvcNumberRef", SqlDbType.NVarChar, 20).Value = ""
+                                    .Parameters.Add("@IsGlobal", SqlDbType.Bit).Value = data.Info.Global
+                                    .Parameters.Add("@tntTranMode", SqlDbType.TinyInt).Value = tran
+                                    .Parameters.Add("@retval", SqlDbType.Int)
+                                    .Parameters.Add("@vchCodeSiteList", SqlDbType.VarChar, 8000).Value = _codeSiteList
+
+                                    .Parameters("@intCode").Direction = ParameterDirection.InputOutput
+                                    .Parameters("@retval").Direction = ParameterDirection.ReturnValue
+                                    cn.Open()
+                                    .ExecuteNonQuery()
+                                    resultCode = GetInt(.Parameters("@retval").Value, -1)
+                                    If resultCode <> 0 Then
+                                        Throw New DatabaseException(String.Format("[{0}] Save tax failed", resultCode))
+                                    End If
+                                ElseIf tran = 4 Then
+                                    Dim arrMerge As New ArrayList
+                                    For Each sh In data.MergeList
+                                        If arrMerge.IndexOf(sh) = -1 Then arrMerge.Add(sh)
+                                    Next
+                                    Dim _mergeList As String = Common.Join(arrMerge, "(", ")", ",")
+                                    .Connection = cn
+                                    .CommandType = CommandType.StoredProcedure
+                                    .CommandText = "sp_EgswTaxUpdate"
+                                    .Parameters.Clear()
+                                    .Parameters.Add("@intCodeUser", SqlDbType.Int).Value = data.Profile.Code
+                                    .Parameters.Add("@intCodeSite", SqlDbType.Int).Value = data.Profile.CodeSite
+                                    .Parameters.Add("@intCode", SqlDbType.Int).Value = data.Info.TaxCode
+                                    .Parameters.Add("@nvcDesc", SqlDbType.NVarChar, 50).Value = data.Info.TaxName
+                                    .Parameters.Add("@fltValue", SqlDbType.Float).Value = data.Info.TaxValue
+                                    .Parameters.Add("@nvcNumberRef", SqlDbType.NVarChar, 20).Value = ""
+                                    .Parameters.Add("@IsGlobal", SqlDbType.Bit).Value = data.Info.Global
+                                    .Parameters.Add("@tntTranMode", SqlDbType.TinyInt).Value = tran
+                                    .Parameters.Add("@retval", SqlDbType.Int)
+                                    .Parameters.Add("@vchCodeSiteList", SqlDbType.VarChar, 8000).Value = _codeSiteList
+                                    .Parameters.Add("@vchCodeMergeList", SqlDbType.VarChar, 8000).Value = _mergeList
+                                    .Parameters("@intCode").Direction = ParameterDirection.InputOutput
+                                    .Parameters("@retval").Direction = ParameterDirection.ReturnValue
+                                    cn.Open()
+                                    .ExecuteNonQuery()
+                                    resultCode = GetInt(.Parameters("@retval").Value, -1)
+                                    If resultCode <> 0 Then
+                                        Throw New DatabaseException(String.Format("[{0}] Save tax failed", resultCode))
+                                    End If
+
+                                End If
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = GetInt(.Parameters("@intCode").Value, -1)
+                                response.Status = True
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.Status = False
+                                response.Message = "Save tax failed"
+                                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Tax")
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+
+                End Using
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                response.Code = 400
+                response.Message = "Missing or invalid parameters"
+                response.Parameters = New List(Of Models.param) From {New Models.param With {.name = "data", .value = "RecipeData"}}
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), aex.Message.ToString(), aex.StackTrace.ToString(), "Tax")
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), hex.Message.ToString(), hex.StackTrace.ToString(), "Tax")
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Tax")
+            End Try
+            Return response
+
+        End Function
+
+        <HttpPost> <POST("api/tax/delete")> _
+        Public Function DeleteTax(data As Models.GenericDeleteData) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim resultCode As Integer
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + JsonConvert.SerializeObject(data, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+                Using cmd As New SqlCommand
+                    Dim arrCategoryCodes As New ArrayList
+                    For Each c In data.CodeList
+                        If arrCategoryCodes.IndexOf(c.Code) = -1 Then arrCategoryCodes.Add(c.Code)
+                    Next
+                    Dim _codeTaxList As String = Common.Join(arrCategoryCodes, "", "", ",")
+
+                    With cmd
+                        Using cn = New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandText = "API_DELETE_Generic"
+                                .CommandType = CommandType.StoredProcedure
+                                .Parameters.Clear()
+                                .Parameters.Add("@CodeList", SqlDbType.VarChar, 4000).Value = _codeTaxList
+                                .Parameters.Add("@TableName", SqlDbType.VarChar, 200).Value = "EGSWTAX"
+                                .Parameters.Add("@CodeUser", SqlDbType.Int).Value = data.CodeUser                    ''codeuser
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.CodeSite                    ''codesite                                                        
+                                .Parameters.Add("@ForceDelete", SqlDbType.Bit).Value = data.ForceDelete              ''force delete
+                                .Parameters.Add("@SkipList", SqlDbType.VarChar, 4000).Direction = ParameterDirection.Output
+                                .Parameters.Add("@Return", SqlDbType.Int)
+                                .Parameters("@Return").Direction = ParameterDirection.ReturnValue
+
+                                cn.Open()
+                                .ExecuteNonQuery()
+                                resultCode = GetInt(.Parameters("@Return").Value, -1) ' RBAJ-2014.01.14                                                               
+                                If resultCode <> 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Delete tax failed", resultCode))
+                                End If
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = GetStr(.Parameters("@SkipList").Value)
+                                response.Status = True
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.ReturnValue = GetStr(.Parameters("@SkipList").Value) ''JDO 1.21.2014
+                                response.Status = False
+                                response.Message = "Delete tax failed"
+                                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Tax")
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+
+                End Using
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                response.Code = 400
+                response.Message = "Missing or invalid parameters"
+                response.Parameters = New List(Of Models.param) From {New Models.param With {.name = "data", .value = "RecipeData"}}
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), aex.Message.ToString(), aex.StackTrace.ToString(), "Tax")
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), hex.Message.ToString(), hex.StackTrace.ToString(), "Tax")
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Tax")
+            End Try
+            Return response
+
+        End Function
+
+        'Private Function CreateChildren(_sharingdata As List(Of Models.GenericTree),
+        '								_code As Integer) As List(Of Models.TreeNode)
+
+        '	Dim children As New List(Of Models.TreeNode)
+
+        '          Dim kids = _sharingdata.Where(Function(obj) obj.ParentCode = _code And obj.Type = 2).OrderBy(Function(obj) obj.Name).ToList() ''P. Adaoag - removed (code < 0)  ' RBAJ-2014.04.23 Fixed infinite loop "obj.Code <> _code"
+
+        '	For Each k In kids
+        '		Dim child As New Models.TreeNode
+        '		child.title = k.Name
+        '		child.key = k.Code
+        '		child.icon = False
+        '              child.children = Nothing
+        '		children.Add(child)
+        '              child.select = k.Flagged
+        '              child.selected = k.Flagged
+        '		child.parenttitle = k.ParentName
+        '		child.note = k.Global
+        '	Next
+
+        '	Return children
+
+        'End Function
+
+    End Class
+End Namespace

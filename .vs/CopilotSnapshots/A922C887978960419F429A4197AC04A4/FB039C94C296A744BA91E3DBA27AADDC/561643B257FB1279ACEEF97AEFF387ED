@@ -1,0 +1,134 @@
+﻿Imports System
+Imports System.Web
+Imports System.Collections.Generic
+Imports System.Linq
+Imports AttributeRouting.Web.Http
+Imports System.Data.SqlClient
+Imports System.Web.Script.Serialization
+Imports log4net
+Imports System.Net
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace CalcmenuAPI
+    Public Class SharingController
+        Inherits ControllerBase
+
+        Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType)
+
+        <HttpGet> <[GET]("/api/sharing/{codesite:int}/{codetrans:int}/{type:int}/{tree:int}/{codeliste:int}")> _
+        Public Function GetSharing(codesite As Integer, _
+                                 codetrans As Integer, _
+                                 type As Integer, _
+                                 tree As Integer, _
+                                 codeliste As Integer) As List(Of Models.TreeNode)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_Sharing]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = type
+                                .Parameters.Add("@CodeListe", SqlDbType.Int).Value = codeliste
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim sharings As New List(Of Models.GenericTree)
+                For Each r In ds.Tables(0).Rows
+                    sharings.Add(New Models.GenericTree With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name")), _
+                                    .ParentCode = GetInt(r("ParentCode")), _
+                                    .ParentName = GetStr(r("ParentName")), _
+                                    .Flagged = GetBool(r("Flagged")), _
+                                    .Type = GetInt(r("Type"))})
+                Next
+
+                Dim sharingdata As New List(Of Models.TreeNode)
+
+                Dim parents = sharings.Where(Function(obj) obj.ParentCode = 0 And obj.Type = 1).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each p In parents
+                    Dim parent As New Models.TreeNode
+                    parent.title = p.Name
+                    parent.key = p.Code
+                    If p.Code = codesite Then 'JDO 12.19.2013 CWA-10408
+                        parent.unselectable = True
+                        parent.addClass = "main"
+                    Else
+                        parent.unselectable = False
+                    End If
+                    parent.children = CreateChildren(sharings, p.Code, codesite) 'JDO 12.19.2013 CWA-10408
+                    parent.select = p.Flagged
+                    parent.selected = p.Flagged
+                    parent.parenttitle = p.ParentName
+                    parent.groupLevel = GroupLevel.Property     'MKAM 2014.11.11
+                    sharingdata.Add(parent)
+                Next
+
+                Return sharingdata
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        Public Function GetParent(ByVal _parentcode As Integer, ByVal _sharings As List(Of Models.GenericTree)) As Models.GenericTree
+            Return _sharings.Where(Function(obj) obj.Code = _parentcode).Single()
+        End Function
+
+        Private Function CreateChildren(_sharingdata As List(Of Models.GenericTree),
+                                        _code As Integer, codesite As Integer) As List(Of Models.TreeNode) 'JDO 12.19.2013 CWA-10408 Added codesite            
+            Dim children As New List(Of Models.TreeNode)
+            If _sharingdata IsNot Nothing Then
+                Dim kids = _sharingdata.Where(Function(obj) obj.ParentCode = _code And obj.Type = 2).OrderBy(Function(obj) obj.Name).ToList() ' RBAJ-2014.04.23 Fixed infinite loop
+
+                For Each k In kids
+                    Dim child As New Models.TreeNode
+                    child.title = k.Name
+                    child.key = k.Code
+                    If child.key = codesite Then 'JDO 12.19.2013 CWA-10408
+                        child.select = True
+                        child.selected = True
+                        child.unselectable = True
+                        child.addClass = "main"
+                    Else
+                        child.unselectable = False
+                        child.select = k.Flagged
+                        child.selected = k.Flagged
+                    End If
+                    child.children = Nothing
+                    children.Add(child)
+                    child.parenttitle = k.ParentName
+                    child.groupLevel = GroupLevel.Site     'MKAM 2014.11.11
+                Next
+            End If
+            Return children
+
+        End Function
+
+    End Class
+End Namespace
+
+
+

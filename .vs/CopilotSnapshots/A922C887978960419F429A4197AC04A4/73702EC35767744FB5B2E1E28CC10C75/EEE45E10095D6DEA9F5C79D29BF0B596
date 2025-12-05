@@ -1,0 +1,1583 @@
+﻿Imports System
+Imports System.Web
+Imports System.Collections.Generic
+Imports System.Linq
+Imports AttributeRouting.Web.Http
+Imports System.Data.SqlClient
+Imports System.Web.Script.Serialization
+Imports log4net
+Imports System.Threading
+Imports System.Drawing
+Imports System.IO
+Imports Newtonsoft.Json
+Imports System.Net
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace CalcmenuAPI
+    Public Class MerchandiseController
+        Inherits ControllerBase
+        Private L_intCodeListe As String
+        Private m_PictureNames, m_TempPictureNames, m_TempAttachments As String, m_Attachments As List(Of Models.Merchandise.MerchandiseAttachment)
+        Private arrPictures As String()
+        Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType)
+
+        Public ReadOnly Property TempFolder() As String
+            Get
+                Dim tmp As String = GetStr(ConfigurationManager.AppSettings("temp")).Trim()
+                If tmp.Equals(String.Empty) Then
+                    tmp = Common.MapPath("temp")
+                End If
+                Return tmp.TrimEnd("\") + "\"
+            End Get
+        End Property
+
+        Public ReadOnly Property DamFolder() As String
+            Get
+                Dim tmp As String = GetStr(ConfigurationManager.AppSettings("dam")).Trim()
+                If tmp.Equals(String.Empty) Then
+                    tmp = Common.MapPath("DigitalAssets")
+                End If
+                Return tmp.TrimEnd("\") + "\"
+            End Get
+        End Property
+
+        Public ReadOnly Property PicNormalFolder() As String
+            Get
+                Dim tmp As String = GetStr(ConfigurationManager.AppSettings("picnormal")).Trim()
+                If tmp.Equals(String.Empty) Then
+                    tmp = Common.MapPath("picnormal")
+                End If
+                Return tmp.TrimEnd("\") + "\"
+            End Get
+        End Property
+
+        Public ReadOnly Property PicThumbnailFolder() As String
+            Get
+                Dim tmp As String = GetStr(ConfigurationManager.AppSettings("picthumbnail")).Trim()
+                If tmp.Equals(String.Empty) Then
+                    tmp = Common.MapPath("picthumbnail")
+                End If
+                Return tmp.TrimEnd("\") + "\"
+            End Get
+        End Property
+
+        Public ReadOnly Property PicOriginalFolder() As String
+            Get
+                Dim tmp As String = GetStr(ConfigurationManager.AppSettings("picoriginal")).Trim()
+                If tmp.Equals(String.Empty) Then
+                    tmp = Common.MapPath("picoriginal")
+                End If
+                Return tmp.TrimEnd("\") + "\"
+            End Get
+        End Property
+
+        Public ReadOnly Property FilesFolder() As String
+            Get
+                Dim tmp As String = GetStr(ConfigurationManager.AppSettings("files")).Trim()
+                If tmp.Equals(String.Empty) Then
+                    tmp = Common.MapPath("files")
+                End If
+                Return tmp.TrimEnd("\") + "\"
+            End Get
+        End Property
+
+        Public ReadOnly Property PicSrc() As String
+            Get
+                Return ConfigurationManager.AppSettings("picsrc")
+            End Get
+        End Property
+
+        <HttpGet> <[GET]("/api/merchandise/purchasingsetprice/{merchCode:int}/{rayonCode:int}")> _
+        Public Function GetPurchasingSetPrice(merchCode As Integer, rayonCode As Integer) As DataTable ' PJRB-2016.06.10
+            Dim _dt As New DataTable
+            Dim _ret As Integer = 0
+            Dim price1 As Integer = 0
+            Dim price2 As Integer = 0
+            Try
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn = New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                cn.Open()
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_PurchasingSetPrice]"
+                                .Parameters.Clear()
+                                .Parameters.Add("@merchCode", SqlDbType.Int).Value = merchCode
+                                .Parameters.Add("@rayonCode", SqlDbType.Int).Value = rayonCode
+
+                                Dim _da2 As New SqlDataAdapter(cmd)
+                                _da2.Fill(_dt)
+
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+
+            Return _dt
+        End Function
+
+        <HttpGet> <[GET]("/api/merchandise/history/{codeliste:int}/{codetrans}")> _
+        Public Function GetRecipeHistorys(codeliste As Integer, codetrans As Integer, Optional codeuser As Integer = -1, Optional skip As Integer = 0, _
+                                 Optional take As Integer = 10, Optional datefilter As Integer = 0, Optional datefrom As String = "", Optional dateto As String = "", Optional ActionType As Integer = 0
+            ) As Models.RecipeHistoryResponse
+            Dim histories As New List(Of Models.RecipeHistory)
+
+            Try
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn = New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                cn.Open()
+
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "sp_EgswListeGetHistoryLogsMerchandise"
+                                .Parameters.Clear()
+                                .Parameters.Add("@intCodeListe", SqlDbType.Int).Value = codeliste
+                                .Parameters.Add("@intCodeTrans", SqlDbType.Int).Value = codetrans
+                                .Parameters.Add("@intCodeUser", SqlDbType.Int).Value = codeuser
+                                .Parameters.Add("@intFieldCode", SqlDbType.Int).Value = -1
+                                .Parameters.Add("@bitFirstFewRecords", SqlDbType.Bit).Value = 0
+                                .Parameters.Add("@intDateFilterOption", SqlDbType.Int).Value = GetInt(datefilter)
+                                .Parameters.Add("@dteDateFrom", SqlDbType.DateTime).Value = IIf(String.IsNullOrEmpty(datefrom), DBNull.Value, GetDate(datefrom, Date.Now))
+                                .Parameters.Add("@dteDateTo", SqlDbType.DateTime).Value = IIf(String.IsNullOrEmpty(dateto), DBNull.Value, GetDate(dateto, Date.Now))
+                                .Parameters.Add("@intActionType", SqlDbType.Int).Value = ActionType
+
+                                Using dr As SqlDataReader = cmd.ExecuteReader()
+                                    While dr.Read
+                                        If dr.HasRows Then
+                                            histories.Add(
+                                                New Models.RecipeHistory With {
+                                                    .DateAudit = GetStr(dr("DateAudit")), _
+                                                    .FieldName = GetStr(dr("FieldName")), _
+                                                    .Time = GetStr(dr("Time")), _
+                                                    .FieldCode = GetStr(dr("FieldCode")), _
+                                                    .Previous = GetStr(dr("Previous")), _
+                                                    .HNew = GetStr(dr("New")), _
+                                                    .User = GetStr(dr("User")), _
+                                                    .AuditType = GetStr(dr("AuditType")), _
+                                                    .CodeListe = GetStr(dr("CodeListe")), _
+                                                    .CodeUser = GetStr(dr("CodeUser")), _
+                                                    .IsCode = GetStr(dr("IsCode"))
+                                                    }
+                                                )
+                                        End If
+                                    End While
+                                    dr.Close()
+                                End Using
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim totalCount As Integer = histories.Count
+                take = IIf(take > totalCount + 1, totalCount, take) ' Prevent overflow of take
+                take = IIf(take <= 0, 1, take) ' Prevent overflow of take
+                Dim totalPages As Integer = Math.Ceiling(totalCount / take)
+                skip = IIf(skip > totalPages, totalPages, skip) ' Prevent overflow of skip
+                skip = IIf(skip < 1, 0, skip) ' Prevent overflow of skip
+
+                ' RBAJ-2014.04.14 Added default sorting
+                'Dim x = New Models.RecipeHistoryResponse(
+                '    histories _
+                '    .OrderByDescending(Function(obj) Date.Parse(obj.DateAudit)) _
+                '    .ThenByDescending(Function(obj) obj.FieldName) _
+                '    .ThenByDescending(Function(obj) Date.Parse(obj.Time)) _
+                '    .Skip(take * skip) _
+                '    .Take(take).ToList, _
+                '    totalCount
+                ')
+                Dim x = New Models.RecipeHistoryResponse(
+                    histories _
+                    .Skip(take * skip) _
+                    .Take(take).ToList, _
+                    totalCount
+                )
+                Return x
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpGet> <[GET]("/api/merchandise/{codeliste:int}/{codesite:int}/{codetrans:int}/{codesetprice:int}/{codenutrientset:int}")> _
+        Public Function GetMerchandise(codeliste As Integer, _
+                              codesite As Integer, _
+                              codetrans As Integer, _
+                              codesetprice As Integer, _
+                              codenutrientset As Integer) As Models.MerchandiseData
+            Dim merchandiseData As New Models.MerchandiseData
+            Try
+                Using cmd As New SqlCommand()
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_MerchandiseInfo]"
+                                .Parameters.Add("@CodeListe", SqlDbType.Int).Value = codeliste
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans
+                                .Parameters.Add("@CodeSetPrice", SqlDbType.Int).Value = codesetprice
+                                .Parameters.Add("@CodeNutrientSet", SqlDbType.Int).Value = codenutrientset
+                                cn.Open()
+
+                                Using dr As SqlDataReader = cmd.ExecuteReader()
+                                    '' Main
+                                    Dim x = dr.FieldCount
+                                    If dr.HasRows Then
+                                        Dim info As New Models.Merchandise
+                                        While dr.Read
+                                            With info
+                                                .Name = GetStr(dr("Name"))
+                                                .Number = GetStr(dr("Number"))
+                                                .UPC = GetStr(dr("UPC"))
+                                                .CodeListe = GetInt(dr("CodeListe"))
+                                                .CodeBrand = GetInt(dr("CodeBrand"))
+                                                .Brand = GetStr(dr("Brand"))
+                                                .CodeCategory = GetInt(dr("CodeCategory"))
+                                                .Category = GetStr(dr("Category"))
+                                                .CodeSupplier = GetInt(dr("CodeSupplier"))
+                                                .Supplier = GetStr(dr("Supplier"))
+                                                .CodeTrans = GetInt(dr("CodeTrans"))
+                                                .DefaultPicture = GetInt(dr("DefaultPicture")) ''LLG 12.04.2015 added for modified date of the merchandise
+                                                .Date = GetDate(dr("Date"))
+                                                .ModifiedDate = GetDate(dr("ModifiedDate"))
+                                                .Wastage1 = GetInt(dr("Wastage1"))
+                                                .Wastage2 = GetInt(dr("Wastage2"))
+                                                .Wastage3 = GetInt(dr("Wastage3"))
+                                                .Wastage4 = GetInt(dr("Wastage4"))
+                                                .Wastage5 = GetInt(dr("Wastage5"))
+                                                .Picture = GetStr(dr("PictureName")).Split(";").ToList()
+                                                .CustomTempAttachments = New List(Of Models.Merchandise.MerchandiseAttachment)
+                                                .CustomTempPictures = New List(Of String)
+                                                .InUse = GetBool(dr("InUse"))
+                                                .CodeLink = GetStr(dr("CodeLink"))
+                                                .cGlobal = GetBool(dr("Global"))
+                                                .AllergenApproved = GetBool(dr("AllergenApproved"))
+                                                .LinkNutrient = GetStr(dr("LinkNutrient"))
+                                                .CodeNutrientSet = GetInt(dr("CodeNutrientSet"))
+                                                .CodeCountry = GetInt(dr("CodeCountry"))
+                                                .Country = GetStr(dr("Country"))
+                                            End With
+                                        End While
+                                        merchandiseData.Info = info
+                                    End If
+
+                                    ''Price
+                                    dr.NextResult()
+                                    If (dr.HasRows) Then
+                                        Dim Price As New List(Of Models.MerchandisePrice)
+                                        While dr.Read
+                                            Dim price_ As New Models.MerchandisePrice
+                                            With price_
+                                                .Id = GetInt(dr("Id"))
+                                                .Unit = GetStr(dr("Unit"))
+                                                .CodeUnit = GetInt(dr("CodeUnit"))
+                                                .Price = GetDbl(dr("Price"))
+                                                .Ratio = GetDbl(dr("Ratio"))
+                                                .TaxCode = GetInt(dr("Tax"))
+                                                .TaxValue = GetDbl(dr("TaxValue"))
+                                                .Position = GetInt(dr("Position"))
+                                                .IsUsed = GetBool(dr("IsUsed"))
+                                                .CodeSetPrice = GetInt(dr("CodeSetPrice")) ''LLG 12.04.2015 added to get the CodeTrans of each Ingredient
+                                            End With
+                                            Price.Add(price_)
+                                        End While
+                                        merchandiseData.Price = Price
+                                    End If
+
+                                    ''Keyword
+                                    dr.NextResult()
+                                    If dr.HasRows Then
+                                        Dim Keywords As New List(Of Models.GenericTree)
+                                        While dr.Read
+                                            Dim keyword_ As New Models.GenericTree
+                                            With keyword_
+                                                .Name = GetStr(dr("Name"))
+                                                .Flagged = GetBool(dr("Flagged"))
+                                                .Code = GetInt(dr("Code"))
+                                                .ParentCode = GetInt(dr("ParentCode"))
+                                            End With
+                                            Keywords.Add(keyword_)
+                                        End While
+
+                                        'Dim keyworddata As New List(Of Models.TreeNode)
+
+                                        'Dim parentsKeyword = Keywords.Where(Function(obj) obj.ParentCode = 0 And obj.Type = 2).OrderBy(Function(obj) obj.Name).ToList()
+
+                                        'For Each p In parentsKeyword
+                                        '    Dim parent As New Models.TreeNode
+                                        '    parent.title = p.Name
+                                        '    parent.key = p.Code
+                                        '    parent.icon = False
+                                        '    parent.children = CreateChildrenSharing(Keywords, p.Code)
+                                        '    parent.select = p.Flagged
+                                        '    parent.parenttitle = p.ParentName
+
+                                        '    keyworddata.Add(parent)
+                                        'Next
+
+                                        merchandiseData.Keywords = Keywords
+                                    End If
+
+
+
+
+
+
+                                    ''Nutrition
+                                    dr.NextResult()
+                                    If dr.HasRows Then
+                                        Dim Nutrient As New List(Of Models.RecipeNutrition)
+                                        While dr.Read
+                                            Dim nutrient_ As New Models.RecipeNutrition
+                                            With nutrient_
+                                                .Name = GetStr(dr("Name"))
+                                                .Nutr_No = GetInt(dr("Nutr_No"))
+                                                .Position = GetInt(dr("Position"))
+                                                .TagName = GetStr(dr("TagName"))
+                                                .Value = GetDbl(dr("Value"))
+                                                .Imposed = GetInt(dr("Imposed"))
+                                                .Percent = GetInt(dr("Percent"))
+                                                .Format = GetStr(dr("Format"))
+                                                .Unit = GetStr(dr("Unit"))
+                                                .CodeNutrientSet = GetInt(dr("CodeNutrientSet"))
+
+                                            End With
+                                            Nutrient.Add(nutrient_)
+                                        End While
+                                        merchandiseData.Nutrient = Nutrient
+                                    End If
+
+                                    ''Attachment
+                                    dr.NextResult()
+                                    If dr.HasRows Then
+                                        Dim Attachment = New List(Of Models.Merchandise.MerchandiseAttachment)
+                                        While dr.Read
+                                            Dim attachment_ As New Models.Merchandise.MerchandiseAttachment
+                                            With attachment_
+                                                .Id = GetInt(dr("Id"))
+                                                .Type = GetInt(dr("Type"))
+                                                .Resource = GetStr(dr("Resource"))
+                                                .Name = GetStr(dr("Name"))
+                                            End With
+                                            Attachment.Add(attachment_)
+                                        End While
+                                        merchandiseData.Attachment = Attachment
+                                    End If
+
+                                    ''Translation
+                                    dr.NextResult()
+                                    If dr.HasRows Then
+                                        merchandiseData.Translation = New List(Of Models.MerchandiseTranslation)
+                                        While dr.Read
+                                            Dim translation_ As New Models.MerchandiseTranslation
+                                            With translation_
+                                                .Id = GetInt(dr("Id"))
+                                                .TranslationCode = GetInt(dr("CodeTrans"))
+                                                .TranslationName = GetStr(dr("TranslationName"))
+                                                .CodeDictionary = GetInt(dr("CodeDictionary"))
+                                                .Name = GetStr(dr("Name"))
+                                                .Ingredients = GetStr(dr("Ingredients"))
+                                                .Preparation = GetStr(dr("Preparation"))
+                                                .CookingTip = GetStr(dr("CookingTip"))
+                                                .Refinement = GetStr(dr("Refinement"))
+                                                .Storage = GetStr(dr("Storage"))
+                                                .Productivity = GetStr(dr("Productivity"))
+                                                .Description = GetStr(dr("Description"))
+                                                .PrefixCode = GetStr(dr("PrefixCode"))
+                                                .PrefixName = GetStr(dr("PrefixName"))
+                                                .SpecificDetermination = GetStr(dr("SpecificDetermination"))
+                                                .Gender = IIf(GetBool(dr("IsFemale")) = False, "Masculine", "Feminine")
+                                                .IsGenderSensitive = GetBool(dr("IsGenderSensitive"))
+                                            End With
+                                            merchandiseData.Translation.Add(translation_)
+                                        End While
+                                    End If
+
+                                    ''Sharing
+                                    dr.NextResult()
+                                    If dr.HasRows Then
+
+                                        Dim sharings As New List(Of Models.GenericTree)
+                                        While dr.Read
+                                            sharings.Add(New Models.GenericTree With {
+                                                .Code = GetInt(dr("Code")), _
+                                                            .Name = GetStr(dr("Name")), _
+                                                            .ParentCode = GetInt(dr("ParentCode")), _
+                                                            .ParentName = GetStr(dr("ParentName")), _
+                                                            .Flagged = GetBool(dr("Flagged")), _
+                                                            .Type = GetInt(dr("Type"))})
+                                        End While
+
+                                        Dim sharingdata As New List(Of Models.TreeNode)
+
+                                        Dim parents = sharings.Where(Function(obj) obj.ParentCode = 0 And obj.Type = 1).OrderBy(Function(obj) obj.Name).ToList()
+
+                                        For Each p In parents
+                                            Dim parent As New Models.TreeNode
+                                            parent.title = p.Name
+                                            parent.key = p.Code
+                                            parent.icon = False
+                                            parent.children = CreateChildrenSharing(sharings, p.Code, codesite)
+                                            parent.select = p.Flagged
+                                            parent.selected = p.Flagged
+                                            parent.parenttitle = p.ParentName
+                                            parent.groupLevel = GroupLevel.Property
+                                            sharingdata.Add(parent)
+                                        Next
+
+                                        merchandiseData.Sharing = sharingdata
+
+                                    End If
+
+                                    '' Allergens
+                                    dr.NextResult()
+                                    If dr.HasRows Then
+                                        Dim allergens As New List(Of Models.ListeAllergen)
+                                        While dr.Read
+                                            Dim allergen As New Models.ListeAllergen With {
+                                                .CodeAllergen = GetInt(dr("CodeAllergen")),
+                                                .AllergenName = GetStr(dr("Allergen")),
+                                                .Contain = GetBool(dr("Contain")),
+                                                .NonAllergen = GetBool(dr("NonAllergen")),
+                                                .Trace = GetBool(dr("Trace")),
+                                                .Derived = GetBool(dr("Derived")),
+                                                .Hidden = GetBool(dr("Hidden")),
+                                                .PictureName = GetStr(dr("PictureName")),
+                                                .Complete = GetStr(dr("Complete")),
+                                                .SwissLaw = GetStr(dr("SwLaw")),
+                                                .EULaw = GetStr(dr("EuLaw"))
+                                            }
+                                            allergens.Add(allergen)
+                                        End While
+                                        merchandiseData.Allergen = allergens
+                                    End If
+
+
+
+                                    '' History
+                                    dr.NextResult()
+                                    If dr.HasRows Then
+                                        Dim histories As New List(Of Models.MerchandiseHistory)
+                                        While dr.Read
+                                            Dim history As New Models.MerchandiseHistory With {
+                                                .DateAudit = GetStr(dr("DateAudit")), _
+                                                .FieldName = GetStr(dr("FieldName")), _
+                                                .Time = GetStr(dr("Time")), _
+                                                .FieldCode = GetStr(dr("FieldCode")), _
+                                                .Previous = GetStr(dr("Previous")), _
+                                                .HNew = GetStr(dr("New")), _
+                                                .User = GetStr(dr("User")), _
+                                                .AuditType = GetStr(dr("AuditType")), _
+                                                .CodeListe = GetStr(dr("CodeListe")), _
+                                                .CodeUser = GetStr(dr("CodeUser")), _
+                                                .IsCode = GetStr(dr("IsCode"))
+                                            }
+                                            histories.Add(history)
+                                        End While
+                                        merchandiseData.History = histories
+                                    End If
+                                    dr.Close()
+                                End Using
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), aex.Message.ToString(), aex.StackTrace.ToString(), "Merchandise")
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), hex.Message.ToString(), hex.StackTrace.ToString(), "Merchandise")
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Merchandise")
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+
+            Return merchandiseData
+        End Function
+
+        Private Function fctResizeConvertImage(ByVal strFile As String, _
+                                               ByVal strDestination As String, _
+                                               ByVal newWidth As Integer, _
+                                               ByVal newHeight As Integer, _
+                                               Optional ByVal blnDelete As Boolean = False) As Boolean
+            Try
+                Dim dblTempW As Double
+                Dim dblTempH As Double
+                Dim H1 As Integer
+                Dim W1 As Integer
+                Dim strNewFile As String
+
+                Dim FileToResize As String = strFile 'Server.MapPath("~/images/1.jpg")
+                Dim originalBitmap As Bitmap = Bitmap.FromFile(FileToResize, True)
+                Dim WidthVsHeightRatio = CDec(originalBitmap.Height) / CDec(originalBitmap.Width)
+
+                If newHeight > newWidth Then
+                    dblTempH = CDbl(newHeight)
+                    dblTempW = dblTempH / WidthVsHeightRatio
+                Else
+                    dblTempW = CDbl(newWidth)
+                    dblTempH = dblTempW * WidthVsHeightRatio
+                End If
+                Do While (dblTempW > CDbl(newWidth) Or dblTempH > CDbl(newHeight))
+                    dblTempW = (dblTempW * 0.999)
+                    dblTempH = (dblTempH * 0.999)
+                Loop
+                W1 = CInt(dblTempW)
+                H1 = CInt(dblTempH)
+
+                Dim newbmp As Bitmap = New Bitmap(W1, H1)
+                Using newg As Graphics = Graphics.FromImage(newbmp)
+                    newg.SmoothingMode = Drawing2D.SmoothingMode.HighQuality
+                    newg.Clear(Color.White)
+                    newg.DrawImage(originalBitmap, 0, 0, W1, H1)
+                    newg.Save()
+                End Using
+                strNewFile = Replace(Path.GetFileName(strFile), Path.GetExtension(strFile), ".jpg")
+                newbmp.Save(strDestination, System.Drawing.Imaging.ImageFormat.Jpeg)
+                originalBitmap.Dispose()
+                If blnDelete Then File.Delete(strFile)
+
+            Catch ex As Exception
+                Log.Error("ResizeConvertImage failed", ex)
+                Return False
+            End Try
+            Return True
+        End Function
+
+        Private Sub SavePictures()
+            Try
+                If m_PictureNames.Trim.Length > 0 Then
+                    Dim arrPictureNames() As String = m_PictureNames.Trim.Split(";")
+                    m_PictureNames = String.Join(";", arrPictures)
+                    If arrPictureNames.Length > 0 Then
+                        For ctr As Integer = 0 To arrPictureNames.Length - 1
+                            If arrPictureNames(ctr).Trim.Length > 0 Then
+
+                                Dim pic As String = arrPictureNames(ctr)
+                                Dim _source As String 'JDO 2014-03-26
+                                If pic.Trim.IndexOf("| DAM") <> -1 Then
+
+                                    pic = pic.Substring(0, pic.IndexOf("|")).Trim
+                                    _source = DamFolder & pic
+                                    File.Copy(_source, TempFolder & arrPictures(ctr))
+                                    pic = arrPictures(ctr)
+                                End If
+                                _source = TempFolder & pic
+                                If File.Exists(_source) Then
+
+                                    'Save picoriginal
+                                    File.Copy(_source, PicOriginalFolder & pic)
+                                    _source = PicOriginalFolder & pic
+                                    'Save picnormal
+                                    fctResizeConvertImage(_source, PicNormalFolder & pic, 333, 250, False)
+
+                                    'Save picthumbnail
+                                    fctResizeConvertImage(_source, PicThumbnailFolder & pic, 150, 150, False)
+
+                                End If
+                            End If
+                        Next
+                    End If
+                End If
+
+                ''Remove pictures stored in the temp and those in picnormal, picthumbnail, picoriginal
+                If m_TempPictureNames.Length > 0 Then
+                    Dim arrPictureNames() As String = m_TempPictureNames.Trim.Split(";")
+                    If arrPictureNames.Length > 0 Then
+                        For Each pic As String In arrPictureNames
+
+                            If pic.Trim.Length > 0 Then
+                                If pic.Trim.LastIndexOf("| DAM") = -1 Then
+                                    Dim _source As String = TempFolder & pic
+                                    If File.Exists(_source) Then
+                                        File.Delete(_source)
+
+                                    End If
+
+                                    If m_PictureNames.IndexOf(pic) = -1 Then
+                                        'Delete from picoriginal
+                                        If File.Exists(PicOriginalFolder & pic) Then
+                                            File.Delete(PicOriginalFolder & pic)
+                                        End If
+
+                                        'Delete from picnormal
+                                        If File.Exists(PicNormalFolder & pic) Then
+                                            File.Delete(PicNormalFolder & pic)
+                                        End If
+
+                                        'Delete from picthumbnail
+                                        If File.Exists(PicThumbnailFolder & pic) Then
+                                            File.Delete(PicThumbnailFolder & pic)
+                                        End If
+                                    End If
+
+                                End If
+                            End If
+
+                        Next
+                    End If
+                End If
+
+            Catch ex As Exception
+                Log.Error("Save pictures failed", ex)
+            End Try
+        End Sub
+
+
+        ''' <summary>
+        ''' Insert or update recipe information
+        ''' </summary>
+        ''' <param name="data"><c>Models.RecipeData</c></param>
+        ''' <returns><c>Models.ResponseCallBack</c></returns>
+        ''' <remarks></remarks>
+        <HttpPost> <POST("api/merchandise")> _
+        Public Function SaveMerchandise(data As Models.MerchandiseData) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim _trans As SqlTransaction = Nothing
+            Dim resultCode As Integer = 0
+            Dim pictures As String = ""
+            Dim arrDAMCode As New ArrayList
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + JsonConvert.SerializeObject(data, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+                Using cmd As New SqlCommand
+
+                    ' Validation
+                    If data Is Nothing Then
+                        Throw (New ArgumentNullException("merchandise data is empty"))
+                    End If
+                    If data.Info Is Nothing Then
+                        Throw (New ArgumentNullException("invalid recipe data"))
+                    End If
+
+                    If Not data.Info.Picture Is Nothing Then
+                        arrPictures = data.Info.Picture.ToArray()
+                        If arrPictures.Length > 0 Then
+                            For ctr As Integer = 0 To arrPictures.Length - 1
+                                If arrPictures(ctr).Trim.Length > 0 Then
+                                    If arrPictures(ctr).Trim.IndexOf("| DAM") <> -1 Then
+                                        arrPictures(ctr) = arrPictures(ctr).Substring(0, arrPictures(ctr).LastIndexOf("|")).Trim
+                                        arrDAMCode.Add(arrPictures(ctr).Trim().Substring(arrPictures(ctr).IndexOf("|") + 1))
+                                        arrPictures(ctr) = arrPictures(ctr).Substring(0, arrPictures(ctr).LastIndexOf("|")).Trim
+                                        arrPictures(ctr) = "P" & Format(Now, "MMddyyHHmmss") & "_" & ctr & arrPictures(ctr).Substring(arrPictures(ctr).LastIndexOf(".")).Trim
+                                    End If
+
+                                End If
+                            Next
+                        End If
+                        pictures = String.Join(";", arrPictures)
+                    End If
+
+                    With cmd
+                        Using cn = New SqlConnection(ConnectionString)
+                            Try
+                                Dim intCodeListe As Integer = -1
+                                Dim intCodeSetPrice As Integer = 1
+                                Dim intCodeUser As Integer = GetInt(data.Info.CodeModifiedBy) ' RBAJ-2013.12.19
+                                ' Wait for 2 minutes for the query to execute before timing out
+                                .CommandTimeout = 120
+
+                                ''Main
+                                .Connection = cn
+                                .CommandText = "sp_egswListeUpdate"
+                                .CommandType = CommandType.StoredProcedure
+
+                                .Parameters.Add("@intCodeListe", SqlDbType.Int).Value = data.Info.CodeListe
+                                .Parameters.Add("@intCodeSite", SqlDbType.Int).Value = data.Info.CodeSite
+                                .Parameters.Add("@intCodeUser", SqlDbType.Int).Value = data.Info.CodeUser
+                                .Parameters.Add("@intCodeTrans", SqlDbType.Int).Value = data.Info.CodeTrans
+
+                                .Parameters.Add("@intType", SqlDbType.Int).Value = 2
+                                .Parameters.Add("@nvcName", SqlDbType.NVarChar, 260).Value = Common.ReplaceSpecialCharacters(data.Info.Name)
+                                .Parameters.Add("@nvcNumber", SqlDbType.NVarChar, 20).Value = Common.ReplaceSpecialCharacters(data.Info.Number)
+                                ''.Parameters.Add("@nvcSubtitle", SqlDbType.NVarChar, 260).Value = Common.ReplaceSpecialCharacters(IIf(data.Info.SubName = Nothing, "", data.Info.SubName))
+                                .Parameters.Add("@intCategory", SqlDbType.Int).Value = data.Info.CodeCategory
+                                .Parameters.Add("@intSource", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@nvcRemark", SqlDbType.NVarChar, 250).Value = ""
+                                .Parameters.Add("@fltYield", SqlDbType.Float).Value = 0
+                                .Parameters.Add("@intYieldUnit", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@sntPercent", SqlDbType.SmallInt).Value = 100
+                                .Parameters.Add("@fltSrQty", SqlDbType.Float).Value = 0
+                                .Parameters.Add("@intSrUnit", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@sdtDates", SqlDbType.SmallDateTime).Value = data.Info.Date
+                                .Parameters.Add("@fltSrWeight", SqlDbType.Float).Value = 0
+                                .Parameters.Add("@fltYield2", SqlDbType.Float).Value = 0
+                                .Parameters.Add("@intYieldUnit2", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@fltPortionSize", SqlDbType.Float).Value = 0
+                                .Parameters.Add("@intPortionSizeUnit", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@CodeCountry", SqlDbType.Int).Value = data.Info.CodeCountry
+
+                                ''Picture
+                                .Parameters.Add("@nvcPictureName", SqlDbType.NVarChar, 200).Value = pictures 'JDO 2014-03-26
+                                .Parameters.Add("@tntDefaultPicture", SqlDbType.TinyInt).Value = data.Info.DefaultPicture
+                                .Parameters.Add("@nvcCoolingTime", SqlDbType.NVarChar, 25).Value = String.Empty
+                                .Parameters.Add("@nvcHeatingTime", SqlDbType.NVarChar, 25).Value = String.Empty
+                                .Parameters.Add("@nvcHeatingTemperature", SqlDbType.NVarChar, 25).Value = String.Empty
+                                .Parameters.Add("@nvcHeatingMode", SqlDbType.NVarChar, 25).Value = String.Empty
+                                .Parameters.Add("@nvcCCPDescription", SqlDbType.NVarChar, 255).Value = String.Empty
+                                .Parameters.Add("@nvcHACCP", SqlDbType.NVarChar, 4000).Value = String.Empty 'ECAM 01.25.2016
+
+                                ''Preparation
+                                .Parameters.Add("@nvcNote", SqlDbType.NVarChar).Value = Common.ReplaceSpecialCharacters("")
+
+                                ''HACCP, Temperature, Composition, etc.
+                                Dim currentTranslation As New Models.MerchandiseTranslation
+                                If Not data.Translation Is Nothing Then
+                                    For Each Translation In data.Translation
+                                        If (Translation.TranslationCode = data.Info.CodeTrans) Then
+                                            currentTranslation = Translation
+                                            Exit For
+                                        End If
+                                    Next
+                                End If
+
+                                .Parameters.Add("@nvcIngredients", SqlDbType.NVarChar, 2000).Value = Common.ReplaceSpecialCharacters(currentTranslation.Ingredients)
+                                .Parameters.Add("@nvcPreparation", SqlDbType.NVarChar, 700).Value = Common.ReplaceSpecialCharacters(currentTranslation.Preparation)
+                                .Parameters.Add("@nvcCookingTip", SqlDbType.NVarChar, 700).Value = Common.ReplaceSpecialCharacters(currentTranslation.CookingTip)
+                                .Parameters.Add("@nvcRefinement", SqlDbType.NVarChar, 700).Value = Common.ReplaceSpecialCharacters(currentTranslation.Refinement)
+                                .Parameters.Add("@nvcStorage", SqlDbType.NVarChar, 700).Value = Common.ReplaceSpecialCharacters(currentTranslation.Storage)
+                                .Parameters.Add("@nvcProductivity", SqlDbType.NVarChar, 700).Value = Common.ReplaceSpecialCharacters(currentTranslation.Productivity)
+                                .Parameters.Add("@nvcDescription", SqlDbType.NVarChar, 800).Value = Common.ReplaceSpecialCharacters(currentTranslation.Description)
+
+                                ''Misc
+                                .Parameters.Add("@bitProtected", SqlDbType.Bit).Value = False
+                                ''This is different from the nutrition codelink. All contents of egswliste just seem to have 0 codelink. 
+                                ''Codelink reference is instead stored in EgswNutrientVal
+                                .Parameters.Add("@intCodeLink", SqlDbType.Int).Value = 0
+
+                                .Parameters.Add("@IsGlobal", SqlDbType.Bit).Value = data.Info.cGlobal
+                                .Parameters.Add("@bitUse", SqlDbType.Bit).Value = True
+                                .Parameters.Add("@intEGSRef", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@intEGSID", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@bitCompareByCodeSite", SqlDbType.Bit).Value = False
+                                .Parameters.Add("@vchCodeMergeList", SqlDbType.VarChar, 700).Value = ""
+                                .Parameters.Add("@vchKeyField", SqlDbType.VarChar, 50).Value = ""
+                                .Parameters.Add("@intOverwriteDescription", SqlDbType.Int).Value = 1
+                                .Parameters.Add("@fltNetWeight", SqlDbType.Float).Value = 0
+                                .Parameters.Add("@intTemplateCode", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@nvcNoteHeader", SqlDbType.NVarChar).Value = Common.ReplaceSpecialCharacters("")
+                                .Parameters.Add("@bitAutoNum", SqlDbType.Bit).Value = CBool(intCodeListe > 0) ' RBAJ-2014.03.25
+                                .Parameters.Add("@nvcCodeStyle", SqlDbType.NVarChar).Value = Common.ReplaceSpecialCharacters("")
+                                '.Parameters.Add("@sStoringTime", SqlDbType.NVarChar, 100).Value = Common.ReplaceSpecialCharacters(data.Info.StoringTime)
+                                '.Parameters.Add("@sStoringTemp", SqlDbType.NVarChar, 100).Value = Common.ReplaceSpecialCharacters(data.Info.StoringTemperature)
+                                .Parameters.Add("@bitOnline", SqlDbType.Bit).Value = False
+                                .Parameters.Add("@nvcProtectedNote", SqlDbType.NVarChar, 200).Value = Common.ReplaceSpecialCharacters("")
+                                .Parameters.Add("@nvcProtectedComment", SqlDbType.NVarChar, 200).Value = Common.ReplaceSpecialCharacters("")
+                                .Parameters.Add("@bAllowDuplicates", SqlDbType.Bit).Value = False
+                                .Parameters.Add("@fltPriceSmallPortion", SqlDbType.Float).Value = 0
+                                .Parameters.Add("@fltPriceLargePortion", SqlDbType.Float).Value = 0
+                                '.Parameters.Add("@chrMethodFrmt", SqlDbType.Char, 1).Value = data.Info.MethodFormat
+                                .Parameters.Add("@nvcSubHeading", SqlDbType.NVarChar, 255).Value = Common.ReplaceSpecialCharacters("")
+                                '.Parameters.Add("@nvcFootNote1", SqlDbType.NVarChar, 4000).Value = Common.ReplaceSpecialCharacters(data.Info.FootNote1)
+                                '.Parameters.Add("@nvcFootNote2", SqlDbType.NVarChar, 4000).Value = Common.ReplaceSpecialCharacters(data.Info.FootNote2)
+                                .Parameters.Add("@intTemplate", SqlDbType.Int).Value = 1000
+                                .Parameters.Add("@Version", SqlDbType.Int).Value = 1
+                                '.Parameters.Add("@Standard", SqlDbType.Int).Value = data.Info.Rating
+                                '.Parameters.Add("@Difficulty", SqlDbType.Int).Value = data.Info.Difficulty
+                                '.Parameters.Add("@Budget", SqlDbType.Int).Value = data.Info.Budget
+                                '.Parameters.Add("@QuickAndEasy", SqlDbType.Bit).Value = data.Info.QuickAndEasy
+                                .Parameters.Add("@ShowOff", SqlDbType.Bit).Value = False
+                                .Parameters.Add("@ChefRecommended", SqlDbType.Bit).Value = False
+                                .Parameters.Add("@nvcUPC", SqlDbType.NVarChar, 25).Value = Common.ReplaceSpecialCharacters(data.Info.UPC)
+                                .Parameters.Add("@CostperServing", SqlDbType.Float).Value = 0
+                                .Parameters.Add("@CostperRecipe", SqlDbType.Float).Value = 0
+                                .Parameters.Add("@LegacyNumber", SqlDbType.NVarChar).Value = ""
+                                .Parameters.Add("@ServeWith", SqlDbType.NVarChar).Value = ""
+                                .Parameters.Add("@PackagingCode", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@CertificationCode", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@OriginCode", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@TemperatureCode", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@InformationCode", SqlDbType.Int).Value = 0
+
+
+                                .Parameters.Add("@intBrand", SqlDbType.Int).Value = data.Info.CodeBrand
+                                .Parameters.Add("@intSupplier", SqlDbType.Int).Value = data.Info.CodeSupplier
+                                .Parameters.Add("@sntWastage1", SqlDbType.SmallInt).Value = data.Info.Wastage1
+                                .Parameters.Add("@sntWastage2", SqlDbType.SmallInt).Value = data.Info.Wastage2
+                                .Parameters.Add("@sntWastage3", SqlDbType.SmallInt).Value = data.Info.Wastage3
+                                .Parameters.Add("@sntWastage4", SqlDbType.SmallInt).Value = data.Info.Wastage4
+                                .Parameters.Add("@dteMenuCardDateFrom", SqlDbType.DateTime).Value = Date.Now ' RBAJ-2013.12.18
+                                .Parameters.Add("@dteMenuCardDateUntil", SqlDbType.DateTime).Value = Date.Now ' RBAJ-2013.12.18"
+                                .Parameters.Add("@intMenuCardCodeSetPrice", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@bitAllergenApproved", SqlDbType.Bit).Value = data.Info.AllergenApproved
+                                .Parameters.Add("@sdtTested", SqlDbType.SmallDateTime).Value = Date.Now
+                                ''Output Params
+                                .Parameters.Add("@intCodeListeNew", SqlDbType.Int).Direction = ParameterDirection.Output
+                                .Parameters.Add("@retval", SqlDbType.Int).Direction = ParameterDirection.ReturnValue
+
+                                cn.Open()
+                                _trans = cn.BeginTransaction
+                                .Transaction = _trans
+                                .ExecuteNonQuery()
+
+                                intCodeListe = GetInt(.Parameters("@intCodeListeNew").Value, -1)
+
+                                resultCode = GetInt(.Parameters("@retval").Value, -1)
+                                If resultCode <> 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Merchandise update failed", resultCode))
+                                End If
+
+                                _trans.Commit()
+
+
+                                _trans = cn.BeginTransaction
+                                .Transaction = _trans
+
+
+                                ''Price
+                                If data.Price IsNot Nothing Then
+
+                                    Dim arrListeSetPrice As New ArrayList
+                                    For Each setPrice In data.Price
+                                        If setPrice.Id <> -1 Then
+                                            arrListeSetPrice.Add(setPrice.CodeUnit)
+                                        End If
+                                    Next
+
+                                    .CommandText = "DELETE FROM EgswListeSetPrice WHERE CodeListe=@CodeListe AND Unit NOT IN (SELECT value from fn_EgswSplit(@UnitListeSetPrice,','))"
+                                    .CommandType = CommandType.Text
+                                    .Parameters.Clear()
+                                    .Parameters.Add("@CodeListe", SqlDbType.Int).Value = intCodeListe
+                                    .Parameters.Add("@CodeSetPrice", SqlDbType.Int).Value = data.Info.CodeSetPrice
+                                    .Parameters.Add("@UnitListeSetPrice", SqlDbType.NVarChar, 4000).Value = Common.Join(arrListeSetPrice, "", "", ",")
+                                    .ExecuteNonQuery()
+
+                                    For Each a In data.Price
+                                        If a.Position = 1 Then a.Ratio = 1
+
+                                        ' Update price of merchandise/recipe
+                                        .CommandText = "sp_egswListeSetPriceUpdate"
+                                        .CommandType = CommandType.StoredProcedure
+                                        .Parameters.Clear()
+                                        .Parameters.Add("@intID", SqlDbType.Int).Value = a.Id
+                                        .Parameters.Add("@intCodeSetPrice", SqlDbType.Int).Value = a.CodeSetPrice
+                                        .Parameters.Add("@intCodeListe", SqlDbType.Int).Value = intCodeListe
+                                        .Parameters.Add("@intCodeUnit", SqlDbType.Int).Value = a.CodeUnit
+                                        .Parameters.Add("@fltPrice", SqlDbType.Float).Value = a.Price
+                                        .Parameters.Add("@intPosition", SqlDbType.Int).Value = a.Position
+                                        .Parameters.Add("@fltRatio", SqlDbType.Float).Value = a.Ratio
+                                        .Parameters.Add("@fltRatioNut", SqlDbType.Float).Value = 0
+                                        .Parameters.Add("@vchFnc", SqlDbType.VarChar, 20).Value = "UPDATEPRICE"
+                                        .Parameters.Add("@intTax", SqlDbType.Int).Value = data.TaxCode 'a.TaxCode
+                                        .Parameters.Add("@retval", SqlDbType.Int).Direction = ParameterDirection.ReturnValue
+                                        .ExecuteNonQuery()
+                                        resultCode = GetInt(.Parameters("@retval").Value, -1)
+                                        If resultCode <> 0 Then
+                                            Throw New DatabaseException(String.Format("[{0}] Add ingredient setprice failed", resultCode))
+                                        End If
+                                    Next
+                                End If
+
+                                '' Recompute rationut
+                                '.CommandText = "sp_EgswListeSetPriceUpdateRecomputeRatioNut"
+                                '.CommandType = CommandType.StoredProcedure
+                                '.Parameters.Clear()
+                                '.Parameters.Add("@intCodeListe", SqlDbType.Float).Value = intCodeListe
+                                '.Parameters.Add("@SelectedCodeSetPrice", SqlDbType.Int).Value = -1
+                                '.Parameters.Add("@retval", SqlDbType.Int).Direction = ParameterDirection.ReturnValue
+                                '.ExecuteNonQuery()
+                                'resultCode = GetInt(.Parameters("@retval").Value, -1)
+                                'If resultCode <> 0 Then
+                                '    Throw New DatabaseException(String.Format("[{0}] Recompute ingredient setprice failed", resultCode))
+                                'End If
+
+
+
+                                ' Update liste history
+                                .CommandText = "sp_egswListeHistoryUpdate"
+                                .CommandType = CommandType.StoredProcedure
+                                .Parameters.Clear()
+                                .Parameters.Add("@intCodeUserID", SqlDbType.Int).Value = intCodeUser ' RBAJ-2014.01.23
+                                .Parameters.Add("@intCodeListe", SqlDbType.Int).Value = intCodeListe
+                                .Parameters.Add("@retval", SqlDbType.Int).Direction = ParameterDirection.ReturnValue
+                                .ExecuteNonQuery()
+                                resultCode = GetInt(.Parameters("@retval").Value, -1)
+                                If resultCode <> 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Update list history failed", resultCode))
+                                End If
+
+                                ''Pictures (files)
+                                If data.Info.CustomTempPictures IsNot Nothing Then
+                                    If data.Info.CustomTempPictures.Count > 0 Then
+                                        m_PictureNames = String.Join(";", data.Info.Picture.ToArray())
+                                        m_TempPictureNames = String.Join(";", data.Info.CustomTempPictures.ToArray())
+                                        arrPictures = pictures.Split(";")
+                                        Log.Info("arrayPictures" + arrPictures.ToString)
+                                        Dim NewThread As Thread = New Thread(AddressOf SavePictures)
+                                        NewThread.Priority = ThreadPriority.Lowest
+                                        NewThread.Start()
+                                    End If
+                                End If
+
+
+                                ''Attachments
+                                'Delete everything first
+                                '// JDO-2014.04.23 Change method by creating and updating existing attachments and not deleting it
+                                If data.Attachment Is Nothing OrElse data.Attachment.Count = 0 Then
+
+                                    .CommandText = "DELETE FROM EgswListeFiles WHERE CodeListe=@CodeListe"
+                                    .CommandType = CommandType.Text
+                                    .Parameters.Clear()
+
+                                    .Parameters.Add("@CodeListe", SqlDbType.Int).Value = intCodeListe
+                                    .ExecuteNonQuery()
+                                Else
+                                    Dim arrAttachment As New ArrayList
+                                    For Each attachment In data.Attachment
+                                        arrAttachment.Add(attachment.Id)
+                                    Next
+                                    .CommandText = "DELETE FROM EgswListeFiles WHERE CodeListe=@CodeListe AND ID NOT IN (SELECT value from fn_EgswSplit(@CodeAttachment,','))"
+                                    .CommandType = CommandType.Text
+                                    .Parameters.Clear()
+
+                                    .Parameters.Add("@CodeListe", SqlDbType.Int).Value = intCodeListe
+                                    .Parameters.Add("@CodeAttachment", SqlDbType.NVarChar, 4000).Value = Common.Join(arrAttachment, "", "", ",")
+                                    .ExecuteNonQuery()
+
+                                    'Insert attachments
+                                    For Each a In data.Attachment
+                                        .CommandText = <sql>IF NOT EXISTS(SELECT CodeListe from EgswListeFiles where codeliste=@CodeListe and ID = @CodeAttachment)
+                                		BEGIN
+                                		INSERT INTO EgswListeFiles(CodeListe, [Filename], Filecaption, CodeEgsWTable, Flag) VALUES(@CodeListe, @Filename, @Filecaption, @CodeEgsWTable, @Flagurl)
+                                		END</sql> 'AGL 2014.03.27 - Added @BrandClassification
+                                        .CommandType = CommandType.Text
+                                        .Parameters.Clear()
+                                        .Parameters.Add("@CodeAttachment", SqlDbType.Int).Value = a.Id
+                                        .Parameters.Add("@CodeListe", SqlDbType.Int).Value = intCodeListe
+                                        .Parameters.Add("@Filename", SqlDbType.NVarChar).Value = IIf(a.Resource IsNot Nothing, a.Resource, "")
+                                        .Parameters.Add("@Filecaption", SqlDbType.NVarChar).Value = a.Name
+                                        .Parameters.Add("@CodeEgsWTable", SqlDbType.Int).Value = 50
+                                        .Parameters.Add("@Flagurl", SqlDbType.Int).Value = a.Type
+
+                                        .ExecuteNonQuery()
+                                        .CommandText = <sql>IF NOT EXISTS(SELECT CodeListe from EgswListeFiles where codeliste=@CodeListe and ID = @CodeAttachment AND [Filename] = @Filename AND Filecaption=@Filecaption and CodeEgswTable = @CodeEgsWTable and Flag = @Flagurl )
+                                		BEGIN
+                                		UPDATE EgswListeFiles SET [Filename] = @Filename, Filecaption = @Filecaption, CodeEgsWTable = @CodeEgsWTable, Flag= @Flagurl  WHERE CodeListe=@CodeListe and ID = @CodeAttachment
+                                		END</sql>
+                                        .CommandType = CommandType.Text
+                                        .Parameters.Clear()
+                                        .Parameters.Add("@CodeAttachment", SqlDbType.Int).Value = a.Id
+                                        .Parameters.Add("@CodeListe", SqlDbType.Int).Value = intCodeListe
+                                        .Parameters.Add("@Filename", SqlDbType.NVarChar).Value = IIf(a.Resource IsNot Nothing, a.Resource, "")
+                                        .Parameters.Add("@Filecaption", SqlDbType.NVarChar).Value = a.Name
+                                        .Parameters.Add("@CodeEgsWTable", SqlDbType.Int).Value = 50
+                                        .Parameters.Add("@Flagurl", SqlDbType.Int).Value = a.Type
+                                        .ExecuteNonQuery()
+                                    Next
+                                End If
+
+                                L_intCodeListe = intCodeListe
+                                Directory.CreateDirectory(FilesFolder & L_intCodeListe)
+
+                                ''Attachments (files)
+                                If data.Info.CustomTempAttachments IsNot Nothing AndAlso data.Info.CustomTempAttachments.Count > 0 Then
+                                    m_Attachments = data.Attachment
+
+                                    Dim strAttachmentList As String = ""
+                                    For Each a As Models.Merchandise.MerchandiseAttachment In data.Info.CustomTempAttachments
+                                        strAttachmentList &= IIf(strAttachmentList = "", a.Resource, ";" & a.Resource) 'typecast obj list to string
+                                    Next
+                                    m_TempAttachments = strAttachmentList 'String.Join(";", data.Info.CustomTempAttachments)
+                                    Dim NewThread As Thread = New Thread(AddressOf SaveAttachments)
+                                    NewThread.Priority = ThreadPriority.Lowest
+                                    NewThread.Start()
+                                End If
+
+                                ''Keyword
+                                ''Delete everything first
+                                '' JDO-2014.04.21 Change from deleting everything first to selective deletion and insertion
+                                If data.Keywords Is Nothing OrElse data.Keywords.Count = 0 Then
+
+                                    .CommandText = "DELETE FROM EgswKeyDetails WHERE CodeListe=@CodeListe"
+                                    .CommandType = CommandType.Text
+                                    .Parameters.Clear()
+
+                                    .Parameters.Add("@CodeListe", SqlDbType.Int).Value = intCodeListe
+                                    .ExecuteNonQuery()
+                                Else
+                                    Dim arrKeys As New ArrayList
+                                    For Each keys In data.Keywords
+                                        arrKeys.Add(keys.Code)
+                                    Next
+                                    '    .CommandText = <sql>DELETE FROM EgswKeyDetails WHERE CodeListe=@CodeListe 
+                                    'AND codekey not in (SELECT value from fn_EgswSplit(@CodeKey,','))</sql>
+                                    .CommandText = <sql>DELETE FROM EgswKeyDetails WHERE CodeListe=@CodeListe</sql>
+                                    .CommandType = CommandType.Text
+                                    .Parameters.Clear()
+
+                                    .Parameters.Add("@CodeListe", SqlDbType.Int).Value = intCodeListe
+                                    .Parameters.Add("@CodeKey", SqlDbType.NVarChar, 4000).Value = Common.Join(arrKeys, "", "", ",")
+                                    .ExecuteNonQuery()
+
+                                    'Insert keywords
+                                    For Each k In data.Keywords
+                                        'If (k.Flagged = True) Then
+                                        .CommandText = <sql>IF NOT EXISTS(SELECT CodeListe from EgswKeyDetails where codeliste=@CodeListe and CodeKey = @CodeKey)
+                                		BEGIN
+                                			INSERT INTO EgswKeyDetails(CodeListe, CodeKey, Derived) VALUES(@CodeListe, @CodeKey, 0)
+                                		END </sql>
+                                        .CommandType = CommandType.Text
+                                        .Parameters.Clear()
+                                        .Parameters.Add("@CodeListe", SqlDbType.Int).Value = intCodeListe
+                                        .Parameters.Add("@CodeKey", SqlDbType.Int).Value = k.Code
+                                        .ExecuteNonQuery()
+                                        'End If
+                                    Next
+                                End If
+
+
+
+                                ''Nutrition
+                                If data.Nutrient IsNot Nothing AndAlso data.Nutrient.Count > 0 Then
+                                    .CommandText = "[UPDATE_EgswNutrientValUpdateRecipeImposed]"
+                                    .CommandType = CommandType.StoredProcedure
+
+                                    Dim arrCodeNutrientSet As New ArrayList
+                                    For Each n In data.Nutrient.OrderBy(Function(obj) obj.CodeNutrientSet).ToList()
+                                        If arrCodeNutrientSet.IndexOf(n.CodeNutrientSet) = -1 Then
+                                            arrCodeNutrientSet.Add(n.CodeNutrientSet)
+                                        End If
+                                    Next
+                                    Dim _portionSize As String = "", _displayNutrition As Boolean = False, _nutritionBasis As String = "", _imposedType As Integer = 0
+                                    Dim nutrition As Models.RecipeNutrition = Nothing
+
+                                    For Each _codenutrientset In arrCodeNutrientSet
+                                        nutrition = data.Nutrient.Where(Function(obj) obj.CodeNutrientSet = _codenutrientset).First()
+                                        _imposedType = GetInt(nutrition.ImposedType)
+                                        _displayNutrition = GetBool(nutrition.DisplayNutrition)
+                                        _portionSize = Common.ReplaceSpecialCharacters(GetStr(nutrition.PortionSize))
+                                        _nutritionBasis = Common.ReplaceSpecialCharacters(GetStr(nutrition.NutritionBasis))
+
+                                        .Parameters.Clear()
+                                        .Parameters.Add("@CodeListe", SqlDbType.Int).Value = intCodeListe
+                                        .Parameters.Add("@CodeLink", SqlDbType.VarChar, 20).Value = data.Info.CodeLink
+                                        .Parameters.Add("@ImposedType", SqlDbType.SmallInt).Value = _imposedType
+                                        .Parameters.Add("@PortionSize", SqlDbType.NVarChar, 255).Value = _portionSize
+                                        .Parameters.Add("@DisplayNutrition", SqlDbType.Bit).Value = _displayNutrition
+                                        .Parameters.Add("@NutritionBasis", SqlDbType.NVarChar, 350).Value = _nutritionBasis
+                                        .Parameters.Add("@retval", SqlDbType.Int).Direction = ParameterDirection.ReturnValue
+                                        .Parameters.Add("@CodeSet", SqlDbType.Int).Value = _codenutrientset
+
+                                        For Each n In data.Nutrient.Where(Function(obj) obj.CodeNutrientSet = _codenutrientset).ToList()
+                                            .Parameters.Add("@N" & GetStr(n.Position), SqlDbType.Float).Value = GetDbl(n.Value, -1)
+                                            .Parameters.Add("@N" & GetStr(n.Position) & "Impose", SqlDbType.Float).Value = GetDbl(n.Imposed, -1)
+                                            .Parameters.Add("@N" & GetStr(n.Position) & "ImposePercent", SqlDbType.Float).Value = GetDbl(n.Percent, -1)
+                                            .Parameters.Add("@N" & GetStr(n.Position) & "Display", SqlDbType.Bit).Value = GetBool(n.Display)
+                                        Next
+
+                                        .ExecuteNonQuery()
+                                        resultCode = GetInt(.Parameters("@retval").Value, -1)
+                                        If resultCode <> 0 Then
+                                            Throw New DatabaseException(String.Format("[{0}] Update recipe imposed nutrients failed", resultCode))
+                                        End If
+                                    Next
+
+                                End If
+
+
+                                _trans.Commit()
+
+                                If GetBool(data.hasApprover) And GetBool(data.submitted) Then
+                                    .CommandText = "sp_EgswListeApproveUpdate"
+                                    .CommandType = CommandType.StoredProcedure
+                                    .Parameters.Clear()
+                                    .Parameters.Add("@intCodeListe", SqlDbType.Int).Value = intCodeListe
+                                    .Parameters.Add("@intRequestType", SqlDbType.Int).Value = IIf(data.Info.CodeListe > 0, 3, 2)
+                                    .Parameters.Add("@intCodeUser", SqlDbType.Int).Value = intCodeUser
+                                    .Parameters.Add("@intCodeSetPrice", SqlDbType.Int).Value = 0
+                                    .Parameters.Add("@fltApprovedPriceNew", SqlDbType.Int).Value = data.Info.CodeSetPrice
+                                    .Parameters.Add("@intCodeReplace", SqlDbType.Int).Value = 0
+                                    .Parameters.Add("@intApproverRoleLevel", SqlDbType.Int).Value = GetInt(data.NextRoleLevelApprover)
+                                    .Parameters.Add("@intCodeSite", SqlDbType.Int).Value = 0
+                                    .Parameters.Add("@retval", SqlDbType.Int).Direction = ParameterDirection.ReturnValue
+                                    .ExecuteNonQuery()
+                                    resultCode = GetInt(.Parameters("@retval").Value, -1)
+                                    If resultCode <> 0 Then
+                                        Throw New DatabaseException(String.Format("[{0}] Update list approver failed", resultCode))
+                                    End If
+                                End If
+
+                                ''Allergens
+                                'If data.Allergen IsNot Nothing Then
+                                If data.AllergenUpdated Then
+                                    '<allergen code="123" contain="1" trace="1" nonallergen="1" derived ="1" added="1" hidden="1"/>
+                                    Dim allergenXML As String = ""
+                                    For Each item In data.Allergen
+                                        allergenXML &= "<allergen code=""" & item.CodeAllergen & _
+                                                            """ contain=""" & item.Contain & _
+                                                            """ trace=""" & item.Trace & _
+                                                            """ nonallergen=""" & item.NonAllergen & _
+                                                            """ derived=""" & item.Derived & _
+                                                            """ hidden=""" & item.Hidden & """/>"
+                                    Next
+
+                                    .CommandText = "[dbo].[sp_EgswListeAllergensUpdate]"
+                                    .CommandType = CommandType.StoredProcedure
+                                    .Parameters.Clear()
+                                    .Parameters.Add("@intCodeListe", SqlDbType.Int).Value = intCodeListe
+                                    .Parameters.Add("@nvcAllergenXml", SqlDbType.NVarChar, 4000).Value = allergenXML
+                                    .ExecuteNonQuery()
+
+                                    '.CommandText = "[dbo].[sp_EgswAllergensUpdateDerived]"
+                                    '.CommandType = CommandType.StoredProcedure
+                                    '.Parameters.Clear()
+                                    '.Parameters.Add("@intFirstCode", SqlDbType.Int).Value = intCodeListe
+                                    '.ExecuteNonQuery()
+
+                                    'JBQL 2016.12.18 - Moved derived allergens recalculations to sp_EgswListeAllergensUpdate
+                                    ''if recipe is used as subrecipe, update derived allergens of all other recipes that uses this as sub-recipe 
+                                    '.CommandText = "[dbo].[sp_EgswListeMerchandiseUpdateAllAllergensDerived]"
+                                    '.CommandType = CommandType.StoredProcedure
+                                    '.Parameters.Clear()
+                                    '.Parameters.Add("@intCode", SqlDbType.Int).Value = intCodeListe
+                                    '.ExecuteNonQuery()
+                                End If
+
+                                ''Sharing
+                                If data.Sharing IsNot Nothing Then
+                                    If data.Sharing.Count > 0 Then
+                                        .CommandText = "DELETE FROM EgswSharing WHERE Code=@CodeListe AND CodeEgswTable=50"
+                                        .CommandType = CommandType.Text
+                                        .Parameters.Clear()
+                                        .Parameters.Add("@CodeListe", SqlDbType.Int).Value = intCodeListe
+                                        .ExecuteNonQuery()
+
+                                        'Insert sharing for user owner ' RBAJ-2014.01.23
+                                        .CommandText = <sql>
+                                   INSERT INTO [dbo].[EgswSharing]
+                                		([Code]
+                                		,[CodeUserOwner]
+                                		,[CodeUserSharedTo]
+                                		,[Type]
+                                		,[CodeEgswTable]
+                                		,[Position]
+                                		,[Status]
+                                		,[IsGlobal])
+                                	VALUES
+                                		(@CodeListe
+                                		,@CodeUser
+                                		,@CodeUser
+                                		,8
+                                		,50
+                                		,0
+                                		,1
+                                		,0)
+                                  </sql>.Value
+                                        .CommandType = CommandType.Text
+                                        .Parameters.Clear()
+                                        .Parameters.Add("@CodeListe", SqlDbType.Int).Value = intCodeListe
+                                        .Parameters.Add("@CodeUser", SqlDbType.Int).Value = data.Info.CodeUser
+                                        .ExecuteNonQuery()
+
+                                        Dim children As List(Of Models.TreeNode)
+                                        children = DeepMap(data.Sharing)
+
+                                        'Insert sharing for site
+                                        Dim seed As Integer = 1
+                                        For Each sh In children
+                                            If sh.selected = True Then
+                                                .CommandText = <sql>
+                                                   INSERT INTO [dbo].[EgswSharing]
+                                                  ([Code]
+                                                  ,[CodeUserOwner]
+                                                  ,[CodeUserSharedTo]
+                                                  ,[Type]
+                                                  ,[CodeEgswTable]
+                                                  ,[Position]
+                                                  ,[Status]
+                                                  ,[IsGlobal])
+                                                 VALUES
+                                                  (@CodeListe
+                                                  ,@CodeUserOwner
+                                                  ,@CodeSite
+                                                  ,1
+                                                  ,50
+                                                  ,0
+                                                  ,1
+                                                  ,@Global)
+                                                  </sql>.Value
+                                                .CommandType = CommandType.Text
+                                                .Parameters.Clear()
+                                                .Parameters.Add("@CodeListe", SqlDbType.Int).Value = intCodeListe
+                                                .Parameters.Add("@CodeUserOwner", SqlDbType.Int).Value = data.Info.CodeSite
+                                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = sh.key
+                                                .Parameters.Add("@Position", SqlDbType.Int).Value = seed
+                                                .Parameters.Add("@Global", SqlDbType.Bit).Value = GetBool(sh.note)
+                                                .ExecuteNonQuery()
+                                                seed += 1
+                                            End If
+
+                                        Next
+                                    End If
+                                End If
+
+                                ''Translation
+                                If data.Translation IsNot Nothing Then
+
+                                    .CommandText = "API_UPDATE_ListeTranslation"
+                                    .CommandType = CommandType.StoredProcedure
+
+                                    For Each t In data.Translation
+                                        '      .CommandText = <sql>
+                                        ' IF EXISTS(SELECT Id FROM EgswListeTranslation WHERE CodeListe=@CodeListe AND CodeTrans=@CodeTrans)
+                                        'BEGIN
+                                        'UPDATE EgswListeTranslation SET [Name]=@Name, [Ingredients]=@Ingredients, [Description]=@Description, [CookingTip]=@CookingTip, [Productivity]=@Productivity, [Refinement]=@Refinement,[Preparation]=@Preparation, [Storage]=@Storage, [SpecificDetermination]=@SpecificDetermination  WHERE CodeListe=@CodeListe AND CodeTrans=@CodeTrans
+                                        'END
+                                        ' ELSE
+                                        'BEGIN
+                                        'INSERT INTO EgswListeTranslation
+                                        '              (CodeListe, CodeTrans, [Name], [Ingredients], [Description], [CookingTip], [Productivity],[Refinement],[Preparation],[Storage], [SpecificDetermination] ) 
+                                        '      VALUES(@CodeListe, @CodeTrans, @Name, @Ingredients, @Description, @CookingTip, @Productivity, @Refinement,  @Preparation, @Storage, @SpecificDetermination)
+                                        'END
+                                        '  IF EXISTS (SELECT 'warlette' FROM EgswListePrefix WHERE CodeListe=@CodeListe AND CodeTrans=@CodeTrans)
+                                        '      BEGIN
+                                        '          UPDATE EgswListePrefix SET CodePrefix=@CodePrefix, IsFeminine=@IsFeminine WHERE CodeListe=@CodeListe AND CodeTrans=@CodeTrans
+                                        '      END
+                                        '  ELSE
+                                        '      BEGIN
+                                        '          INSERT INTO EgswListePrefix (CodeListe,CodeTrans,isFeminine,CodePrefix) VALUES (@CodeListe,@CodeTrans,@IsFeminine,@CodePrefix)
+                                        '      END
+                                        '</sql>.Value
+                                        '.CommandType = CommandType.Text
+                                        .Parameters.Clear()
+                                        .Parameters.Add("@CodeListe", SqlDbType.Int).Value = intCodeListe
+                                        .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = t.TranslationCode
+                                        .Parameters.Add("@Name", SqlDbType.NVarChar).Value = IIf(data.Info.CodeTrans = t.TranslationCode, data.Info.Name, t.Name)
+                                        .Parameters.Add("@Description", SqlDbType.NVarChar).Value = t.Description
+                                        .Parameters.Add("@Ingredients", SqlDbType.NVarChar).Value = t.Ingredients
+                                        .Parameters.Add("@CookingTip", SqlDbType.NVarChar).Value = t.CookingTip
+                                        .Parameters.Add("@Productivity", SqlDbType.NVarChar).Value = t.Productivity
+                                        .Parameters.Add("@Refinement", SqlDbType.NVarChar).Value = t.Refinement
+                                        .Parameters.Add("@Storage", SqlDbType.NVarChar).Value = t.Storage
+                                        .Parameters.Add("@Preparation", SqlDbType.NVarChar).Value = t.Preparation
+                                        .Parameters.Add("@SpecificDetermination", SqlDbType.NVarChar).Value = t.SpecificDetermination
+                                        '.Parameters.Add("@IsFeminine", SqlDbType.Bit).Value = IIf(t.Gender = "Masculine", 0, 1)
+                                        '.Parameters.Add("@CodePrefix", SqlDbType.Int).Value = t.PrefixCode
+
+
+                                        .ExecuteNonQuery()
+                                    Next
+                                Else '' Default translation only, for single-translation sites, the Translation tabs may not be visible
+
+                                End If
+
+                                .CommandText = "sp_EgswListeFullyTranslateUpdate" ' RBAJ-2014.01.23
+                                .CommandType = CommandType.StoredProcedure
+                                .Parameters.Clear()
+                                .Parameters.Add("@nCode", SqlDbType.Int).Value = intCodeListe
+                                .Parameters.Add("@intCodeSite", SqlDbType.Int).Value = data.Info.CodeSite
+                                .Parameters.Add("@Flag", SqlDbType.Int).Value = 8 ' For recipe
+                                .Parameters.Add("@Output", SqlDbType.Bit).Direction = ParameterDirection.Output
+                                .Parameters.Add("@retval", SqlDbType.Int).Direction = ParameterDirection.ReturnValue
+                                .ExecuteNonQuery()
+                                resultCode = GetInt(.Parameters("@retval").Value, -1)
+                                If resultCode <> 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Update full translation failed", resultCode))
+                                End If
+
+                                .CommandText = "sp_EgswListeItemsRecomputeRecipesAndMenus" ' RBAJ-2014.01.23
+                                .CommandType = CommandType.StoredProcedure
+                                .Parameters.Clear()
+                                .Parameters.Add("@intSecondCode", SqlDbType.Int).Value = intCodeListe
+                                .Parameters.Add("@intCodeSetPrice", SqlDbType.Int).Value = intCodeSetPrice
+                                .ExecuteNonQuery()
+
+
+                                ''### END: Long running queries here! ###
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.ReturnValue = intCodeListe
+                                response.Message = Common.ReplaceSpecialCharacters(data.Info.Name) & " successfully saved."
+                                response.Status = True
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                Try
+                                    _trans.Rollback()
+                                    If Not _trans Is Nothing Then
+                                        CType(_trans, IDisposable).Dispose()
+                                    End If
+                                Catch
+                                End Try
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.Status = False
+                                response.Message = "Save merchandise failed"
+                                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Merchandise")
+                            Catch ex As Exception
+                                Console.WriteLine(ex.ToString())
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+
+                        End Using
+                    End With
+                End Using
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                response.Code = 400
+                response.Message = "Missing or invalid parameters"
+                response.Parameters = New List(Of Models.param) From {New Models.param With {.name = "data", .value = "Merchandise"}}
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), aex.Message.ToString(), aex.StackTrace.ToString(), "Merchandise")
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), hex.Message.ToString(), hex.StackTrace.ToString(), "Merchandise")
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Merchandise")
+            End Try
+            Return response
+
+        End Function
+
+        <HttpPost> <POST("api/applywastage")> _
+        Public Function ApplyWastage(data As Models.MerchandiseData) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim _trans As SqlTransaction = Nothing
+            Dim resultCode As Integer = 0
+
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + JsonConvert.SerializeObject(data, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+                Using cmd As New SqlCommand
+
+                    ' Validation
+                    If data Is Nothing Then
+                        Throw (New ArgumentNullException("data is empty"))
+                    End If
+                    If data.Info Is Nothing Then
+                        Throw (New ArgumentNullException("invalid data"))
+                    End If
+
+                    With cmd
+                        Using cn = New SqlConnection(ConnectionString)
+                            Try
+                                Dim intCodeTemplate As Integer = -1
+                                Dim intCodeUser As Integer = GetInt(data.Info.CodeUser)
+
+                                ' Wait for 2 minutes for the query to execute before timing out
+                                .CommandTimeout = 120
+                                .Connection = cn
+                                .CommandText = "[dbo].[SP_EgswListeUpdateWastage]"
+                                .CommandType = CommandType.StoredProcedure
+                                .Parameters.Add("@intCodeListe", SqlDbType.Int).Value = data.Info.CodeListe
+                                .Parameters.Add("@intWastage1", SqlDbType.SmallInt).Value = data.Info.Wastage1
+                                .Parameters.Add("@intWastage2", SqlDbType.SmallInt).Value = data.Info.Wastage2
+                                .Parameters.Add("@intWastage3", SqlDbType.SmallInt).Value = data.Info.Wastage3
+                                .Parameters.Add("@intWastage4", SqlDbType.SmallInt).Value = data.Info.Wastage4
+                                .Parameters.Add("@intWastage5", SqlDbType.SmallInt).Value = data.Info.Wastage5
+
+                                cn.Open()
+                                _trans = cn.BeginTransaction
+                                .Transaction = _trans
+                                .ExecuteNonQuery()
+
+                                resultCode = 0
+                                If resultCode <> 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Failed", resultCode))
+                                End If
+
+                                _trans.Commit()
+
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.ReturnValue = data.Info.CodeListe
+                                response.Message = "Wastage successfully applied."
+                                response.Status = True
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                Try
+                                    _trans.Rollback()
+                                    If Not _trans Is Nothing Then
+                                        CType(_trans, IDisposable).Dispose()
+                                    End If
+                                Catch
+                                End Try
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.Status = False
+                                response.Message = "Applying wastage failed."
+                                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Merchandise")
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+
+                        End Using
+
+                    End With
+                End Using
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                response.Code = 400
+                response.Message = "Missing or invalid parameters"
+                response.Parameters = New List(Of Models.param) From {New Models.param With {.name = "data", .value = "Wastage"}}
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), aex.Message.ToString(), aex.StackTrace.ToString(), "Merchandise")
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), hex.Message.ToString(), hex.StackTrace.ToString(), "Merchandise")
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Merchandise")
+            End Try
+            Return response
+
+        End Function
+
+        Private Sub SaveAttachments()
+            Try
+                If m_Attachments IsNot Nothing AndAlso m_Attachments.Count > 0 Then
+                    For Each a As Models.Merchandise.MerchandiseAttachment In m_Attachments
+                        If a.Type = 0 AndAlso a.Resource.Trim.Length > 0 Then
+                            Dim _source As String = TempFolder & a.Resource
+                            If File.Exists(_source) Then
+                                'Save to files folder
+                                File.Copy(_source, FilesFolder & L_intCodeListe & "\" & a.Resource)
+                            End If
+                        End If
+                    Next
+                End If
+
+                ''Remove files stored in the temp and those in files folder
+                If m_TempAttachments IsNot Nothing AndAlso m_TempAttachments.Length > 0 Then
+                    Dim arrAttachments() As String = m_TempAttachments.Trim.Split(";")
+                    If arrAttachments.Length > 0 Then
+                        For Each a As String In arrAttachments
+                            If a.Trim.Length > 0 Then
+                                Dim _source As String = TempFolder & a
+                                If File.Exists(_source) Then
+                                    File.Delete(_source)
+                                End If
+
+                                Dim delete As Boolean = True
+                                If m_Attachments IsNot Nothing Then
+                                    For Each a_del As Models.Merchandise.MerchandiseAttachment In m_Attachments
+                                        If a_del.Type = 0 AndAlso a_del.Resource.Trim = a.Trim Then
+                                            delete = False
+                                            Exit For
+                                        End If
+                                    Next
+                                End If
+
+                                If delete Then
+                                    'Delete from picoriginal
+                                    If File.Exists(FilesFolder & a) Then
+                                        File.Delete(FilesFolder & a)
+                                    End If
+                                End If
+                            End If
+                        Next
+                    End If
+                End If
+
+            Catch ex As Exception
+                Log.Error("Save attachment failed", ex)
+            End Try
+        End Sub
+
+        Private Function CreateChildrenSharing(_sharingdata As List(Of Models.GenericTree),
+                                               _code As Integer, _codesite As Integer) As List(Of Models.TreeNode)
+
+            Dim children As New List(Of Models.TreeNode)
+
+            If _sharingdata IsNot Nothing Then
+                Dim kids = _sharingdata.Where(Function(obj) obj.ParentCode = _code And obj.Type = 2).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each k In kids
+                    Dim child As New Models.TreeNode
+                    child.title = k.Name
+                    child.key = k.Code
+                    child.icon = False
+                    child.children = Nothing
+                    children.Add(child)
+                    child.select = False
+                    child.selected = k.Flagged
+                    If (k.Code = _codesite) Then
+                        child.unselectable = True
+                    End If
+                    child.parenttitle = k.ParentName
+                    child.note = k.Global
+                    child.groupLevel = GroupLevel.Site
+                Next
+            End If
+
+            Return children
+
+        End Function
+
+        Private Function DeepMap(_list As List(Of Models.TreeNode)) As List(Of Models.TreeNode)
+            Dim children As New List(Of Models.TreeNode)
+            Dim schildren As New List(Of Models.TreeNode)
+            For Each s In _list
+                children.Add(s)
+                If s.children IsNot Nothing Then
+                    schildren = DeepMap(s.children)
+                    For Each s2 In schildren
+                        children.Add(s2)
+                    Next
+                End If
+            Next
+            Return children
+        End Function
+
+
+    End Class
+End Namespace

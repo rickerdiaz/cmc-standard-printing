@@ -1,0 +1,2109 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>DevExpress.Web.ASPxMenu.v6.3</name>
+    </assembly>
+    <members>
+        <member name="T:DevExpress.Web.ASPxMenu.ItemSubMenuOffset.ItemSubMenuOffset">
+
+            <summary>
+                <para>Defines different offset settings of submenus relative to their parent menu items.
+</para>
+            </summary>
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.ItemSubMenuOffset.#ctor">
+            <summary>
+                <para>Initializes a new instance of the ItemSubMenuOffset class.
+</para>
+            </summary>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ItemSubMenuOffset.FirstItemX">
+            <summary>
+                <para>Gets or sets the horizontal offset of a submenu relative to its parent menu item which is the first item at its menu level.
+</para>
+            </summary>
+            <value>An integer value specifying the horizontal offset of a submenu.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ItemSubMenuOffset.FirstItemY">
+            <summary>
+                <para>Gets or sets the vertical offset of a submenu relative to its parent menu item which is the first item at its menu level.
+</para>
+            </summary>
+            <value>An integer value specifying the vertical offset of a submenu.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ItemSubMenuOffset.LastItemX">
+            <summary>
+                <para>Gets or sets the horizontal offset of a submenu relative to its parent menu item which is the last item at its menu level.
+</para>
+            </summary>
+            <value>An integer value specifying the horizontal offset of a submenu.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ItemSubMenuOffset.LastItemY">
+            <summary>
+                <para>Gets or sets the vertical offset of a submenu relative to its parent menu item which is the last item at its menu level.
+</para>
+            </summary>
+            <value>An integer value specifying the vertical offset of a submenu.
+</value>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.ItemSubMenuOffset.ToString">
+            <summary>
+                <para>Returns the string that represents the current object.
+
+</para>
+            </summary>
+            <returns>A <see cref="T:System.String"/> that represents the current ItemSubMenuOffset object.
+</returns>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ItemSubMenuOffset.X">
+            <summary>
+                <para>Gets or sets the horizontal offset of a submenu relative to its parent menu item which is neither the first nor the last item at its menu level.
+
+</para>
+            </summary>
+            <value>An integer value specifying the horizontal offset of a submenu.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ItemSubMenuOffset.Y">
+            <summary>
+                <para>Gets or sets the vertical offset of a submenu relative to its parent menu item which is neither the first nor the last item at its menu level.
+
+</para>
+            </summary>
+            <value>An integer value specifying the vertical offset of a submenu.
+</value>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxMenu.BorderBetweenItemAndSubMenuMode.BorderBetweenItemAndSubMenuMode">
+
+            <summary>
+                <para>Specifies how the border is displayed between a menu item and its submenu.
+</para>
+            </summary>
+
+        </member>
+        <member name="F:DevExpress.Web.ASPxMenu.BorderBetweenItemAndSubMenuMode.HideAll">
+            <summary>
+                <para>The border between a menu item and its submenu is not displayed for all menu items.
+</para>
+            </summary>
+
+
+        </member>
+        <member name="F:DevExpress.Web.ASPxMenu.BorderBetweenItemAndSubMenuMode.HideRootOnly">
+            <summary>
+                <para>The border between a menu item and its submenu is not displayed for root menu items but is visible for all subitems.
+</para>
+            </summary>
+
+
+        </member>
+        <member name="F:DevExpress.Web.ASPxMenu.BorderBetweenItemAndSubMenuMode.ShowAll">
+            <summary>
+                <para>The border between a menu item and its submenu is displayed for all menu items.
+</para>
+            </summary>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxMenu.AutoSeparatorMode.AutoSeparatorMode">
+
+            <summary>
+                <para>Specifies the manner in which a specific separator is displayed to separate menu items from each other.
+</para>
+            </summary>
+
+        </member>
+        <member name="F:DevExpress.Web.ASPxMenu.AutoSeparatorMode.All">
+            <summary>
+                <para>Specifies that separators are automatically displayed at all menu levels to separate menu items from each other.
+</para>
+            </summary>
+
+
+        </member>
+        <member name="F:DevExpress.Web.ASPxMenu.AutoSeparatorMode.None">
+            <summary>
+                <para>Specifies that separators are not displayed automatically. In order to display a separator before a particular menu item, the item's <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.BeginGroup"/> property should be used.
+
+</para>
+            </summary>
+
+
+        </member>
+        <member name="F:DevExpress.Web.ASPxMenu.AutoSeparatorMode.RootOnly">
+            <summary>
+                <para>Specifies that separators are automatically displayed only at the root menu level to separate the root menu items from each other.
+</para>
+            </summary>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxMenu.MenuStyle.MenuStyle">
+
+            <summary>
+                <para>Defines style settings for the client regions of submenus.
+</para>
+            </summary>
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuStyle.#ctor">
+            <summary>
+                <para>Initializes a new instance of the MenuStyle class.
+</para>
+            </summary>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuStyle.#ctor(StateBag)">
+            <summary>
+                <para>Initializes a new instance of the MenuStyle class with the specified state bag information. 
+</para>
+            </summary>
+            <param name="bag">
+		A <see cref="T:System.Web.UI.StateBag"/> that represents the state bag in which to store style information. 
+
+            </param>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuStyle.CopyFrom(Style)">
+            <summary>
+                <para>Duplicates the properties of the specified object into the current instance of the MenuStyle class. 
+
+</para>
+            </summary>
+            <param name="style">
+		A <see cref="T:System.Web.UI.WebControls.Style"/> object that represents the object which the settings will be copied from.
+
+            </param>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuStyle.GutterBackgroundImage">
+            <summary>
+                <para>Gets a gutter's background image.
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxClasses.BackgroundImage"/> object that represents a gutter's background image. 
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuStyle.GutterColor">
+            <summary>
+                <para>Gets or sets a gutter's color.
+</para>
+            </summary>
+            <value>A <see cref="T:System.Drawing.Color"/> object that specifies a gutter's color. 
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuStyle.GutterStyle">
+            <summary>
+                <para>Gets the gutter's style settings.
+</para>
+            </summary>
+            <value>An <see cref="T:DevExpress.Web.ASPxClasses.AppearanceStyleBase"/> object that contains the style settings.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuStyle.GutterWidth">
+            <summary>
+                <para>Gets or sets a gutter's width.
+</para>
+            </summary>
+            <value>A <B>System.Web.UI.WebControls.Unit</B> value specifying the width of a gutter. 
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuStyle.HoverStyle">
+            <summary>
+                <para>This property is not in effect for the MenuStyle object.
+
+</para>
+            </summary>
+            <value>An <see cref="T:DevExpress.Web.ASPxClasses.AppearanceSelectedStyle"/> object that contains the hover style settings.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuStyle.ImageSpacing">
+            <summary>
+                <para>Gets or sets the amount of space between an image and the text contents within a menu item.
+
+
+</para>
+            </summary>
+            <value>A <see cref="T:System.Web.UI.WebControls.Unit"/> that represents the spacing value.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuStyle.IsEmpty">
+            <summary>
+                <para>Gets a value that indicates whether this MenuStyle object is initialized with the default values.
+</para>
+            </summary>
+            <value><b>true</b> if the MenuStyle object is initialized with the default values; otherwise <b>false</b>.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuStyle.ItemSpacing">
+            <summary>
+                <para>Gets or sets the amount of space between the menu items.
+</para>
+            </summary>
+            <value>A <see cref="T:System.Web.UI.WebControls.Unit"/> that represents the spacing value.
+</value>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuStyle.MergeWith(Style)">
+            <summary>
+                <para>Combines the properties of the specified <see cref="T:System.Web.UI.WebControls.Style"/> with the current instance of the MenuStyle class. 
+</para>
+            </summary>
+            <param name="style">
+		A <see cref="T:System.Web.UI.WebControls.Style"/> that represents the object to be combined. 
+
+            </param>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuStyle.Reset">
+            <summary>
+                <para>Returns the MenuStyle object to its original state. 
+</para>
+            </summary>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuStyle.SeparatorBackgroundImage">
+            <summary>
+                <para>Gets a separator's background image.
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxClasses.BackgroundImage"/> object that represents a separator's background image. 
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuStyle.SeparatorColor">
+            <summary>
+                <para>Gets or sets a separator's color.
+</para>
+            </summary>
+            <value>A <see cref="T:System.Drawing.Color"/> object that specifies a separator's color. 
+
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuStyle.SeparatorHeight">
+            <summary>
+                <para>Gets or sets a separator's height.
+</para>
+            </summary>
+            <value>A <B>System.Web.UI.WebControls.Unit</B> value specifying the height of a separator. 
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuStyle.SeparatorPaddings">
+            <summary>
+                <para>Gets the padding settings of separators which the current style applies to.
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxClasses.Paddings"/> object that contains padding settings.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuStyle.SeparatorStyle">
+            <summary>
+                <para>Gets the separator's style settings.
+</para>
+            </summary>
+            <value>An <see cref="T:DevExpress.Web.ASPxClasses.AppearanceStyleBase"/> object that contains the style settings.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuStyle.SeparatorWidth">
+            <summary>
+                <para>Gets or sets a separator's width.
+</para>
+            </summary>
+            <value>A <B>System.Web.UI.WebControls.Unit</B> value specifying the width of a separator. 
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuStyle.Spacing">
+            <summary>
+                <para>This property is not in effect for the MenuStyle class. Use the <see cref="P:DevExpress.Web.ASPxMenu.MenuStyle.ImageSpacing"/> property instead.
+</para>
+            </summary>
+            <value> 
+</value>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxMenu.MenuItemTemplateContainer.MenuItemTemplateContainer">
+
+            <summary>
+                <para>Represents a container for the templates used to render menu items.
+</para>
+            </summary>
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuItemTemplateContainer.#ctor(MenuItem)">
+            <summary>
+                <para>Initializes a new instance of the MenuItemTemplateContainer class with the specified setting.
+</para>
+            </summary>
+            <param name="item">
+		A <see cref="T:DevExpress.Web.ASPxMenu.MenuItem"/> object specifying the menu item which the current object belongs to.
+
+            </param>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuItemTemplateContainer.Item">
+            <summary>
+                <para>Gets an item for which the template's content is being instantiated.
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxMenu.MenuItem"/> object representing the item being rendered. 
+</value>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxMenu.MenuItemStyle.MenuItemStyle">
+
+            <summary>
+                <para>Defines style settings for menu items.
+</para>
+            </summary>
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuItemStyle.#ctor">
+            <summary>
+                <para>Initializes a new instance of the MenuItemStyle class.
+</para>
+            </summary>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuItemStyle.#ctor(StateBag)">
+            <summary>
+                <para>Initializes a new instance of the MenuItemStyle class with the specified state bag information. 
+</para>
+            </summary>
+            <param name="bag">
+		A <see cref="T:System.Web.UI.StateBag"/> that represents the state bag in which to store style information. 
+
+            </param>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuItemStyle.Height">
+            <summary>
+                <para>Gets or sets the height of menu items.
+</para>
+            </summary>
+            <value>A <see cref="T:System.Web.UI.WebControls.Unit"/> value that specifies the height of menu items.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuItemStyle.PopOutImageSpacing">
+            <summary>
+                <para>Gets or sets the amount of space between a pop-out image and the text contents within a menu item which the current style applies to.
+</para>
+            </summary>
+            <value>A <see cref="T:System.Web.UI.WebControls.Unit"/> that represents the spacing value.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuItemStyle.Width">
+            <summary>
+                <para>Gets or sets the width of menu items.
+</para>
+            </summary>
+            <value>A <see cref="T:System.Web.UI.WebControls.Unit"/> value that specifies the width of menu items.
+</value>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxMenu.MenuItemEventHandler.MenuItemEventHandler">
+
+            <summary>
+                <para>Represents a method that will handle the events concerning the manipulations with menu items.  
+</para>
+            </summary>
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuItemEventHandler.Invoke(Object,MenuItemEventArgs)">
+            <summary>
+                <para>Represents a method that will handle the events concerning the manipulations with menu items. 
+</para>
+            </summary>
+            <param name="source">
+		A <see cref="T:System.Object"/> representing the event source. Identifies the menu control that raised the event. 
+
+            </param>
+            <param name="e">
+		A <see cref="T:DevExpress.Web.ASPxMenu.MenuItemEventArgs"/> object that contains event data. 
+
+            </param>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxMenu.MenuItemEventArgs.MenuItemEventArgs">
+
+            <summary>
+                <para>Provides data for events which concern manipulations on menu items.
+</para>
+            </summary>
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuItemEventArgs.#ctor(MenuItem)">
+            <summary>
+                <para>Initializes a new instance of the MenuItemEventArgs class.
+
+</para>
+            </summary>
+            <param name="item">
+		A <see cref="T:DevExpress.Web.ASPxMenu.MenuItem"/> object representing an item related to the generated event.
+
+
+            </param>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuItemEventArgs.Item">
+            <summary>
+                <para>Gets an item object related to the event.
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxMenu.MenuItem"/> object, manipulations on which forced the event to be raised.
+</value>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxMenu.MenuItemCommandEventHandler.MenuItemCommandEventHandler">
+
+            <summary>
+                <para>Represents a method that will handle specific command events concerning manipulations with menu items.  
+</para>
+            </summary>
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuItemCommandEventHandler.Invoke(Object,MenuItemCommandEventArgs)">
+            <summary>
+                <para>Represents a method that will handle specific command events concerning manipulations with menu items. 
+</para>
+            </summary>
+            <param name="source">
+		A <see cref="T:System.Object"/> representing the event source. Identifies the menu control that raised the event. 
+
+            </param>
+            <param name="e">
+		A <see cref="T:DevExpress.Web.ASPxMenu.MenuItemCommandEventArgs"/> object that contains event data. 
+
+            </param>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxMenu.MenuItemCommandEventArgs.MenuItemCommandEventArgs">
+
+            <summary>
+                <para>Provides data for the events whose functionality relates to processing the <b>Command</b> event fired by a child control within a templated menu item.
+</para>
+            </summary>
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuItemCommandEventArgs.#ctor(MenuItem,Object,CommandEventArgs)">
+            <summary>
+                <para>Initializes a new instance of the MenuItemCommandEventArgs class.
+
+</para>
+            </summary>
+            <param name="item">
+		A <see cref="T:DevExpress.Web.ASPxMenu.MenuItem"/> object representing a menu item related to the generated event.
+
+
+            </param>
+            <param name="commandSource">
+		A <see cref="T:System.Object"/> identifying the source of the command.
+
+            </param>
+            <param name="originalArgs">
+		A <see cref="T:System.Web.UI.WebControls.CommandEventArgs"/> object that contains an argument for the command.
+
+
+            </param>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuItemCommandEventArgs.#ctor(Object,CommandEventArgs)">
+            <summary>
+                <para>Initializes a new instance of the MenuItemCommandEventArgs class.
+</para>
+            </summary>
+            <param name="commandSource">
+		A <see cref="T:System.Object"/> identifying the source of the command.
+
+            </param>
+            <param name="originalArgs">
+		A <see cref="T:System.Web.UI.WebControls.CommandEventArgs"/> object that contains an argument for the command.
+
+
+            </param>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuItemCommandEventArgs.CommandSource">
+            <summary>
+                <para>Gets an object representing the control which forced a postback. 
+</para>
+            </summary>
+            <value>A <see cref="T:System.Object"/> representing the control which forced a postback.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuItemCommandEventArgs.Item">
+            <summary>
+                <para>Gets an item object related to the event.
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxMenu.MenuItem"/> object, manipulations on which forced the event to be raised.
+</value>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxMenu.MenuItemCollection.MenuItemCollection">
+
+            <summary>
+                <para>Represents a collection that maintains menu items.
+</para>
+            </summary>
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuItemCollection.#ctor">
+            <summary>
+                <para>Initializes a new instance of the MenuItemCollection class.
+</para>
+            </summary>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuItemCollection.#ctor(MenuItem)">
+            <summary>
+                <para>Initializes a new instance of the MenuItemCollection class with the specified menu item that will own the collection. 
+
+</para>
+            </summary>
+            <param name="menuItem">
+		A <see cref="T:DevExpress.Web.ASPxMenu.MenuItem"/> object specifying the menu item that will own the collection. 
+
+            </param>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuItemCollection.Add(MenuItem)">
+            <summary>
+                <para>Adds the specified menu item to the collection.
+</para>
+            </summary>
+            <param name="menuItem">
+		A <see cref="T:DevExpress.Web.ASPxMenu.MenuItem"/> object to add to the collection.
+
+            </param>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuItemCollection.Add(String,String,String)">
+            <summary>
+                <para>Adds a new menu item to the collection and specifies the item's display text, name and associated image.
+</para>
+            </summary>
+            <param name="text">
+		A <see cref="T:System.String"/> value specifying the menu item's display text. Initializes the menu item's <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.Text"/> property.
+
+            </param>
+            <param name="name">
+		A <see cref="T:System.String"/> value specifying the name which indentifies the created item. Initializes the item's <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.Name"/> property.
+
+
+            </param>
+            <param name="imageUrl">
+		A <see cref="T:System.String"/> value specifying the path to the image displayed by the item. Initializes the <see cref="P:DevExpress.Web.ASPxClasses.ImageProperties.Url"/> property of the item's <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.Image"/>.
+
+            </param>
+            <returns>A <see cref="T:DevExpress.Web.ASPxMenu.MenuItem"/> object representing the newly created menu item.
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuItemCollection.Add(String,String,String,String)">
+            <summary>
+                <para>Adds a new menu item to the collection and specifies the item's display text, name, associated image and URL.
+</para>
+            </summary>
+            <param name="text">
+		A <see cref="T:System.String"/> value specifying the menu item's display text. Initializes the menu item's <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.Text"/> property.
+
+            </param>
+            <param name="name">
+		A <see cref="T:System.String"/> value specifying the name which indentifies the created item. Initializes the item's <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.Name"/> property.
+
+
+            </param>
+            <param name="imageUrl">
+		A <see cref="T:System.String"/> value specifying the path to the image displayed by the item. Initializes the <see cref="P:DevExpress.Web.ASPxClasses.ImageProperties.Url"/> property of the item's <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.Image"/>.
+
+            </param>
+            <param name="navigateUrl">
+		A <see cref="T:System.String"/> value specifying the URL to which the browser navigates when the item's text or associated image is clicked. Initializes the item's <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.NavigateUrl"/> property.
+
+            </param>
+            <returns>A <see cref="T:DevExpress.Web.ASPxMenu.MenuItem"/> object representing the newly created menu item.
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuItemCollection.Add(String,String,String,String,String)">
+            <summary>
+                <para>Adds a new menu item to the collection and specifies the item's display text, name, associated image and URL as well as the target of the URL content.
+</para>
+            </summary>
+            <param name="text">
+		A <see cref="T:System.String"/> value specifying the menu item's display text. Initializes the menu item's <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.Text"/> property.
+
+            </param>
+            <param name="name">
+		A <see cref="T:System.String"/> value specifying the name which indentifies the created item. Initializes the item's <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.Name"/> property.
+
+
+            </param>
+            <param name="imageUrl">
+		A <see cref="T:System.String"/> value specifying the path to the image displayed by the item. Initializes the <see cref="P:DevExpress.Web.ASPxClasses.ImageProperties.Url"/> property of the item's <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.Image"/>.
+
+            </param>
+            <param name="navigateUrl">
+		A <see cref="T:System.String"/> value specifying the URL to which the browser navigates when the item's text or associated image is clicked. Initializes the item's <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.NavigateUrl"/> property.
+
+            </param>
+            <param name="target">
+		A <see cref="T:System.String"/> value which identifies the window or frame at which to target URL content when the item's text or associated image is clicked. Initializes the item's <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.Target"/> property.
+
+            </param>
+            <returns>A <see cref="T:DevExpress.Web.ASPxMenu.MenuItem"/> object representing the newly created menu item.
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuItemCollection.Add(String,String)">
+            <summary>
+                <para>Adds a new item to the collection and specifies the item's display text and name.
+</para>
+            </summary>
+            <param name="text">
+		A <see cref="T:System.String"/> value specifying the menu item's display text. Initializes the menu item's <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.Text"/> property.
+
+            </param>
+            <param name="name">
+		A <see cref="T:System.String"/> value specifying the name which indentifies the created item. Initializes the item's <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.Name"/> property.
+
+
+            </param>
+            <returns>A <see cref="T:DevExpress.Web.ASPxMenu.MenuItem"/> object representing the newly created menu item.
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuItemCollection.Add">
+            <summary>
+                <para>Adds a new menu item to the end of the collection and returns the newly created object.
+</para>
+            </summary>
+            <returns>A <see cref="T:DevExpress.Web.ASPxMenu.MenuItem"/> object representing the newly created menu item.
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuItemCollection.Add(String)">
+            <summary>
+                <para>Adds a new item to the collection and specifies the item's display text.
+</para>
+            </summary>
+            <param name="text">
+		A <see cref="T:System.String"/> value specifying the menu item's display text. Initializes the menu item's <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.Text"/> property.
+
+            </param>
+            <returns>A <see cref="T:DevExpress.Web.ASPxMenu.MenuItem"/> object representing the newly created menu item.
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuItemCollection.FindByName(String)">
+            <summary>
+                <para>Returns an item object with the specified <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.Name"/> property value.
+
+</para>
+            </summary>
+            <param name="name">
+		A <see cref="T:System.String"/> value representing the <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.Name"/> property value of the required item.
+
+
+            </param>
+            <returns>A <see cref="T:DevExpress.Web.ASPxMenu.MenuItem"/> object with a specific value of the <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.Name"/> property.
+
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuItemCollection.FindByText(String)">
+            <summary>
+                <para>Returns an item object with the specified <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.Text"/> property value.
+
+</para>
+            </summary>
+            <param name="text">
+		A <see cref="T:System.String"/> value representing the <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.Text"/> property value of the required item.
+
+
+            </param>
+            <returns>A <see cref="T:DevExpress.Web.ASPxMenu.MenuItem"/> object with a specific value of the <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.Text"/> property.
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuItemCollection.GetVisibleItem(Int32)">
+            <summary>
+                <para>Gets a menu item by its visible index.
+</para>
+            </summary>
+            <param name="index">
+		An integer value representing the visible index of the item to be returned.
+
+            </param>
+            <returns>A <see cref="T:DevExpress.Web.ASPxMenu.MenuItem"/> object which represents the required visible menu item.
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuItemCollection.GetVisibleItemCount">
+            <summary>
+                <para>Returns the number of visible menu items in the collection.
+</para>
+            </summary>
+            <returns>An integer value representing the number of visible menu items in the current collection.
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuItemCollection.IndexOf(MenuItem)">
+            <summary>
+                <para>Searches for the specified menu item object and returns the zero-based index of the first occurrence within the menu item collection.
+
+</para>
+            </summary>
+            <param name="item">
+		A <see cref="T:DevExpress.Web.ASPxMenu.MenuItem"/> object representing the item to locate in the collection.
+
+
+            </param>
+            <returns>The zero-based index of the first occurrence of the specified menu item within the menu item collection, if found; otherwise, the negative one (<b>-1</b>).
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuItemCollection.IndexOfName(String)">
+            <summary>
+                <para>Searches for an item object specified by the value of its <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.Name"/> property and returns the zero-based index of the first occurrence within the item collection.
+</para>
+            </summary>
+            <param name="name">
+		A <see cref="T:System.String"/> value representing the <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.Name"/> property value of the required item.
+
+
+            </param>
+            <returns>The zero-based index of the first occurrence of the item with the specified name within the item collection, if found; otherwise, the negative one (<B>-1</B>).
+
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuItemCollection.IndexOfText(String)">
+            <summary>
+                <para>Searches for an item object specified by the value of its <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.Text"/> property and returns the zero-based index of the first occurrence within the item collection.
+
+
+</para>
+            </summary>
+            <param name="text">
+		A <see cref="T:System.String"/> value representing the <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.Text"/> property value of the required item.
+
+            </param>
+            <returns>The zero-based index of the first occurrence of the specified item within the item collection, if found; otherwise, the negative one (<b>-1</b>).
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuItemCollection.Insert(Int32,MenuItem)">
+            <summary>
+                <para>Inserts the specified menu item into the collection at the specified index.
+
+
+</para>
+            </summary>
+            <param name="index">
+		The zero-based index location where a specific menu item should be inserted. 
+
+
+            </param>
+            <param name="item">
+		A <see cref="T:DevExpress.Web.ASPxMenu.MenuItem"/> object representing the menu item to insert into the menu item collection. 
+
+
+            </param>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuItemCollection.Item(Int32)">
+            <summary>
+                <para>Provides indexed access to individual items within the MenuItemCollection.
+
+</para>
+            </summary>
+            <param name="index">
+		An integer value specifying the zero-based index of the item to be accessed.
+
+            </param>
+            <value>A <see cref="T:DevExpress.Web.ASPxMenu.MenuItem"/> object representing the item located at the specified index within the collection.
+</value>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuItemCollection.Remove(MenuItem)">
+            <summary>
+                <para>Removes a menu item object from the menu item collection.
+</para>
+            </summary>
+            <param name="item">
+		A <see cref="T:DevExpress.Web.ASPxMenu.MenuItem"/> object specifying the menu item to remove from the menu item collection. 
+
+            </param>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxMenu.MenuItem.MenuItem">
+
+            <summary>
+                <para>Represents an individual menu item within menu controls.
+</para>
+            </summary>
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuItem.#ctor(String)">
+            <summary>
+                <para>Initializes a new instance of the MenuItem class using the specified display text. 
+
+</para>
+            </summary>
+            <param name="text">
+		A <see cref="T:System.String"/> value specifying the item's display text. Initializes the item's <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.Text"/> property.
+
+
+            </param>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuItem.#ctor">
+            <summary>
+                <para>Initializes a new instance of the MenuItem class.
+</para>
+            </summary>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuItem.#ctor(String,String)">
+            <summary>
+                <para>Initializes a new instance of the MenuItem class with the specified settings.  
+
+</para>
+            </summary>
+            <param name="text">
+		A <see cref="T:System.String"/> value specifying the item's display text. Initializes the item's <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.Text"/> property.
+
+
+            </param>
+            <param name="imageUrl">
+		A <see cref="T:System.String"/> value specifying the path to the image displayed by the item. Initializes the <see cref="P:DevExpress.Web.ASPxClasses.ImageProperties.Url"/> property of the item's <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.Image"/>.
+
+            </param>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuItem.#ctor(String,String,String,String)">
+            <summary>
+                <para>Initializes a new instance of the MenuItem class with the specified settings.  
+
+</para>
+            </summary>
+            <param name="text">
+		A <see cref="T:System.String"/> value specifying the item's display text. Initializes the item's <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.Text"/> property.
+
+
+            </param>
+            <param name="name">
+		A <see cref="T:System.String"/> value specifying the name which indentifies the created item. Initializes the item's <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.Name"/> property.
+
+            </param>
+            <param name="imageUrl">
+		A <see cref="T:System.String"/> value specifying the path to the image displayed by the item. Initializes the <see cref="P:DevExpress.Web.ASPxClasses.ImageProperties.Url"/> property of the item's <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.Image"/>.
+
+            </param>
+            <param name="navigateUrl">
+		A <see cref="T:System.String"/> value specifying the URL to which the browser navigates when the item is clicked. Initializes the item's <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.NavigateUrl"/> property.
+
+
+            </param>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuItem.#ctor(String,String,String,String,String)">
+            <summary>
+                <para>Initializes a new instance of the MenuItem class with the specified settings.  
+
+</para>
+            </summary>
+            <param name="text">
+		A <see cref="T:System.String"/> value specifying the item's display text. Initializes the item's <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.Text"/> property.
+
+
+            </param>
+            <param name="name">
+		A <see cref="T:System.String"/> value specifying the name which indentifies the created item. Initializes the item's <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.Name"/> property.
+
+            </param>
+            <param name="imageUrl">
+		A <see cref="T:System.String"/> value specifying the path to the image displayed by the item. Initializes the <see cref="P:DevExpress.Web.ASPxClasses.ImageProperties.Url"/> property of the item's <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.Image"/>.
+
+            </param>
+            <param name="navigateUrl">
+		A <see cref="T:System.String"/> value specifying the URL to which the browser navigates when the item is clicked. Initializes the item's <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.NavigateUrl"/> property.
+
+
+            </param>
+            <param name="target">
+		A <see cref="T:System.String"/> value which identifies the window or frame at which to target URL content when the item is clicked. Initializes the item's <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.Target"/> property.
+
+            </param>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuItem.#ctor(String,String,String)">
+            <summary>
+                <para>Initializes a new instance of the MenuItem class with the specified settings.  
+
+</para>
+            </summary>
+            <param name="text">
+		A <see cref="T:System.String"/> value specifying the item's display text. Initializes the item's <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.Text"/> property.
+
+
+            </param>
+            <param name="name">
+		A <see cref="T:System.String"/> value specifying the name which indentifies the created item. Initializes the item's <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.Name"/> property.
+
+            </param>
+            <param name="imageUrl">
+		A <see cref="T:System.String"/> value specifying the path to the image displayed by the item. Initializes the <see cref="P:DevExpress.Web.ASPxClasses.ImageProperties.Url"/> property of the item's <see cref="P:DevExpress.Web.ASPxMenu.MenuItem.Image"/>.
+
+            </param>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuItem.Assign(CollectionItem)">
+            <summary>
+                <para>Copies the settings from the specified <see cref="T:DevExpress.Web.ASPxClasses.CollectionItem"/> object to the current object.
+</para>
+            </summary>
+            <param name="source">
+		A <see cref="T:DevExpress.Web.ASPxClasses.CollectionItem"/> object whose settings are assigned to the current object.
+
+            </param>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuItem.BeginGroup">
+            <summary>
+                <para>Gets or sets a value that specifies whether the current menu item starts a group.
+</para>
+            </summary>
+            <value><b>true</b> if the current menu item starts a group; otherwise, <b>false</b>.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuItem.DataItem">
+            <summary>
+                <para>Gets the data item that is bound to the menu item. 
+</para>
+            </summary>
+            <value>A <see cref="T:System.Object"/> that represents the data item that is bound to the menu item. 
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuItem.DataPath">
+            <summary>
+                <para>Gets the path to the data that is bound to the menu item. 
+</para>
+            </summary>
+            <value>The path to the data that is bound to the item. This value comes from the hierarchical data source control to which the menu control is bound.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuItem.Depth">
+            <summary>
+                <para>Gets the level at which a menu item is displayed. 
+</para>
+            </summary>
+            <value>The level at which a menu item is displayed. 
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuItem.Enabled">
+            <summary>
+                <para>Gets or sets a value that indicates whether the menu item is enabled, allowing the item to response to end-user interactions.
+</para>
+            </summary>
+            <value><b>true</b> if the item is enabled; otherwise, <b>false</b>. 
+</value>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuItem.FindControl(String)">
+            <summary>
+                <para>Searches the current naming container for a server control with the specified <i>id</i> parameter. 
+
+</para>
+            </summary>
+            <param name="id">
+		The identifier for the control to be found.
+
+            </param>
+            <returns>A <see cref="T:System.Web.UI.Control"/> object representing the specified control, or the <B>null</B> reference (<B>Nothing</B> in Visual Basic) if the specified control does not exist.
+
+</returns>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuItem.HasChildren">
+            <summary>
+                <para>Returns a value that indicates whether the current menu item has any child items.
+
+</para>
+            </summary>
+            <value><b>true</b> if the menu item contains any child subitems; <b>false</b> if the menu item doesn't have subitems at all.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuItem.HasVisibleChildren">
+            <summary>
+                <para>Returns a value that indicates whether the current menu item has visible child items.
+
+</para>
+            </summary>
+            <value><b>true</b> if the menu item contains any visible subitem; <b>false</b> if no subitem is visible within the menu item (or the item doesn't have subitems at all).
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuItem.Image">
+            <summary>
+                <para>Gets the settings of an image which is displayed by the item.
+</para>
+            </summary>
+            <value>An <see cref="T:DevExpress.Web.ASPxClasses.ImageProperties"/> object that contains image settings.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuItem.Items">
+            <summary>
+                <para>Gets a collection that contains the submenu items of the current menu item. 
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxMenu.MenuItemCollection"/> that contains the submenu items of the current menu item. 
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuItem.Menu">
+            <summary>
+                <para>Gets the menu object to which the current menu item belongs.
+</para>
+            </summary>
+            <value>An <see cref="T:DevExpress.Web.ASPxMenu.ASPxMenuBase"/> object representing the menu to which the menu item belongs.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuItem.Name">
+            <summary>
+                <para>Gets or sets the unique identifier name for the current menu item. 
+</para>
+            </summary>
+            <value>A string value that specifies the item's unique identifier name.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuItem.NavigateUrl">
+            <summary>
+                <para>Gets or sets an URL which defines the navigation location.
+</para>
+            </summary>
+            <value>A string value which represents an URL where the client web browser will navigate.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuItem.Parent">
+            <summary>
+                <para>Gets the immediate parent menu item to which the current menu item belongs.
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxMenu.MenuItem"/> object representing the menu item's immediate parent.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuItem.Selected">
+            <summary>
+                <para>Gets or sets a value that specifies whether the current menu item is selected.
+</para>
+            </summary>
+            <value><b>true</b> if the item is selected; otherwise, <b>false</b>.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuItem.SubMenuItemImage">
+            <summary>
+                <para>Gets the settings of an image which is displayed by all the submenu items of the current menu item.
+
+</para>
+            </summary>
+            <value>An <see cref="T:DevExpress.Web.ASPxClasses.ImageProperties"/> object that contains image settings.
+
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuItem.SubMenuItemStyle">
+            <summary>
+                <para>Gets the style settings for all submenu items of the current menu item.
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxMenu.MenuItemStyle"/> object that contains the style settings for the menu item's subitems.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuItem.SubMenuStyle">
+            <summary>
+                <para>Gets the style settings for the client regions of all submenus of the current menu item.
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxMenu.MenuStyle"/> object that contains the style settings for the client regions of the menu item's submenus.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuItem.SubMenuTemplate">
+            <summary>
+                <para>Gets or sets a template used for displaying the client region's content of the current menu item's submenus.
+</para>
+            </summary>
+            <value>An object supporting the <b>System.Web.UI.ITemplate</b> interface which contains the template used for displaying the client regions of all submenus of the current menu item.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuItem.Target">
+            <summary>
+                <para>Gets or sets the window or frame at which to target the contents of the URL associated with the current menu item.
+</para>
+            </summary>
+            <value>A string which identifies the window or frame at which to target the URL content.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuItem.Template">
+            <summary>
+                <para>Gets or sets a template used for displaying the content of the current menu item.
+</para>
+            </summary>
+            <value>An object supporting the <b>System.Web.UI.ITemplate</b> interface which contains the template used for displaying the menu item's content.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuItem.Text">
+            <summary>
+                <para>Gets or sets the text content of the current menu item.
+
+</para>
+            </summary>
+            <value>A string value that specifies the text content of the MenuItem.
+
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuItem.TextTemplate">
+            <summary>
+                <para>Gets or sets a template used for displaying the text content of the current menu item. 
+</para>
+            </summary>
+            <value>An object supporting the <see cref="T:System.Web.UI.ITemplate"/> interface which contains the template used for displaying the menu item's text content.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuItem.ToolTip">
+            <summary>
+                <para>Gets or sets the current menu item's tooltip text.
+</para>
+            </summary>
+            <value>A string which specifies the text content of the current menu item's tooltip.
+</value>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuItem.ToString">
+            <summary>
+                <para>Returns the string that represents the current object.
+
+</para>
+            </summary>
+            <returns>A <see cref="T:System.String"/> that represents the current MenuItem object.
+</returns>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuItem.Visible">
+            <summary>
+                <para>Gets or sets a value specifying the visibility of the current menu item. 
+</para>
+            </summary>
+            <value><b>true</b> if the item is visible; otherwise <b>false</b>
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuItem.VisibleIndex">
+            <summary>
+                <para>Gets or sets a value specifying the position of the current menu item amongst the visible items in a submenu (or at a menu's root levelt).
+</para>
+            </summary>
+            <value>An integer value specifying the zero-based index of the MenuItem amongst visible items at the same level. <B>-1</B> if the menu item is invisible.
+</value>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxMenu.MenuClientSideEvents.MenuClientSideEvents">
+
+            <summary>
+                <para>Contains a list of the client-side events available for a menu.
+
+</para>
+            </summary>
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuClientSideEvents.#ctor">
+            <summary>
+                <para>Initializes a new instance of the MenuClientSideEvents class. For internal use only.
+</para>
+            </summary>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuClientSideEvents.Assign(ClientSideEvents)">
+            <summary>
+                <para>Copies the public properties from the specified <see cref="T:DevExpress.Web.ASPxClasses.ClientSideEvents"/> instance to the current object.
+</para>
+            </summary>
+            <param name="source">
+		A <see cref="T:DevExpress.Web.ASPxClasses.ClientSideEvents"/> instance whose properties are copied to the current object.
+
+            </param>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuClientSideEvents.CloseUp">
+            <summary>
+                <para>Gets or sets the name of the JavaScript function or the entire code which will handle a client menu's <see cref="E:DevExpress.Web.ASPxMenu.Scripts.ASPxClientMenuBase.CloseUp"/> event.
+</para>
+            </summary>
+            <value>A string that represents either the name of a JavaScript function or the entire JavaScript function code used to handle an event.
+</value>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuClientSideEvents.GetStartupScript(String)">
+            <summary>
+                <para>For internal use only.
+</para>
+            </summary>
+            <param name="objectVarName">
+		 
+
+            </param>
+            <returns> 
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.MenuClientSideEvents.IsEmpty">
+            <summary>
+                <para>Returns a value that indicates whether there isn't any handler assigned to the available client events.
+
+</para>
+            </summary>
+            <returns><b>true</b> if no client event is handled; otherwise, <b>false</b>.
+</returns>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuClientSideEvents.ItemClick">
+            <summary>
+                <para>Gets or sets the name of the JavaScript function or the entire code which will handle a client menu's <see cref="E:DevExpress.Web.ASPxMenu.Scripts.ASPxClientMenuBase.ItemClick"/> event.
+</para>
+            </summary>
+            <value>A string that represents either the name of a JavaScript function or the entire JavaScript function code used to handle an event.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuClientSideEvents.ItemMouseOut">
+            <summary>
+                <para>Gets or sets the name of the JavaScript function or the entire code which will handle a client menu's <see cref="E:DevExpress.Web.ASPxMenu.Scripts.ASPxClientMenuBase.ItemMouseOut"/> event.
+</para>
+            </summary>
+            <value>A string that represents either the name of a JavaScript function or the entire JavaScript function code used to handle an event.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuClientSideEvents.ItemMouseOver">
+            <summary>
+                <para>Gets or sets the name of the JavaScript function or the entire code which will handle a client menu's <see cref="E:DevExpress.Web.ASPxMenu.Scripts.ASPxClientMenuBase.ItemMouseOver"/> event.
+</para>
+            </summary>
+            <value>A string that represents either the name of a JavaScript function or the entire JavaScript function code used to handle an event.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.MenuClientSideEvents.PopUp">
+            <summary>
+                <para>Gets or sets the name of the JavaScript function or the entire code which will handle a client menu's <see cref="E:DevExpress.Web.ASPxMenu.Scripts.ASPxClientMenuBase.PopUp"/> event.
+</para>
+            </summary>
+            <value>A string that represents either the name of a JavaScript function or the entire JavaScript function code used to handle an event.
+</value>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxMenu.ASPxPopupMenu.ASPxPopupMenu">
+
+            <summary>
+                <para>Represents a popup menu control.
+</para>
+            </summary>
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.ASPxPopupMenu.#ctor">
+            <summary>
+                <para>Initializes a new instance of the ASPxPopupMenu class.
+</para>
+            </summary>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxPopupMenu.Left">
+            <summary>
+                <para>Gets or sets the x-coordinate of the popup menu's left side.
+</para>
+            </summary>
+            <value>An integer value specifying the x-coordinate of the popup menu's left side.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxPopupMenu.PopupAction">
+            <summary>
+                <para>Gets or sets a value that specifies which action forces the current popup menu to pop-up.
+</para>
+            </summary>
+            <value>One of the <see cref="T:DevExpress.Web.ASPxClasses.PopupAction"/> enumeration values.
+
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxPopupMenu.PopupElementID">
+            <summary>
+                <para>Gets or sets the ID of a web control or HTML element with which the current popup menu is associated.
+</para>
+            </summary>
+            <value>A string value specifying the ID of the web control (or HTML element) which the popup menu is associated with.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxPopupMenu.PopupHorizontalAlign">
+            <summary>
+                <para>Gets or sets a popup menu's horizontal alignment relative to the corresponding web control/HTML element. 
+</para>
+            </summary>
+            <value>One of the <see cref="T:DevExpress.Web.ASPxClasses.PopupHorizontalAlign"/> enumeration values.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxPopupMenu.PopupHorizontalOffset">
+            <summary>
+                <para>Gets or sets a popup menu's horizontal offset.
+</para>
+            </summary>
+            <value>An integer value that specifies a popup menu's horizontal offset.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxPopupMenu.PopupVerticalAlign">
+            <summary>
+                <para>Gets or sets a popup menu's vertical alignment relative to the corresponding web control/HTML element. 
+</para>
+            </summary>
+            <value>One of the <see cref="T:DevExpress.Web.ASPxClasses.PopupVerticalAlign"/> enumeration values.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxPopupMenu.PopupVerticalOffset">
+            <summary>
+                <para>Gets or sets a popup menu's vertical offset.
+</para>
+            </summary>
+            <value>An integer value that specifies a popup menu's vertical offset.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxPopupMenu.Top">
+            <summary>
+                <para>Gets or sets the y-coordinate of the popup menu's top side.
+</para>
+            </summary>
+            <value>An integer value specifying the y-coordinate of the default popup menu's top side.
+</value>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxMenu.ASPxMenuBase.ASPxMenuBase">
+
+            <summary>
+                <para>Represents the base class for menu controls of the <see cref="T:DevExpress.Web.ASPxMenu.ASPxMenu"/> and <see cref="T:DevExpress.Web.ASPxMenu.ASPxPopupMenu"/> types.
+</para>
+            </summary>
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.ASPxMenuBase.#ctor">
+            <summary>
+                <para>Initializes a new instance of the ASPxMenuBase class.
+</para>
+            </summary>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.AllowSelectItem">
+            <summary>
+                <para>Gets or sets a value specifying whether items can be selected within a menu control.
+</para>
+            </summary>
+            <value><B>true</B> if items can be selected; otherwise <B>false</B>.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.SubMenuItemImage">
+            <summary>
+                <para>Gets the settings of a common image which is displayed by all submenu items of the current menu control.
+</para>
+            </summary>
+            <value>An <see cref="T:DevExpress.Web.ASPxClasses.ImageProperties"/> object that contains image settings.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.SubMenuItemStyle">
+            <summary>
+                <para>Gets the style settings for all submenu items within the current menu control.
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxMenu.MenuItemStyle"/> object that contains the style settings for the menu's submenu items.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.SubMenuStyle">
+            <summary>
+                <para>Gets the style settings for the client regions of all submenus within the current menu control.
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxMenu.MenuStyle"/> object that contains the style settings for the client regions of the menu control's submenus.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.SubMenuTemplate">
+            <summary>
+                <para>Gets or sets a common template used for displaying the client region's content of all submenus within a menu control.
+</para>
+            </summary>
+            <value>An object supporting the <b>System.Web.UI.ITemplate</b> interface which contains the template used for displaying the client regions of all submenus within the menu.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.SyncSelectionWithCurrentPath">
+            <summary>
+                <para>Gets or sets a value that specifies whether the menu item whose navigation location points to the currently browsed web page is automatically selected.
+</para>
+            </summary>
+            <value><b>true</b> if a menu's selected item is automatically synchonized with the currently displayed page's path; otherwise, <b>false</b>.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.Target">
+            <summary>
+                <para>Gets or sets the window or frame at which to target the contents of the URLs associated with all links within a menu control.
+</para>
+            </summary>
+            <value>A string which identifies the window or frame at which to target the URL content.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.VerticalPopOutImage">
+            <summary>
+                <para>Gets or sets the settings of a pop-out image that is displayed in a vertically oriented menu's menu item when it has a submenu.
+
+</para>
+            </summary>
+            <value>An <see cref="T:DevExpress.Web.ASPxClasses.ImageProperties"/> object that contains the image settings.
+
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.AppearAfter">
+            <summary>
+                <para>Gets or sets the delay in displaying submenus within the menu control.
+</para>
+            </summary>
+            <value>An integer value that specifies the time interval, in milliseconds, after which submenus get displayed within a menu control.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.AutoPostBack">
+            <summary>
+                <para>Gets or sets a value that specifies whether server-side processing is required for specific predefined user actions.
+
+</para>
+            </summary>
+            <value><B>true</B>, if server-side processing is required, otherwise, <B>false</B>.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.AutoSeparators">
+            <summary>
+                <para>Gets or sets a value that specifies the manner in which a specific separator is displayed to separate menu items from each other.
+</para>
+            </summary>
+            <value>An <see cref="T:DevExpress.Web.ASPxMenu.AutoSeparatorMode"/> enumeration value.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.BorderBetweenItemAndSubMenu">
+            <summary>
+                <para>Gets or sets a value that specifies how the border is displayed between a menu item and its submenu.
+</para>
+            </summary>
+            <value>One of the <see cref="T:DevExpress.Web.ASPxMenu.BorderBetweenItemAndSubMenuMode"/> enumeration values.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.ClientSideEvents">
+            <summary>
+                <para>Gets an object that lists the client-side events specific to the menu.
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxMenu.MenuClientSideEvents"/> object which allows to assign handlers to the client-side events available to the menu.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.DisappearAfter">
+            <summary>
+                <para>Gets or sets the duration for which a dynamic menu (an item's submenu or a popup menu) is displayed after the mouse pointer is no longer positioned over the menu.
+</para>
+            </summary>
+            <value>The length of time (in milliseconds) a dynamic menu is displayed after the mouse pointer is no longer positioned over the menu. 
+
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.EnableClientSideAPI">
+            <summary>
+                <para>Gets or sets a value that specifies whether the menu can be manipulated on the client side via code.
+</para>
+            </summary>
+            <value><b>true</b> if the menu's client object model is fully available; <b>false</b> if no programmatic interface is available for the menu on the client side.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.EnableHotTrack">
+            <summary>
+                <para>Gets or sets a value that specifies whether menu items of a menu control can visually respond to mouse hovering.
+</para>
+            </summary>
+            <value><b>true</b> if the menu's items can be hot-tracked; otherwise, <b>false</b>.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.GutterBackgroundImage">
+            <summary>
+                <para>Gets a gutter's background image.
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxClasses.BackgroundImage"/> object that represents a gutter's background image. 
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.GutterColor">
+            <summary>
+                <para>Gets or sets a gutter's color.
+</para>
+            </summary>
+            <value>A <see cref="T:System.Drawing.Color"/> object that specifies a gutter's color. 
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.GutterWidth">
+            <summary>
+                <para>Gets or sets a gutter's width.
+</para>
+            </summary>
+            <value>A <B>System.Web.UI.WebControls.Unit</B> value specifying the width of a gutter. 
+</value>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.ASPxMenuBase.HasVisibleItems">
+            <summary>
+                <para>Returns a value that indicates whtether a menu control has visible root items.
+</para>
+            </summary>
+            <returns><b>true</b> if the menu contains any visible root item; <b>false</b> if there are no visible root items within the menu (or there are no items at all).
+
+</returns>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.HorizontalPopOutImage">
+            <summary>
+                <para>Gets or sets the settings of a pop-out image that is displayed in a horizontally oriented menu's menu item when it has a submenu.
+
+</para>
+            </summary>
+            <value>An <see cref="T:DevExpress.Web.ASPxClasses.ImageProperties"/> object that contains the image settings.
+</value>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.ASPxMenuBase.IsClientSideAPIEnabled">
+            <summary>
+                <para> For internal use only.
+</para>
+            </summary>
+            <returns>  
+</returns>
+
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.ASPxMenuBase.IsClientSideEventsAssigned">
+            <summary>
+                <para> 
+</para>
+            </summary>
+            <returns> 
+</returns>
+
+
+        </member>
+        <member name="E:DevExpress.Web.ASPxMenu.ASPxMenuBase.ItemClick">
+            <summary>
+                <para>Fires after a menu item has been clicked.
+</para>
+            </summary>
+
+
+        </member>
+        <member name="E:DevExpress.Web.ASPxMenu.ASPxMenuBase.ItemCommand">
+            <summary>
+                <para>Fires when a control contained within a templated menu item raises the <B>Command</B> event.
+</para>
+            </summary>
+
+
+        </member>
+        <member name="E:DevExpress.Web.ASPxMenu.ASPxMenuBase.ItemDataBound">
+            <summary>
+                <para>Occurs after a menu item has been bound to a data source.
+</para>
+            </summary>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.ItemImage">
+            <summary>
+                <para>Gets the settings of a common image which is displayed by all the menu items within the current menu control's root level.
+</para>
+            </summary>
+            <value>An <see cref="T:DevExpress.Web.ASPxClasses.ImageProperties"/> object that contains image settings.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.ItemLinkMode">
+            <summary>
+                <para>Gets or sets a value that specifies how menu items are represented as links within the menu control.
+</para>
+            </summary>
+            <value>One of the <see cref="T:DevExpress.Web.ASPxClasses.ItemLinkMode"/> enumeration values.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.Items">
+            <summary>
+                <para>Gets a collection that contains menu items of the menu's root level. 
+
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxMenu.MenuItemCollection"/> that contains the root level menu items of the current menu control. 
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.ItemSpacing">
+            <summary>
+                <para>Gets or sets the amount of space between the menu items of the root menu level.
+</para>
+            </summary>
+            <value>A <see cref="T:System.Web.UI.WebControls.Unit"/> that represents the spacing value.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.ItemStyle">
+            <summary>
+                <para>Gets the style settings for all menu items of the menu control's root level.
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxMenu.MenuItemStyle"/> object that contains the style settings for the root menu items.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.ItemSubMenuOffset">
+            <summary>
+                <para>Gets specific offset settings for submenus of the submenu items.
+
+</para>
+            </summary>
+            <value>An <see cref="T:DevExpress.Web.ASPxMenu.ItemSubMenuOffset"/> object that contains specific offset settings for submenu items' submenus.
+
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.ItemTemplate">
+            <summary>
+                <para>Gets or sets a common template used for displaying the content of all menu items within a menu control.
+</para>
+            </summary>
+            <value>An object supporting the <b>System.Web.UI.ITemplate</b> interface which contains the template used for displaying the content of all menu items within a menu.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.ItemTextTemplate">
+            <summary>
+                <para>Gets or sets a common template used for displaying the text content of all menu items within a menu control.
+</para>
+            </summary>
+            <value>An object supporting the <see cref="T:System.Web.UI.ITemplate"/> interface which contains the template used for displaying the text content of all menu items within a menu. 
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.LinkStyle">
+            <summary>
+                <para>Gets an object that contains style settings to be applied to links in a menu control.
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxClasses.LinkStyle"/> object that contains the style settings of links.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.MaximumDisplayLevels">
+            <summary>
+                <para>Gets or sets the number of menu levels to render for a menu control. 
+</para>
+            </summary>
+            <value>The number of menu levels to render for a menu control. 
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.Paddings">
+            <summary>
+                <para>Gets the padding settings of a menu control.
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxClasses.Paddings"/> object that contains padding settings.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.RootItem">
+            <summary>
+                <para>Gets the root item of the menu.
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxMenu.MenuItem"/> object representing the root menu item.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.RootItemSubMenuOffset">
+            <summary>
+                <para>Gets specific offset settings for submenus of the root menu items.
+</para>
+            </summary>
+            <value>An <see cref="T:DevExpress.Web.ASPxMenu.ItemSubMenuOffset"/> object that contains specific offset settings for the root menu items' submenus.
+
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.SelectedItem">
+            <summary>
+                <para>Gets or sets the selected menu item within a menu control.
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxMenu.MenuItem"/> object representing the selected item.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.SeparatorBackgroundImage">
+            <summary>
+                <para>Gets a separator's background image.
+
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxClasses.BackgroundImage"/> object that represents a separator's background image. 
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.SeparatorColor">
+            <summary>
+                <para>Gets or sets a separator's color.
+</para>
+            </summary>
+            <value>A <see cref="T:System.Drawing.Color"/> object that specifies a separator's color. 
+
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.SeparatorHeight">
+            <summary>
+                <para>Gets or sets a separator's height.
+</para>
+            </summary>
+            <value>A <B>System.Web.UI.WebControls.Unit</B> value specifying the height of a separator. 
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.SeparatorPaddings">
+            <summary>
+                <para>Gets the padding settings of separators.
+</para>
+            </summary>
+            <value>A <see cref="T:DevExpress.Web.ASPxClasses.Paddings"/> object that contains padding settings.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.SeparatorWidth">
+            <summary>
+                <para>Gets or sets a separator's width.
+</para>
+            </summary>
+            <value>A <B>System.Web.UI.WebControls.Unit</B> value specifying the width of a separator. 
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.ShowPopOutImages">
+            <summary>
+                <para>Gets or sets a value specifying whether pop-out images that indicate that a menu item has a submenu are displayed. 
+
+</para>
+            </summary>
+            <value><b>true</b> to display  for the menu items with submenus; otherwise, <b>false</b>. 
+
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenuBase.ShowSubMenuShadow">
+            <summary>
+                <para>Gets or sets a value that specifies whether a submenu casts a shadow.
+
+</para>
+            </summary>
+            <value><b>true</b> if a submenu casts a shadow; otherwise <b>false</b>. 
+</value>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxMenu.ASPxMenu.ASPxMenu">
+
+            <summary>
+                <para>Represents a menu control.
+</para>
+            </summary>
+
+        </member>
+        <member name="M:DevExpress.Web.ASPxMenu.ASPxMenu.#ctor">
+            <summary>
+                <para>Initializes a new instance of the ASPxMenu class.
+</para>
+            </summary>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenu.ItemImagePosition">
+            <summary>
+                <para>Gets or sets a value that specifies how item images are positioned within the menu's items.
+</para>
+            </summary>
+            <value>One of the <see cref="T:DevExpress.Web.ASPxClasses.ItemImagePosition"/> enumeration values.
+</value>
+
+
+        </member>
+        <member name="P:DevExpress.Web.ASPxMenu.ASPxMenu.Orientation">
+            <summary>
+                <para>Gets or sets the direction in which to render the menu control. 
+</para>
+            </summary>
+            <value>One of the <see cref="T:DevExpress.Web.ASPxMenu.Orientation"/> enumeration values. 
+</value>
+
+
+        </member>
+        <member name="T:DevExpress.Web.ASPxMenu.Orientation.Orientation">
+
+            <summary>
+                <para>Specifies the direction in which to render a menu control.
+</para>
+            </summary>
+
+        </member>
+        <member name="F:DevExpress.Web.ASPxMenu.Orientation.Horizontal">
+            <summary>
+                <para>The menu control is rendered horizontally.
+</para>
+            </summary>
+
+
+        </member>
+        <member name="F:DevExpress.Web.ASPxMenu.Orientation.Vertical">
+            <summary>
+                <para>The menu control is rendered vertically.
+</para>
+            </summary>
+
+
+        </member>
+    </members>
+</doc>

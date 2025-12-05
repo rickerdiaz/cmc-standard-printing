@@ -1,0 +1,774 @@
+﻿Imports System
+Imports System.Net
+Imports System.Net.Http
+Imports System.Web
+Imports System.Collections.Generic
+Imports System.Linq
+Imports AttributeRouting.Web.Http
+Imports System.Data.SqlClient
+Imports System.Web.Script.Serialization
+Imports log4net
+Imports System.Net.Http.Headers
+Imports Newtonsoft.Json
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace CalcmenuAPI
+    Public Class IngredientController
+        Inherits ControllerBase
+
+        Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType)
+
+        ''' <summary>
+        ''' Search for ingredients
+        ''' </summary>
+        ''' <param name="codesite">Site reference number</param>
+        ''' <param name="codetrans">Translation reference number</param>
+        ''' <param name="codesetprice">Set of price reference number</param>
+        ''' <param name="name">Name of the ingredient to find</param>
+        ''' <param name="skip">Page number</param>
+        ''' <param name="take">Page size</param>
+        ''' <returns>Data result with total number of items</returns>
+        ''' <example>/api/ingredient/1/1/1/apple?skip=0&amp;take=10</example>
+        <HttpGet> <[GET]("/api/ingredient/{codesite:int}/{codetrans:int}/{codesetprice:int}/{type:int}")> _
+        Public Function GetIngredients(codesite As Integer, _
+                                 codetrans As Integer, _
+                                 codesetprice As Integer, _
+                                 type As Integer, _
+                                 Optional name As String = "", _
+                                 Optional skip As Integer = 0, _
+                                 Optional take As Integer = 10, _
+                                 Optional searchtype As Integer = 0, _
+                                 Optional category As Integer = -1, _
+                                 Optional sharetype As Integer = 0, _
+                                 Optional namefilter As Integer = 0, _
+                                 Optional isfulltext As Integer = 0, _
+                                 Optional sortby As Integer = 0, _
+                                 Optional status As Integer = -1
+            ) As Models.Response
+
+            Try
+
+                ' Log method call
+                If DebugEnabled Then LogMethodStart(System.Reflection.MethodBase.GetCurrentMethod(), _
+                    codesite, codetrans, codesetprice, name, skip, take, searchtype, category, sharetype, namefilter, isfulltext, sortby)
+
+                Dim ingredients As New List(Of Models.Ingredient)
+                Dim totalCount As Integer
+
+                Using cmd As New SqlCommand
+                    cmd.CommandTimeout = 1200 'LLG 11.05.2015 added timeout in searching ingredients
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                '.CommandText = "[dbo].[API_GET_Ingredients]"
+                                .CommandText = "[dbo].[API_GET_Ingredients2]" 'MKAM 2016.08.01
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = GetInt(codesite, -1)
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = GetInt(codetrans, -1)
+                                .Parameters.Add("@CodeSetPrice", SqlDbType.Int).Value = GetInt(codesetprice, -1)
+                                .Parameters.Add("@Name", SqlDbType.NVarChar, 250).Value = GetStr(name)
+                                .Parameters.Add("@SearchType", SqlDbType.Int).Value = GetInt(searchtype, 0)
+                                .Parameters.Add("@Category", SqlDbType.Int).Value = GetInt(category, -1)
+                                .Parameters.Add("@ShareType", SqlDbType.Int).Value = GetInt(sharetype, 0)
+                                .Parameters.Add("@pimstatus", SqlDbType.Int).Value = GetInt(status, -1)
+                                .Parameters.Add("@intType", SqlDbType.Int).Value = GetInt(type, 0)
+
+                                .Parameters.Add("@skip", SqlDbType.Int).Value = skip
+                                .Parameters.Add("@rowsPerPage", SqlDbType.Int).Value = take
+
+                                'AGL 2014.04.07
+                                If isfulltext = 0 Then
+                                    .Parameters.Add("@NameFilter", SqlDbType.Int).Value = GetInt(namefilter, 0)
+                                End If
+
+                                'AGL 2014.04.07
+                                .Parameters.Add("@SortBy", SqlDbType.Int).Value = GetInt(sortby, 0)
+                                .Parameters.Add("@IsFullText", SqlDbType.Int).Value = GetInt(isfulltext, 0)
+
+                                cn.Open()
+
+                                Using dr As SqlDataReader = cmd.ExecuteReader()
+                                    'While dr.Read
+                                    '    ingredients.Add(New Models.Ingredient With {
+                                    '                    .CodeListe = GetInt(dr("CodeListe")), _
+                                    '                    .Name = GetStr(dr("Name")), _
+                                    '                    .Number = GetStr(dr("Number")), _
+                                    '                    .CodeUser = GetInt(dr("CodeUser")), _
+                                    '                    .Type = GetInt(dr("Type")), _
+                                    '                    .Price = GetDbl(dr("Price")), _
+                                    '                    .UnitName = GetStr(dr("UnitName")), _
+                                    '                    .UnitMetric = GetStr(dr("UnitMetric")), _
+                                    '                    .UnitImperial = GetStr(dr("UnitImperial")), _
+                                    '                    .CodeUnit = GetInt(dr("CodeUnit")), _
+                                    '                    .CodeUnitMetric = GetInt(dr("CodeUnitMetric")), _
+                                    '                    .CodeUnitImperial = GetInt(dr("CodeUnitImperial")), _
+                                    '                    .CategoryName = GetStr(dr("CategoryName")), _
+                                    '                    .SourceName = GetStr(dr("SourceName")), _
+                                    '                    .SupplierName = GetStr(dr("SupplierName")), _
+                                    '                    .CodeBrand = GetInt(dr("CodeBrand")), _
+                                    '                    .BrandName = GetStr(dr("BrandName")), _
+                                    '                    .Wastage1 = GetInt(dr("Wastage1")), _
+                                    '                    .Wastage2 = GetInt(dr("Wastage2")), _
+                                    '                    .Wastage3 = GetInt(dr("Wastage3")), _
+                                    '                    .Wastage4 = GetInt(dr("Wastage4")), _
+                                    '                    .Wastage5 = GetInt(dr("Wastage5")), _
+                                    '                    .WastageTotal = GetInt(dr("WastageTotal")), _
+                                    '                    .Status = dr("Status"), _
+                                    '                    .Preparation = GetStr(dr("Preparation"))
+                                    '                })
+                                    'End While
+
+                                    'MKAM 2016.08.01
+                                    If dr.HasRows Then
+                                        While dr.Read
+                                            totalCount = GetInt(dr("Total"))
+                                        End While
+                                    End If
+                                    dr.NextResult()
+                                    If dr.HasRows Then
+                                        While dr.Read
+                                            ingredients.Add(New Models.Ingredient With {
+                                                            .CodeListe = GetInt(dr("CodeListe")), _
+                                                            .Name = GetStr(dr("Name")), _
+                                                            .Number = GetStr(dr("Number")), _
+                                                            .CodeUser = GetInt(dr("CodeUser")), _
+                                                            .Type = GetInt(dr("Type")), _
+                                                            .Price = GetDbl(dr("Price")), _
+                                                            .UnitName = GetStr(dr("UnitName")), _
+                                                            .UnitMetric = GetStr(dr("UnitMetric")), _
+                                                            .UnitImperial = GetStr(dr("UnitImperial")), _
+                                                            .CodeUnit = GetInt(dr("CodeUnit")), _
+                                                            .CodeUnitMetric = GetInt(dr("CodeUnitMetric")), _
+                                                            .CodeUnitImperial = GetInt(dr("CodeUnitImperial")), _
+                                                            .CategoryName = GetStr(dr("CategoryName")), _
+                                                            .SourceName = GetStr(dr("SourceName")), _
+                                                            .SupplierName = GetStr(dr("SupplierName")), _
+                                                            .CodeBrand = GetInt(dr("CodeBrand")), _
+                                                            .BrandName = GetStr(dr("BrandName")), _
+                                                            .Wastage1 = GetInt(dr("Wastage1")), _
+                                                            .Wastage2 = GetInt(dr("Wastage2")), _
+                                                            .Wastage3 = GetInt(dr("Wastage3")), _
+                                                            .Wastage4 = GetInt(dr("Wastage4")), _
+                                                            .Wastage5 = GetInt(dr("Wastage5")), _
+                                                            .WastageTotal = GetInt(dr("WastageTotal")), _
+                                                            .Status = dr("Status"), _
+                                                            .ImposedPrice = GetDbl(dr("ImposedPrice")), _
+                                                            .Constant = GetInt(dr("Constant")), _
+                                                            .Preparation = GetStr(dr("Preparation")), _
+                                                            .Allprice = DisplayAllPrice(GetInt(dr("CodeListe")), codesetprice, type), _
+                                                            .withTranslation = GetInt(dr("withTranslation")), _
+                                                            .isLocked = GetBool(dr("isLocked")), _
+                                                            .yieldIng = GetDbl(dr("Yield"))
+                                                        })
+                                        End While
+                                    End If
+
+                                    dr.Close()
+                                End Using
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                'RBAJ-2013.12.10 Fixed paging
+                'Dim totalCount As Integer = ingredients.Count
+                'take = IIf(take > totalCount + 1, totalCount, take) ' Prevent overflow of take
+                'take = IIf(take <= 0, 1, take) ' Prevent overflow of take
+                'Dim totalPages As Integer = Math.Ceiling(totalCount / take)
+                'skip = IIf(skip > totalPages, totalPages, skip) ' Prevent overflow of skip
+                'skip = IIf(skip < 1, 0, skip) ' Prevent overflow of skip
+
+                'Return New Models.Response(ingredients.Skip(take * skip).Take(take).ToList, totalCount)
+
+                Return New Models.Response(ingredients, totalCount)
+
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        ''' <summary>
+        ''' Search for ingredients by codeliste
+        ''' </summary>
+        ''' <param name="codesite">Site reference number</param>
+        ''' <param name="codetrans">Translation reference number</param>
+        ''' <param name="codesetprice">Set of price reference number</param>
+        <HttpGet> <[GET]("/api/ingredient/{codesite:int}/{codetrans:int}/{codesetprice:int}/{codetype:int}/{codeliste:int}")> _
+        Public Function GetIngredientByListe(codesite As Integer, _
+                                 codetrans As Integer, _
+                                 codesetprice As Integer, _
+                                 codetype As Integer, _
+                                 codeliste As Integer
+            ) As List(Of Models.Ingredient)
+
+            Try
+                Dim ingredients As New List(Of Models.Ingredient)
+
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_IngredientListe]"
+
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = GetInt(codesite, -1)
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = GetInt(codetrans, -1)
+                                .Parameters.Add("@CodeSetPrice", SqlDbType.Int).Value = GetInt(codesetprice, -1)
+                                .Parameters.Add("@CodeListe", SqlDbType.Int).Value = GetInt(codeliste, -1)
+                                .Parameters.Add("@CodeType", SqlDbType.Int).Value = GetInt(codetype, -1)
+                                cn.Open()
+
+                                Using dr As SqlDataReader = cmd.ExecuteReader()
+                                    While dr.Read
+                                        ingredients.Add(New Models.Ingredient With {
+                                                        .CodeListe = GetInt(dr("CodeListe")), _
+                                                        .Name = GetStr(dr("Name")), _
+                                                        .Number = GetStr(dr("Number")), _
+                                                        .CodeUser = GetInt(dr("CodeUser")), _
+                                                        .Type = GetInt(dr("Type")), _
+                                                        .Price = GetDbl(dr("Price")), _
+                                                        .UnitName = GetStr(dr("UnitName")), _
+                                                        .UnitMetric = GetStr(dr("UnitMetric")), _
+                                                        .UnitImperial = GetStr(dr("UnitImperial")), _
+                                                        .CodeUnit = GetInt(dr("CodeUnit")), _
+                                                        .CodeUnitMetric = GetInt(dr("CodeUnitMetric")), _
+                                                        .CodeUnitImperial = GetInt(dr("CodeUnitImperial")), _
+                                                        .CategoryName = GetStr(dr("CategoryName")), _
+                                                        .SourceName = GetStr(dr("SourceName")), _
+                                                        .SupplierName = GetStr(dr("SupplierName")), _
+                                                        .CodeBrand = GetInt(dr("CodeBrand")), _
+                                                        .BrandName = GetStr(dr("BrandName")), _
+                                                        .Wastage1 = GetInt(dr("Wastage1")), _
+                                                        .Wastage2 = GetInt(dr("Wastage2")), _
+                                                        .Wastage3 = GetInt(dr("Wastage3")), _
+                                                        .Wastage4 = GetInt(dr("Wastage4")), _
+                                                        .Wastage5 = GetInt(dr("Wastage5")), _
+                                                        .WastageTotal = GetInt(dr("WastageTotal")), _
+                                                        .Preparation = GetStr(dr("Preparation"))
+                                                    })
+                                    End While
+                                    dr.Close()
+                                End Using
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Return ingredients
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpPost> <POST("api/ingredient")> _
+        Public Function SaveIngredient(data As Models.IngredientData) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim _trans As SqlTransaction = Nothing
+            Dim resultCode As Integer = 0
+
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + JsonConvert.SerializeObject(data, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+                Using cmd As New SqlCommand
+
+                    If data Is Nothing Then
+                        Throw (New ArgumentNullException("ingredient data is empty"))
+                    End If
+                    If data.Info Is Nothing Then
+                        Throw (New ArgumentNullException("invalid ingredient data"))
+                    End If
+
+                    With cmd
+                        Using cn = New SqlConnection(ConnectionString)
+                            Try
+                                Dim intCodeListe As Integer = GetInt(data.Info.CodeListe, -1) '' JDO-2014.04.15
+                                Dim intCodeSetPrice As Integer = GetInt(data.Info.CodeSetPrice, 0)
+                                Dim intCodeUnit As Integer = GetInt(data.Info.CodeUnit, -1)
+                                Dim strUnit As String = GetStr(data.Info.UnitName).Trim()
+                                Dim isNewUnit As Boolean = GetBool(data.Info.IsNewUnit)  'GetBool(intCodeUnit < 0 And Not String.IsNullOrEmpty(strUnit))
+                                Dim isNewIngredient As Boolean = GetBool(intCodeListe <= 0)
+                                Dim fltPrice As Double = GetDbl(data.Info.Price)
+
+                                ' Wait for 2 minutes for the query to execute before timing out
+                                .CommandTimeout = 120
+
+                                .Connection = cn
+                                .CommandText = "sp_egswListeUpdate"
+                                .CommandType = CommandType.StoredProcedure
+
+                                ''Main
+                                .Parameters.Add("@intType", SqlDbType.Int).Value = 2
+                                .Parameters.Add("@intCodeListe", SqlDbType.Int).Value = intCodeListe
+                                .Parameters.Add("@intCodeSite", SqlDbType.Int).Value = GetInt(data.Info.CodeSite)
+                                .Parameters.Add("@intCodeUser", SqlDbType.Int).Value = GetInt(data.Info.CodeUser)
+                                .Parameters.Add("@intCodeTrans", SqlDbType.Int).Value = GetInt(data.Info.CodeTrans)
+                                .Parameters.Add("@nvcName", SqlDbType.NVarChar, 260).Value = Common.ReplaceSpecialCharacters(data.Info.Name)
+                                .Parameters.Add("@nvcNumber", SqlDbType.NVarChar, 20).Value = Common.ReplaceSpecialCharacters(data.Info.Number)
+                                .Parameters.Add("@intCategory", SqlDbType.Int).Value = GetInt(data.Info.CodeCategory)
+
+                                ''Misc
+                                .Parameters.Add("@sntWastage1", SqlDbType.SmallInt).Value = GetInt(data.Info.Wastage1)  'MKAM 2014.10.28 Added wastage values
+                                .Parameters.Add("@sntWastage2", SqlDbType.SmallInt).Value = GetInt(data.Info.Wastage2)
+                                .Parameters.Add("@sntWastage3", SqlDbType.SmallInt).Value = GetInt(data.Info.Wastage3)
+                                .Parameters.Add("@sntWastage4", SqlDbType.SmallInt).Value = GetInt(data.Info.Wastage4)
+                                .Parameters.Add("@nvcSubtitle", SqlDbType.NVarChar, 260).Value = String.Empty
+                                .Parameters.Add("@intSource", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@nvcRemark", SqlDbType.NVarChar, 250).Value = String.Empty
+                                .Parameters.Add("@fltYield", SqlDbType.Float).Value = 0
+                                .Parameters.Add("@intYieldUnit", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@sntPercent", SqlDbType.SmallInt).Value = 0
+                                .Parameters.Add("@fltSrQty", SqlDbType.Float).Value = 0
+                                .Parameters.Add("@intSrUnit", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@nvcDescription", SqlDbType.NVarChar, 800).Value = String.Empty
+                                .Parameters.Add("@sdtDates", SqlDbType.SmallDateTime).Value = Date.Now
+                                .Parameters.Add("@fltSrWeight", SqlDbType.Float).Value = 0
+                                .Parameters.Add("@fltYield2", SqlDbType.Float).Value = 0
+                                .Parameters.Add("@intYieldUnit2", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@fltPortionSize", SqlDbType.Float).Value = 0
+                                .Parameters.Add("@intPortionSizeUnit", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@nvcPictureName", SqlDbType.NVarChar, 200).Value = ";;"
+                                .Parameters.Add("@tntDefaultPicture", SqlDbType.TinyInt).Value = 0
+                                .Parameters.Add("@nvcNote", SqlDbType.NVarChar).Value = String.Empty
+                                .Parameters.Add("@nvcCoolingTime", SqlDbType.NVarChar, 25).Value = String.Empty
+                                .Parameters.Add("@nvcHeatingTime", SqlDbType.NVarChar, 25).Value = String.Empty
+                                .Parameters.Add("@nvcHeatingTemperature", SqlDbType.NVarChar, 25).Value = String.Empty
+                                .Parameters.Add("@nvcHeatingMode", SqlDbType.NVarChar, 25).Value = String.Empty
+                                .Parameters.Add("@nvcCCPDescription", SqlDbType.NVarChar, 255).Value = String.Empty
+                                .Parameters.Add("@nvcIngredients", SqlDbType.NVarChar, 2000).Value = String.Empty
+                                .Parameters.Add("@nvcPreparation", SqlDbType.NVarChar, 700).Value = String.Empty
+                                .Parameters.Add("@nvcCookingTip", SqlDbType.NVarChar, 700).Value = String.Empty
+                                .Parameters.Add("@nvcRefinement", SqlDbType.NVarChar, 700).Value = String.Empty
+                                .Parameters.Add("@nvcStorage", SqlDbType.NVarChar, 700).Value = String.Empty
+                                .Parameters.Add("@nvcProductivity", SqlDbType.NVarChar, 700).Value = String.Empty
+                                .Parameters.Add("@bitProtected", SqlDbType.Bit).Value = False
+                                .Parameters.Add("@intCodeLink", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@IsGlobal", SqlDbType.Bit).Value = 0
+                                .Parameters.Add("@bitUse", SqlDbType.Bit).Value = True
+                                .Parameters.Add("@intEGSRef", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@intEGSID", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@bitCompareByCodeSite", SqlDbType.Bit).Value = False
+                                .Parameters.Add("@vchCodeMergeList", SqlDbType.VarChar, 700).Value = String.Empty
+                                .Parameters.Add("@vchKeyField", SqlDbType.VarChar, 50).Value = String.Empty
+                                .Parameters.Add("@intOverwriteDescription", SqlDbType.Int).Value = 1
+                                .Parameters.Add("@fltNetWeight", SqlDbType.Float).Value = 0
+                                .Parameters.Add("@intTemplateCode", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@nvcNoteHeader", SqlDbType.NVarChar).Value = String.Empty
+                                .Parameters.Add("@bitAutoNum", SqlDbType.Bit).Value = True
+                                .Parameters.Add("@nvcCodeStyle", SqlDbType.NVarChar).Value = String.Empty
+                                .Parameters.Add("@sStoringTime", SqlDbType.NVarChar, 100).Value = String.Empty
+                                .Parameters.Add("@sStoringTemp", SqlDbType.NVarChar, 100).Value = String.Empty
+                                .Parameters.Add("@bitOnline", SqlDbType.Bit).Value = False
+                                .Parameters.Add("@nvcProtectedNote", SqlDbType.NVarChar, 200).Value = String.Empty
+                                .Parameters.Add("@nvcProtectedComment", SqlDbType.NVarChar, 200).Value = String.Empty
+                                .Parameters.Add("@bAllowDuplicates", SqlDbType.Bit).Value = False
+                                .Parameters.Add("@fltPriceSmallPortion", SqlDbType.Float).Value = 0
+                                .Parameters.Add("@fltPriceLargePortion", SqlDbType.Float).Value = 0
+                                .Parameters.Add("@chrMethodFrmt", SqlDbType.Char, 1).Value = DBNull.Value
+                                .Parameters.Add("@nvcSubHeading", SqlDbType.NVarChar, 255).Value = String.Empty
+                                .Parameters.Add("@nvcFootNote1", SqlDbType.NVarChar, 4000).Value = String.Empty
+                                .Parameters.Add("@nvcFootNote2", SqlDbType.NVarChar, 4000).Value = String.Empty
+                                .Parameters.Add("@intTemplate", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@Version", SqlDbType.Int).Value = 1
+                                .Parameters.Add("@Standard", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@Difficulty", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@Budget", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@QuickAndEasy", SqlDbType.Bit).Value = 0
+                                .Parameters.Add("@ShowOff", SqlDbType.Bit).Value = False
+                                .Parameters.Add("@ChefRecommended", SqlDbType.Bit).Value = False
+                                .Parameters.Add("@nvcUPC", SqlDbType.NVarChar, 25).Value = String.Empty
+                                .Parameters.Add("@CostperServing", SqlDbType.Float).Value = 0
+                                .Parameters.Add("@CostperRecipe", SqlDbType.Float).Value = 0
+                                .Parameters.Add("@LegacyNumber", SqlDbType.NVarChar).Value = String.Empty
+                                .Parameters.Add("@ServeWith", SqlDbType.NVarChar).Value = String.Empty
+                                .Parameters.Add("@PackagingCode", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@CertificationCode", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@OriginCode", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@TemperatureCode", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@InformationCode", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@intBrand", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@intSupplier", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@dteMenuCardDateFrom", SqlDbType.DateTime).Value = Date.Now
+                                .Parameters.Add("@dteMenuCardDateUntil", SqlDbType.DateTime).Value = Date.Now
+                                .Parameters.Add("@intMenuCardCodeSetPrice", SqlDbType.Int).Value = 0
+
+                                ''Output Params
+                                .Parameters.Add("@intCodeListeNew", SqlDbType.Int).Direction = ParameterDirection.Output
+                                .Parameters.Add("@retval", SqlDbType.Int).Direction = ParameterDirection.ReturnValue
+
+                                cn.Open()
+                                _trans = cn.BeginTransaction
+                                .Transaction = _trans
+                                .ExecuteNonQuery()
+
+                                intCodeListe = GetInt(.Parameters("@intCodeListeNew").Value, -1)
+
+                                resultCode = GetInt(.Parameters("@retval").Value, -1)
+                                If resultCode <> 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Ingredient create/update failed", resultCode))
+                                End If
+
+                                If intCodeListe <= 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Ingredient was not created", resultCode))
+                                End If
+
+                                ' RBAJ-2014.01.09
+                                ' Check unit if exist, if not then create
+                                If intCodeUnit < 0 AndAlso Not String.IsNullOrEmpty(strUnit) Then
+
+                                    'Check first if unit already exist
+                                    .CommandType = CommandType.StoredProcedure
+                                    .CommandText = "sp_EgswUnitGetList"
+                                    .Parameters.Clear()
+                                    .Parameters.Add("@intCode", SqlDbType.Int).Value = -1
+                                    .Parameters.Add("@tntType", SqlDbType.TinyInt).Value = 2
+                                    .Parameters.Add("@intCodeTrans", SqlDbType.Int).Value = GetInt(data.Info.CodeTrans)
+                                    .Parameters.Add("@intCodeSite", SqlDbType.Int).Value = GetInt(data.Info.CodeSite)
+                                    .Parameters.Add("@intCodeProperty", SqlDbType.Int).Value = -1
+                                    .Parameters.Add("@Status", SqlDbType.TinyInt).Value = 255
+                                    .Parameters.Add("@vchName", SqlDbType.NVarChar, 32).Value = GetStr(strUnit).Trim()
+                                    .Parameters.Add("@IsYield", SqlDbType.Int).Value = DBNull.Value
+                                    .Parameters.Add("@IsIngredient", SqlDbType.Int).Value = DBNull.Value
+                                    .Parameters.Add("@IsStock", SqlDbType.Int).Value = DBNull.Value
+                                    .Parameters.Add("@IsTransportation", SqlDbType.Int).Value = DBNull.Value
+                                    .Parameters.Add("@IsPackaging", SqlDbType.Int).Value = DBNull.Value
+
+                                    Using dr As SqlDataReader = .ExecuteReader()
+                                        dr.Read()
+                                        If dr.HasRows Then
+                                            intCodeUnit = GetInt(dr("Code"), -1)
+                                        End If
+                                        dr.Close()
+                                    End Using
+
+                                    If intCodeUnit < 0 Then ' Add as new unit
+                                        ' Wait for 5 minutes for the query to execute before timing out
+                                        .CommandTimeout = 300
+                                        .CommandText = "sp_EgswUnitUpdate"
+                                        .CommandType = CommandType.StoredProcedure
+                                        .Parameters.Clear()
+                                        .Parameters.Add("@retval", SqlDbType.Int)
+                                        .Parameters.Add("@intCodeUser", SqlDbType.Int).Value = GetInt(data.Info.CodeUser)
+                                        .Parameters.Add("@intCodeSite", SqlDbType.Int).Value = GetInt(data.Info.CodeSite)
+                                        .Parameters.Add("@intCode", SqlDbType.Int).Value = intCodeUnit
+                                        .Parameters.Add("@nvcNameDef", SqlDbType.NVarChar, 32).Value = strUnit
+                                        .Parameters.Add("@nvcNamePlural", SqlDbType.NVarChar, 32).Value = strUnit
+                                        .Parameters.Add("@nvcNameDisp", SqlDbType.NVarChar, 32).Value = strUnit
+                                        .Parameters.Add("@nvcAutoConversion", SqlDbType.NVarChar, 500).Value = strUnit
+                                        .Parameters.Add("@IsBasic", SqlDbType.Bit).Value = False
+                                        .Parameters.Add("@IsStock", SqlDbType.Bit).Value = False
+                                        .Parameters.Add("@IsPackaging", SqlDbType.Bit).Value = False
+                                        .Parameters.Add("@IsTranspo", SqlDbType.Bit).Value = False
+                                        .Parameters.Add("@IsIngredient", SqlDbType.Bit).Value = True
+                                        .Parameters.Add("@IsYield", SqlDbType.Bit).Value = False
+                                        .Parameters.Add("@IsServing", SqlDbType.Bit).Value = False
+                                        .Parameters.Add("@fltFactor", SqlDbType.Float).Value = 1
+                                        .Parameters.Add("@intTypeMain", SqlDbType.Int).Value = 0
+                                        .Parameters.Add("@IsMetric", SqlDbType.Bit).Value = True
+                                        .Parameters.Add("@nvcFormat", SqlDbType.NVarChar, 15).Value = "#,##0.000"
+                                        .Parameters.Add("@IsAdded", SqlDbType.Bit).Value = True
+                                        .Parameters.Add("@intPosition", SqlDbType.Int).Value = 0
+                                        .Parameters.Add("@IsGlobal", SqlDbType.Bit).Value = 1
+                                        .Parameters.Add("@bitUseMakes", SqlDbType.Bit).Value = False ' RDC 07.30.2013 : Use Makes [nth] [Unit] or  Ingredients for [nth] [Unit]
+                                        .Parameters.Add("@tntTranMode", SqlDbType.TinyInt).Value = 1 ' @TRAN_ADD
+                                        .Parameters.Add("@vchCodeSiteList", SqlDbType.VarChar, 8000).Value = "(" + data.Info.CodeSite.ToString + ")"
+                                        .Parameters("@intCode").Direction = ParameterDirection.InputOutput
+                                        .Parameters("@retval").Direction = ParameterDirection.ReturnValue
+                                        .ExecuteNonQuery()
+
+                                        intCodeUnit = GetInt(.Parameters("@intCode").Value, -1)
+                                        resultCode = GetInt(.Parameters("@retval").Value, -1)
+                                        If resultCode <> 0 Then
+                                            Throw New DatabaseException(String.Format("[{0}] Update ingredient unit failed", resultCode))
+                                        End If
+
+                                        ' Update unit translation for new unit
+                                        If isNewUnit AndAlso intCodeUnit >= 0 Then
+                                            .CommandText = "sp_EgswItemTranslationUpdate"
+                                            .CommandType = CommandType.StoredProcedure
+                                            .Parameters.Clear()
+                                            .Parameters.Add("@intCode", SqlDbType.Int).Value = intCodeUnit
+                                            .Parameters.Add("@nvcName", SqlDbType.NVarChar, 260).Value = strUnit
+                                            .Parameters.Add("@nvcName2", SqlDbType.NVarChar, 150).Value = strUnit 'MRC - 08.07.08 - For Ducasse customization.
+                                            .Parameters.Add("@intCodeTrans", SqlDbType.Int).Value = GetInt(data.Info.CodeTrans)
+                                            .Parameters.Add("@intCodeSite", SqlDbType.Int).Value = GetInt(data.Info.CodeSite)
+                                            .Parameters.Add("@tntListType", SqlDbType.Int).Value = 3
+                                            .Parameters.Add("@intCodeUser", SqlDbType.Int).Value = GetInt(data.Info.CodeUser)
+                                            .Parameters.Add("@tntType", SqlDbType.Int).Value = 0
+                                            .Parameters.Add("@nvcPlural", SqlDbType.NVarChar, 150).Value = ""
+                                            .Parameters.Add("@retval", SqlDbType.Int).Direction = ParameterDirection.ReturnValue
+                                            .ExecuteNonQuery()
+                                            resultCode = GetInt(.Parameters("@retval").Value, -1)
+                                            If resultCode <> 0 Then
+                                                Throw New DatabaseException(String.Format("[{0}] Update unit translation failed", resultCode))
+                                            End If
+                                        End If
+                                    End If
+                                End If
+
+                                ' Add price for new ingredient or if a new unit was added
+                                If (isNewIngredient Or isNewUnit) AndAlso intCodeUnit > 0 Then
+                                    ' Get last set price position
+                                    Dim intPosition As Integer = 0
+                                    .CommandText = "SELECT @Pos = ISNULL(MAX(Position), 0) FROM dbo.EgswListeSetPrice WHERE CodeListe = @CodeListe"
+                                    .CommandType = CommandType.Text
+                                    .Parameters.Clear()
+                                    .Parameters.Add("@Pos", SqlDbType.Int).Direction = ParameterDirection.Output
+                                    .Parameters.Add("@CodeListe", SqlDbType.Int).Value = intCodeListe
+                                    .ExecuteNonQuery()
+                                    intPosition = GetInt(.Parameters("@Pos").Value, 0)
+
+                                    ' Update price of merchandise/recipe
+                                    .CommandText = "sp_egswListeSetPriceUpdate"
+                                    .CommandType = CommandType.StoredProcedure
+                                    .Parameters.Clear()
+                                    .Parameters.Add("@intID", SqlDbType.Int).Value = -1
+                                    .Parameters.Add("@intCodeSetPrice", SqlDbType.Int).Value = intCodeSetPrice
+                                    .Parameters.Add("@intCodeListe", SqlDbType.Int).Value = intCodeListe
+                                    .Parameters.Add("@intCodeUnit", SqlDbType.Int).Value = intCodeUnit
+                                    .Parameters.Add("@fltPrice", SqlDbType.Float).Value = fltPrice
+                                    .Parameters.Add("@intPosition", SqlDbType.Int).Value = intPosition + 1
+                                    .Parameters.Add("@fltRatio", SqlDbType.Float).Value = 0
+                                    .Parameters.Add("@fltRatioNut", SqlDbType.Float).Value = 0
+                                    .Parameters.Add("@vchFnc", SqlDbType.VarChar, 20).Value = "UPDATEPRICE"
+                                    .Parameters.Add("@intTax", SqlDbType.Int).Value = 0
+                                    .Parameters.Add("@retval", SqlDbType.Int).Direction = ParameterDirection.ReturnValue
+                                    .ExecuteNonQuery()
+                                    resultCode = GetInt(.Parameters("@retval").Value, -1)
+                                    If resultCode <> 0 Then
+                                        Throw New DatabaseException(String.Format("[{0}] Add ingredient setprice failed", resultCode))
+                                    End If
+                                End If
+
+                                ''2017.01.20 Added this SP in sp_egswListeSetPriceUpdate
+                                '' Recompute rationut
+                                '.CommandText = "sp_EgswListeSetPriceUpdateRecomputeRatioNut"   
+                                '.CommandType = CommandType.StoredProcedure
+                                '.Parameters.Clear()
+                                '.Parameters.Add("@intCodeListe", SqlDbType.Float).Value = intCodeListe
+                                '.Parameters.Add("@SelectedCodeSetPrice", SqlDbType.Int).Value = -1
+                                '.Parameters.Add("@retval", SqlDbType.Int).Direction = ParameterDirection.ReturnValue
+                                '.ExecuteNonQuery()
+                                'resultCode = GetInt(.Parameters("@retval").Value, -1)
+                                'If resultCode <> 0 Then
+                                '    Throw New DatabaseException(String.Format("[{0}] Recompute ingredient setprice failed", resultCode))
+                                'End If
+
+                                ''Sharing
+                                If data.Sharing IsNot Nothing Then
+                                    If data.Sharing.Count > 0 Then
+                                        .CommandText = "DELETE FROM EgswSharing WHERE Code=@CodeListe AND CodeEgswTable=50"
+                                        .CommandType = CommandType.Text
+                                        .Parameters.Clear()
+
+                                        .Parameters.Add("@CodeListe", SqlDbType.Int).Value = intCodeListe
+                                        .ExecuteNonQuery()
+
+                                        'Insert sharing
+                                        Dim seed As Integer = 1
+                                        For Each sh In data.Sharing
+                                            .CommandText = <sql>
+                                                           INSERT INTO [dbo].[EgswSharing]
+                                                                ([Code]
+                                                                ,[CodeUserOwner]
+                                                                ,[CodeUserSharedTo]
+                                                                ,[Type]
+                                                                ,[CodeEgswTable]
+                                                                ,[Position]
+                                                                ,[Status]
+                                                                ,[IsGlobal])
+                                                            VALUES
+                                                                (@CodeListe
+                                                                ,@CodeUserOwner
+                                                                ,@CodeSite
+                                                                ,1
+                                                                ,50
+                                                                ,@Position
+                                                                ,1
+                                                                ,@Global)
+                                                       </sql>.Value
+                                            .CommandType = CommandType.Text
+                                            .Parameters.Clear()
+
+                                            .Parameters.Add("@CodeListe", SqlDbType.Int).Value = intCodeListe
+                                            .Parameters.Add("@CodeUserOwner", SqlDbType.Int).Value = data.Info.CodeSite
+                                            .Parameters.Add("@CodeSite", SqlDbType.Int).Value = sh.Code
+                                            .Parameters.Add("@Position", SqlDbType.Int).Value = seed
+                                            .Parameters.Add("@Global", SqlDbType.Bit).Value = GetBool(sh.Value)
+
+                                            .ExecuteNonQuery()
+                                            seed += 1
+                                        Next
+                                    End If
+                                End If
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = intCodeListe
+                                response.Status = True
+                                _trans.Commit()
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                Try
+                                    _trans.Rollback()
+                                    If Not _trans Is Nothing Then
+                                        CType(_trans, IDisposable).Dispose()
+                                    End If
+                                Catch
+                                End Try
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.Status = False
+                                response.Message = "Save ingredient failed"
+                                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Ingredient")
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+
+                        End Using
+                    End With
+
+                End Using
+
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                response.Code = 400
+                response.Message = "Missing or invalid parameters"
+                response.Parameters = New List(Of Models.param) From {New Models.param With {.name = "data", .value = "RecipeData"}}
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), aex.Message.ToString(), aex.StackTrace.ToString(), "Ingredient")
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), hex.Message.ToString(), hex.StackTrace.ToString(), "Ingredient")
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Ingredient")
+            End Try
+            Return response
+        End Function
+
+        Private Function DisplayAllPrice(CodeListe As Integer, CodeSetPrice As Integer, type As Integer) As String
+            Dim ingredients As New List(Of Models.Ingredient)
+            Dim allprice As String = String.Empty
+            Try
+
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_IngredientAllSetPrice]"
+                                .Parameters.Add("@CodeListe", SqlDbType.Int).Value = CodeListe
+                                .Parameters.Add("@CodeSetPrice", SqlDbType.Int).Value = CodeSetPrice
+                                .Parameters.Add("@mainType", SqlDbType.Int).Value = GetInt(type, 0)
+                                cn.Open()
+                                Using dr As SqlDataReader = cmd.ExecuteReader()
+                                    While dr.Read
+                                        allprice += dr("Allprice") & ","
+                                    End While
+                                    dr.Close()
+                                End Using
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Return allprice
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+
+        End Function
+
+
+        <HttpGet> <[GET]("/api/ingredient/getprice/{codeliste:int}/{codeunit:int}/{codesetprice:int}")> _
+        Public Function GetIngredients(codeliste As Integer, _
+                                codeunit As Integer, _
+                                codesetprice As Integer
+            ) As List(Of Models.IngredientOnePrice)
+
+            Dim IngredientOnePrice As New List(Of Models.IngredientOnePrice)
+
+            Using cmd As New SqlCommand
+                With cmd
+                    Using cn As New SqlConnection(ConnectionString)
+                        Try
+                            .Connection = cn
+                            .CommandType = CommandType.StoredProcedure
+                            .CommandText = "[dbo].[sp_EgswListeSetPriceGetOnePrice]"
+                            .Parameters.Add("@intCodeListe", SqlDbType.Int).Value = codeliste
+                            .Parameters.Add("@intCodeUnit", SqlDbType.Int).Value = codeunit
+                            .Parameters.Add("@intCodeSetPrice", SqlDbType.Int).Value = GetInt(codesetprice, -1)
+                            cn.Open()
+                            Using dr As SqlDataReader = cmd.ExecuteReader()
+                                If dr.HasRows Then
+                                    While dr.Read
+                                        IngredientOnePrice.Add(New Models.IngredientOnePrice With {
+                                                        .Code = GetInt(dr("CodeListe")), _
+                                                        .CodeUnit = dr("Unit"), _
+                                                        .Position = dr("Position"), _
+                                                        .Price = dr("Price"), _
+                                                        .CodeSetPrice = dr("CodeSetPrice")
+                                                    })
+                                    End While
+                                End If
+                            End Using
+
+                            Return IngredientOnePrice
+
+                        Catch ex As Exception
+                            Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                            Throw New HttpResponseException(GenericErrorResponse(ex.ToString(), HttpStatusCode.InternalServerError, 500))
+
+
+                        End Try
+
+                    End Using
+                End With
+            End Using
+
+        End Function
+
+    End Class
+End Namespace

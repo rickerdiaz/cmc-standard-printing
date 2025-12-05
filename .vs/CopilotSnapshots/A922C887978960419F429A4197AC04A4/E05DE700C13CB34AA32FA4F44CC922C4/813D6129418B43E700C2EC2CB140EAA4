@@ -1,0 +1,610 @@
+﻿Imports System
+Imports System.Web
+Imports System.Collections.Generic
+Imports System.Linq
+Imports AttributeRouting.Web.Http
+Imports System.Data.SqlClient
+Imports System.Web.Script.Serialization
+Imports log4net
+Imports System.Net
+Imports Newtonsoft.Json
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace CalcmenuAPI
+    Public Class PrefixController
+        Inherits ControllerBase
+
+        Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType)
+
+        <HttpPost> <POST("api/prefix")>
+        Public Function SavePrefix(data As Models.PrefixData) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim resultCode As Integer = 0
+            Dim _trans As SqlTransaction = Nothing
+
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + JsonConvert.SerializeObject(data, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+                Dim arrSharing As New ArrayList
+                For Each sh In data.Sharing
+                    If arrSharing.IndexOf(sh.Code) = -1 Then arrSharing.Add(sh.Code)
+                Next
+                Dim _codeSiteList As String = Common.Join(arrSharing, "(", ")", ",")
+
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[UPDATE_Prefix]"
+                                .Parameters.Clear()
+                                .Parameters.Add("@Code", SqlDbType.Int).Value = data.Info.Code
+                                .Parameters.Add("@Name", SqlDbType.NVarChar, 150).Value = data.Info.Name
+                                .Parameters.Add("@IsFemale", SqlDbType.Bit).Value = IIf(data.Info.Gender = "Feminine", 1, 0)
+                                .Parameters.Add("@TranslationCode", SqlDbType.Int).Value = data.Info.TranslationCode
+                                .Parameters.Add("@IsGlobal", SqlDbType.Bit).Value = data.Info.IsGlobal
+                                .Parameters.Add("@CodeSites", SqlDbType.NVarChar, 2000).Value = _codeSiteList
+                                .Parameters.Add("@retval", SqlDbType.Int).Direction = ParameterDirection.ReturnValue
+                                .Parameters("@Code").Direction = ParameterDirection.InputOutput
+
+                                cn.Open()
+                                _trans = cn.BeginTransaction
+                                .Transaction = _trans
+
+                                .ExecuteNonQuery()
+                                resultCode = GetInt(.Parameters("@retval").Value, -1)
+                                If resultCode <> 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Save prefix failed", resultCode))
+                                End If
+
+
+                                Dim codePrefix = CInt(.Parameters("@Code").Value)
+                                If codePrefix > 0 Then
+                                    
+                                    ' Update sharing
+                                    If data.Sharing IsNot Nothing Then
+                                        Dim sharingList = (From row In data.Sharing.AsEnumerable() Select row.Code).Distinct().ToList()
+                                        Dim codeSharedTo As String = String.Join(",", sharingList)
+
+                                        .CommandText = SP_API_UPDATE_Sharing
+                                        .Parameters.Clear()
+                                        .Parameters.Add("@Code", SqlDbType.Int).Value = codePrefix
+                                        .Parameters.Add("@CodeOwner", SqlDbType.Int).Value = data.Info.CodeOwner
+                                        .Parameters.Add("@CodeSharedToList", SqlDbType.VarChar, 4000).Value = codeSharedTo
+                                        .Parameters.Add("@Type", SqlDbType.Int).Value = 1
+                                        .Parameters.Add("@CodeEgswTable", SqlDbType.Int).Value = 154
+                                        .Parameters.Add("@IsGlobal", SqlDbType.Bit).Value = data.Info.IsGlobal
+                                        .Parameters.Add("@Return", SqlDbType.Int).Direction = ParameterDirection.ReturnValue
+                                        .ExecuteNonQuery()
+                                        resultCode = GetInt(.Parameters("@Return").Value, -1)
+                                        If resultCode <> 0 Then
+                                            Throw New DatabaseException(String.Format("[{0}] Save cookbook sharing failed", resultCode))
+                                        End If
+                                    End If
+
+                                Else
+                                    resultCode = GetInt(.Parameters("@retval").Value, -1)
+                                    If resultCode <> 0 Then
+                                        Throw New DatabaseException(String.Format("[{0}] Save prefix failed", resultCode))
+                                    End If
+                                End If
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = codePrefix
+                                response.Status = True
+                                _trans.Commit()
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                Try
+                                    _trans.Rollback()
+                                    If Not _trans Is Nothing Then
+                                        CType(_trans, IDisposable).Dispose()
+                                    End If
+                                Catch
+                                End Try
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.Status = False
+                                response.Message = "Save category failed"
+                                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Prefix")
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+
+                End Using
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                response.Code = 400
+                response.Message = "Missing or invalid parameters"
+                response.Parameters = New List(Of Models.param) From {New Models.param With {.name = "data", .value = "RecipeData"}}
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), aex.Message.ToString(), aex.StackTrace.ToString(), "Prefix")
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), hex.Message.ToString(), hex.StackTrace.ToString(), "Prefix")
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Prefix")
+            End Try
+            Return response
+
+        End Function
+
+        <HttpPost> <POST("api/update_recipe_ingredient_prefix")> _
+        Public Function UpdateRecipeIngredientPrefix(data As Models.PrefixGeneric) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim resultCode As Integer = 0
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + JsonConvert.SerializeObject(data, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+                Using cmd As New SqlCommand
+
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandText = "UPDATE_RecipeIngredientPrefix"
+                                .CommandType = CommandType.StoredProcedure
+                                .Parameters.Clear()
+                                .Parameters.Add("@CodeListe", SqlDbType.Int).Value = data.CodeListe
+                                .Parameters.Add("@CodePrefix", SqlDbType.Int).Value = data.CodePrefix
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = data.CodeTrans
+                                .Parameters.Add("@CodeUser", SqlDbType.Int).Value = data.CodeUser
+
+                                cn.Open()
+                                .ExecuteNonQuery()
+                                If resultCode <> 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Update recipe ingredient prefix failed", resultCode))
+                                End If
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = ""
+                                response.Status = True
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.Status = False
+                                response.ReturnValue = ""
+                                response.Message = "Update recipe ingredient prefix failed."
+                                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Prefix")
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+
+                End Using
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                response.Code = 400
+                response.Message = "Missing or invalid parameters"
+                response.Parameters = New List(Of Models.param) From {New Models.param With {.name = "data", .value = "RecipeData"}}
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), aex.Message.ToString(), aex.StackTrace.ToString(), "Prefix")
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), hex.Message.ToString(), hex.StackTrace.ToString(), "Prefix")
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Prefix")
+            End Try
+            Return response
+        End Function
+
+        <HttpPost> <POST("api/prefix/delete")> _
+        Public Function DeletePrefix(data As Models.GenericDeleteData) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim resultCode As Integer = 0
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + JsonConvert.SerializeObject(data, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+                Using cmd As New SqlCommand
+                    Dim arrProjectCodes As New ArrayList
+                    For Each c In data.CodeList
+                        If arrProjectCodes.IndexOf(c.Code) = -1 Then arrProjectCodes.Add(c.Code)
+                    Next
+                    Dim _codeProjectList As String = Common.Join(arrProjectCodes, "", "", ",")
+
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandText = "API_DELETE_Generic"
+                                .CommandType = CommandType.StoredProcedure
+                                .Parameters.Clear()
+                                .Parameters.Add("@CodeList", SqlDbType.VarChar, 4000).Value = _codeProjectList
+                                .Parameters.Add("@TableName", SqlDbType.VarChar, 200).Value = "PREFIX"
+                                .Parameters.Add("@CodeUser", SqlDbType.Int).Value = data.CodeUser
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.CodeSite
+                                .Parameters.Add("@ForceDelete", SqlDbType.Bit).Value = data.ForceDelete
+                                .Parameters.Add("@SkipList", SqlDbType.VarChar, 4000).Direction = ParameterDirection.Output
+                                .Parameters.Add("@Return", SqlDbType.Int)
+                                .Parameters("@Return").Direction = ParameterDirection.ReturnValue
+
+                                cn.Open()
+                                .ExecuteNonQuery()
+                                resultCode = GetInt(.Parameters("@Return").Value, -1) ' RBAJ-2014.01.14                               
+                                If resultCode <> 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Delete prefix failed", resultCode))
+                                End If
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = GetStr(.Parameters("@SkipList").Value)
+                                response.Status = True
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.Status = False
+                                response.ReturnValue = GetStr(.Parameters("@SkipList").Value) ''JDO 1.21.2014
+                                response.Message = "Delete prefix failed"
+                                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Prefix")
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+
+                End Using
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                response.Code = 400
+                response.Message = "Missing or invalid parameters"
+                response.Parameters = New List(Of Models.param) From {New Models.param With {.name = "data", .value = "RecipeData"}}
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), aex.Message.ToString(), aex.StackTrace.ToString(), "Prefix")
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), hex.Message.ToString(), hex.StackTrace.ToString(), "Prefix")
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Prefix")
+            End Try
+            Return response
+        End Function
+
+        <HttpGet> <[GET]("/api/prefix/{codesite?}/{name?}")> _
+        Public Function GetPrefix(codesite As Integer, Optional name As String = "") As List(Of Models.Prefix)
+            Try
+                Dim ds As New DataSet
+                If name Is Nothing Then name = ""
+                Using cmd As New SqlCommand
+                    With cmd
+                        .Connection = New SqlConnection(ConnectionString)
+                        .CommandType = CommandType.StoredProcedure
+                        .CommandText = "[dbo].[GET_PrefixList]"
+                        .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                        .Parameters.Add("@vchName", SqlDbType.NVarChar).Value = name
+
+                        .Connection.Open()
+                        Dim _da As New SqlDataAdapter(cmd)
+                        _da.Fill(ds)
+                        .Connection.Close()
+                    End With
+                End Using
+
+                Dim prefixes As New List(Of Models.Prefix)
+                For Each r In ds.Tables(0).Rows
+                    prefixes.Add(New Models.Prefix With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name")), _
+                                    .Gender = GetStr(r("Gender")), _
+                                    .TranslationCode = GetStr(r("TranslationCode")), _
+                                    .PrefixLanguage = GetStr(r("PrefixLanguage")), _
+                                    .IsGlobal = GetBool(r("IsGlobal"))})
+                Next
+
+
+
+                If name.Trim <> "" Then
+
+                    Dim prefixesresult As New List(Of Models.Prefix)
+
+                    Dim arrNames() As String = name.Trim.Split(",")
+                    For Each word In arrNames
+                        For Each c In prefixes
+                            If c.Name.ToLower.Contains(Common.ReplaceSpecialCharacters(word.Trim.ToLower)) Then
+                                prefixesresult.Add(c)
+                            End If
+                        Next
+                    Next
+                    prefixes = prefixesresult
+
+                End If
+
+
+                Return prefixes
+
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+		End Function
+
+		'START - Raqi Pinili 08.26.2015
+		<HttpPost> <[POST]("/api/prefix/search")> _
+		Public Function GetPrefix2(data As Models.ConfigurationcSearch) As List(Of Models.Prefix)
+			Try
+				Dim ds As New DataSet
+				If data.Name Is Nothing Then data.Name = ""
+				Using cmd As New SqlCommand
+					With cmd
+						.Connection = New SqlConnection(ConnectionString)
+						.CommandType = CommandType.StoredProcedure
+						.CommandText = "[dbo].[GET_PrefixList]"
+						.Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.CodeSite
+						.Parameters.Add("@vchName", SqlDbType.NVarChar).Value = data.Name
+                        .Parameters.Add("@CodeProperty", SqlDbType.NVarChar).Value = data.CodeProperty
+
+						.Connection.Open()
+						Dim _da As New SqlDataAdapter(cmd)
+						_da.Fill(ds)
+						.Connection.Close()
+					End With
+				End Using
+
+				Dim prefixes As New List(Of Models.Prefix)
+				For Each r In ds.Tables(0).Rows
+					prefixes.Add(New Models.Prefix With {
+									.Code = GetInt(r("Code")), _
+									.Name = GetStr(r("Name")), _
+									.Gender = GetStr(r("Gender")), _
+									.TranslationCode = GetStr(r("TranslationCode")), _
+									.PrefixLanguage = GetStr(r("PrefixLanguage")), _
+									.IsGlobal = GetBool(r("IsGlobal"))})
+				Next
+
+
+
+				If data.Name.Trim <> "" Then
+
+					Dim prefixesresult As New List(Of Models.Prefix)
+
+					Dim arrNames() As String = data.Name.Trim.Split(",")
+					For Each word In arrNames
+						For Each c In prefixes
+							If c.Name.ToLower.Contains(Common.ReplaceSpecialCharacters(word.Trim.ToLower)) Then
+								prefixesresult.Add(c)
+							End If
+						Next
+					Next
+					prefixes = prefixesresult
+
+				End If
+
+
+				Return prefixes
+
+			Catch aex As ArgumentException
+				Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+				Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+			Catch hex As HttpResponseException
+				Throw hex
+			Catch ex As Exception
+				Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+				Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+			End Try
+        End Function
+
+        'rlawrence 5/26/2016: test for language ddl
+        <HttpPost> <POST("api/getLanguageTranslations")>
+        Public Function GetLanguageTranslations(data As Models.Translation) As List(Of Models.GenericList)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        .Connection = New SqlConnection(ConnectionString)
+                        .CommandType = CommandType.StoredProcedure
+                        .CommandText = "[dbo].[GET_PrefixTranslationList]"
+                        .Parameters.Add("@CodeSite", SqlDbType.Int).Value = 1
+                        .Parameters.Add("@IsGlobal", SqlDbType.Bit).Value = 1
+                        .Parameters.Add("@CodeSites", SqlDbType.NVarChar).Value = "en"
+
+                        .Connection.Open()
+                        Dim _da As New SqlDataAdapter(cmd)
+                        _da.Fill(ds)
+                        .Connection.Close()
+                    End With
+                End Using
+
+                Dim translations As New List(Of Models.GenericList)
+                For Each r In ds.Tables(0).Rows
+                    translations.Add(New Models.GenericList With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name"))})
+                Next
+
+                Return translations
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+
+            End Try
+        End Function
+
+
+
+        'END - Raqi Pinili 08.26.2015
+
+        <HttpGet> <[GET]("/api/prefixtranslations/{codesite?}/{isglobal?}/{codesites?}")> _
+        Public Function GetPrefixTranslationList(codesite As Integer, isglobal As Boolean, Optional codesites As String = "") As List(Of Models.GenericList)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        .Connection = New SqlConnection(ConnectionString)
+                        .CommandType = CommandType.StoredProcedure
+                        .CommandText = "[dbo].[GET_PrefixTranslationList]"
+                        .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                        .Parameters.Add("@IsGlobal", SqlDbType.Bit).Value = isglobal
+                        .Parameters.Add("@CodeSites", SqlDbType.NVarChar).Value = codesites
+
+                        .Connection.Open()
+                        Dim _da As New SqlDataAdapter(cmd)
+                        _da.Fill(ds)
+                        .Connection.Close()
+                    End With
+                End Using
+
+                Dim translations As New List(Of Models.GenericList)
+                For Each r In ds.Tables(0).Rows
+                    translations.Add(New Models.GenericList With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name"))})
+                Next
+
+                Return translations
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+        <HttpGet> <[GET]("/api/prefix/sharing/{codesite:int}/{type:int}/{tree:int}/{codeprefix:int}")> _
+        Public Function GetPrefixSharing(codesite As Integer, _
+                                  type As Integer, _
+                                  tree As Integer, _
+                                  codeprefix As Integer) As List(Of Models.TreeNode)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandText = "[dbo].[API_GET_SharingPrefix]"
+                                .CommandType = CommandType.StoredProcedure
+                                .Parameters.Clear()
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = type
+                                .Parameters.Add("@CodePrefix", SqlDbType.Int).Value = codeprefix
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim sharings As New List(Of Models.GenericTree)
+                For Each r In ds.Tables(0).Rows
+                    sharings.Add(New Models.GenericTree With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name")), _
+                                    .ParentCode = GetInt(r("ParentCode")), _
+                                    .ParentName = GetStr(r("ParentName")), _
+                                    .Flagged = GetBool(r("Flagged")), _
+                                    .Type = GetInt(r("Type")), _
+                                    .Global = GetBool(r("Global"))})
+                Next
+
+                Dim sharingdata As New List(Of Models.TreeNode)
+
+                Dim parents = sharings.Where(Function(obj) obj.ParentCode = 0 And obj.Type = 1).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each p In parents
+                    Dim parent As New Models.TreeNode
+                    parent.title = p.Name
+                    parent.key = p.Code
+                    parent.icon = False
+                    parent.children = CreateChildren(sharings, p.Code)
+                    parent.select = p.Flagged
+                    parent.selected = p.Flagged
+                    parent.parenttitle = p.ParentName
+
+                    sharingdata.Add(parent)
+                Next
+
+                Return sharingdata
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        Private Function CreateChildren(_sharingdata As List(Of Models.GenericTree),
+                                        _code As Integer) As List(Of Models.TreeNode)
+            Dim children As New List(Of Models.TreeNode)
+
+            If _sharingdata IsNot Nothing Then
+                Dim kids = _sharingdata.Where(Function(obj) obj.ParentCode = _code And obj.Type = 2).OrderBy(Function(obj) obj.Name).ToList() ' RBAJ-2014.04.23 Fixed infinite loop "obj.Code <> _code"
+
+                For Each k In kids
+                    Dim child As New Models.TreeNode
+                    child.title = k.Name
+                    child.key = k.Code
+                    child.icon = False
+                    child.children = Nothing
+                    child.select = k.Flagged
+                    child.selected = k.Flagged
+                    child.parenttitle = k.ParentName
+                    child.note = k.Global
+                    children.Add(child)
+                Next
+            End If
+
+            Return children
+        End Function
+    End Class
+End Namespace
+

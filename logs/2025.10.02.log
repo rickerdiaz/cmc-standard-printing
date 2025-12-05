@@ -1,0 +1,73 @@
+2025-10-02 08:51:43,612 [1] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2025-10-02 08:51:44,156 [11] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-02 08:55:50,367 [11] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - A network-related or instance-specific error occurred while establishing a connection to SQL Server. The server was not found or was not accessible. Verify that the instance name is correct and that SQL Server is configured to allow remote connections. (provider: SQL Network Interfaces, error: 26 - Error Locating Server/Instance Specified)
+2025-10-02 08:56:09,510 [11] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-02 08:56:53,718 [11] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - A network-related or instance-specific error occurred while establishing a connection to SQL Server. The server was not found or was not accessible. Verify that the instance name is correct and that SQL Server is configured to allow remote connections. (provider: SQL Network Interfaces, error: 26 - Error Locating Server/Instance Specified)
+2025-10-02 09:02:16,048 [36] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2025-10-02 09:02:16,604 [18] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-02 09:03:10,440 [18] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+2025-10-02 09:03:55,696 [84] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-02 09:04:45,107 [84] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+2025-10-02 10:18:12,847 [31] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-02 10:22:38,627 [31] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+2025-10-02 10:27:44,026 [75] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-02 10:30:07,570 [75] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+2025-10-02 10:34:04,182 [87] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2025-10-02 10:34:04,739 [46] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-02 10:35:02,520 [46] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+2025-10-02 10:35:12,328 [43] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-02 10:35:23,051 [43] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+2025-10-02 10:35:49,600 [49] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-02 10:35:50,319 [49] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+2025-10-02 10:38:26,071 [27] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-02 10:39:18,600 [27] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+2025-10-02 10:40:00,278 [27] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-02 10:41:02,325 [27] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+2025-10-02 10:41:15,256 [27] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-02 11:31:52,066 [27] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+Ambiguous column name 'codeTrans'.
+2025-10-02 11:31:56,253 [27] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - standardPrinting started
+2025-10-02 11:32:09,816 [27] INFO  EgsReport.clsReport - CreateReport_Test
+2025-10-02 11:32:09,818 [27] INFO  EgsReport.clsReport - 1
+2025-10-02 11:32:09,953 [27] INFO  EgsReport.clsReport - 2
+2025-10-02 11:32:10,895 [27] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderPath: C:\Data\COOP\RecipeStandardPrint\Export_134038495276978754.pdf
+2025-10-02 11:32:10,897 [27] INFO  CalcmenuAPI.CalcmenuAPI.PrinterController - FolderURL: http://localhost:6735//Export_134038495276978754.pdf

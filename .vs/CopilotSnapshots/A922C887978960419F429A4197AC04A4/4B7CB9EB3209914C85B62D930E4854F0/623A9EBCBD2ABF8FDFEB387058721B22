@@ -1,0 +1,927 @@
+﻿Imports System
+Imports System.Web
+Imports System.Collections.Generic
+Imports System.Linq
+Imports AttributeRouting.Web.Http
+Imports System.Data.SqlClient
+Imports System.Web.Script.Serialization
+Imports log4net
+Imports System.Net
+Imports Newtonsoft.Json
+Imports Microsoft.AspNetCore.Mvc
+
+Namespace CalcmenuAPI
+    Public Class KioskController
+        Inherits ControllerBase
+
+        Private Shared ReadOnly Log As ILog = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType)
+
+        <HttpGet> <[GET]("/api/kiosk/{codeliste:int}/{showall:bool}/{codesite:int}")> _
+        Public Function GetKiosk(codeliste As Integer, _
+                              showall As Boolean, _
+                              codesite As Integer) As List(Of Models.RecipeBrandSite)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[GET_RecipeBrandSiteCM]"
+                                .Parameters.Add("@CodeListe", SqlDbType.Int, 4).Value = codeliste
+                                .Parameters.Add("@ShowAll", SqlDbType.Bit, 1).Value = showall
+                                .Parameters.Add("@intCodeSite", SqlDbType.Int, 4).Value = codesite
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim brandsites As New List(Of Models.RecipeBrandSite)
+                For Each r In ds.Tables(0).Rows
+                    brandsites.Add(New Models.RecipeBrandSite With {
+                                   .Code = GetInt(r("CodeBrandSite")), _
+                                   .Name = GetStr(r("BrandSite")), _
+                                   .Enabled = GetBool(r("IsSelected")), _
+                                   .DateFrom = GetDate(r("BrandSiteDateFrom")), _
+                                   .DateTo = GetDate(r("BrandSiteDateTo"))})
+                Next
+
+                Return brandsites.ToList
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+
+        <HttpGet> <[GET]("/api/kiosk/{codesite:int}/{type:int}/{tree?}/{name?}")> _
+        Public Function GetKioskByName(codesite As Integer, _
+                              type As Integer, _
+                              Optional tree As Boolean = False, _
+                              Optional name As String = "") As Object
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_MANAGE_Generic]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = 1
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = 0
+                                .Parameters.Add("@Status", SqlDbType.Int).Value = 1
+                                .Parameters.Add("@TableName", SqlDbType.NVarChar, 200).Value = "BRANDSITE"
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                If tree Then
+
+                    Dim kiosk As New List(Of Models.GenericTree)
+                    For Each r In ds.Tables(0).Rows
+                        kiosk.Add(New Models.GenericTree With {
+                                        .Code = GetInt(r("Code")), _
+                                        .Name = GetStr(r("Name")), _
+                                        .ParentCode = 0, _
+                                        .ParentName = "", _
+                                        .Flagged = False, _
+                                        .Type = 0, _
+                                        .Global = GetBool(r("Global"))})
+                    Next
+                    Dim kiosklist As New List(Of Models.TreeNode)
+
+                    Dim parents = kiosk.Where(Function(obj) obj.ParentCode = 0).OrderBy(Function(obj) obj.Name).ToList()
+
+                    For Each p In parents
+                        If kiosklist.Where(Function(obj) obj.key = p.Code).Count = 0 Then
+                            Dim parent As New Models.TreeNode
+                            parent.title = p.Name
+                            parent.key = p.Code
+                            parent.icon = False
+                            parent.children = CreateChildren(kiosk, p.Code)
+                            parent.select = p.Flagged
+                            parent.parenttitle = p.ParentName
+                            kiosklist.Add(parent)
+                        End If
+                    Next
+
+                    Return kiosklist.ToList
+                Else
+
+                    Dim kiosk As New List(Of Models.Kiosk)
+                    For Each r In ds.Tables(0).Rows
+                        kiosk.Add(New Models.Kiosk With {
+                                        .Code = GetInt(r("Code")), _
+                                       .Name = GetStr(r("Name")), _
+                                        .Global = GetBool(r("Global"))})
+                    Next
+
+                    If name.Trim <> "" Then
+
+                        Dim kioskresult As New List(Of Models.Kiosk)
+
+                        Dim arrNames() As String = name.Trim.Split(",")
+                        For Each word In arrNames
+                            If word.Trim.ToString <> "" Then    'RDTC 2015.08.10; added this otherwise the rows are getting duplicated
+                                For Each s In kiosk
+                                    If s.Name.ToLower.Contains(Common.ReplaceSpecialCharacters(word.Trim.ToLower)) Then
+                                        kioskresult.Add(s)
+                                    End If
+                                Next
+                            End If
+                        Next
+                        kiosk = kioskresult
+                    End If
+
+                    Return kiosk.ToList
+                End If
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+		'START - Raqi Pinili 08.26.2015
+		<HttpPost> <[POST]("/api/kiosk/search")> _
+		Public Function GetKioskByName2(data As Models.ConfigurationcSearch) As Object
+			Try
+				Dim ds As New DataSet
+				Using cmd As New SqlCommand
+					With cmd
+						Using cn As New SqlConnection(ConnectionString)
+							Try
+								.Connection = cn
+								.CommandType = CommandType.StoredProcedure
+								.CommandText = "[dbo].[API_MANAGE_Generic]"
+								.Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.CodeSite
+								.Parameters.Add("@Type", SqlDbType.Int).Value = 1
+								.Parameters.Add("@CodeTrans", SqlDbType.Int).Value = data.CodeTrans	'0
+								.Parameters.Add("@Status", SqlDbType.Int).Value = 1
+								.Parameters.Add("@TableName", SqlDbType.NVarChar, 200).Value = "BRANDSITE"
+								cn.Open()
+								Dim _da As New SqlDataAdapter(cmd)
+								_da.Fill(ds)
+							Finally
+								If Not cn Is Nothing Then
+									cn.Close()
+									CType(cn, IDisposable).Dispose()
+								End If
+							End Try
+						End Using
+					End With
+				End Using
+                Dim kiosk As New List(Of Models.GenericTree)
+                For Each r In ds.Tables(0).Rows
+                    kiosk.Add(New Models.GenericTree With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name")), _
+                                    .ParentCode = 0, _
+                                    .ParentName = "", _
+                                    .Flagged = False, _
+                                    .Type = 0, _
+                                    .Global = GetBool(r("Global"))})
+                Next
+
+                If data.Name = "" Then
+
+
+                    Dim kiosklist As New List(Of Models.TreeNode)
+
+                    Dim parents = kiosk.Where(Function(obj) obj.ParentCode = 0).OrderBy(Function(obj) obj.Name).ToList()
+
+                    For Each p In parents
+                        If kiosklist.Where(Function(obj) obj.title = p.Name).Count = 0 Then
+                            Dim parent As New Models.TreeNode
+                            parent.title = p.Name
+                            parent.key = p.Code
+                            parent.icon = False
+                            parent.children = CreateChildren(kiosk, p.Code)
+                            parent.select = p.Flagged
+                            parent.parenttitle = p.ParentName
+                            parent.Global = p.Global 'LLG 09.07.2015 fix to display global data on kiosk table for issue CWA-18995 
+                            kiosklist.Add(parent)
+                        End If
+                    Next
+
+                    Return kiosklist.ToList
+                Else
+                    ' Start fix for kiosk searching LLG 09.07.2015
+                    Dim kiosklist As New List(Of Models.TreeNode)
+                    Dim parents = kiosk.Where(Function(obj) obj.ParentCode = 0).OrderBy(Function(obj) obj.Name).ToList()
+
+                    For Each p In parents
+                        If kiosklist.Where(Function(obj) obj.title = p.Name).Count = 0 Then
+                            Dim parent As New Models.TreeNode
+                            parent.title = p.Name
+                            parent.key = p.Code
+                            parent.icon = False
+                            parent.children = CreateChildren(kiosk, p.Code)
+                            parent.select = p.Flagged
+                            parent.parenttitle = p.ParentName
+                            parent.Global = p.Global  'LLG 09.07.2015 fix to display global data on kiosk table for issue CWA-18995 
+                            kiosklist.Add(parent)
+                        End If
+                    Next
+
+                    If data.Name.Trim <> "" Then
+
+                        Dim kioskresult As New List(Of Models.TreeNode)
+
+                        Dim arrNames() As String = data.Name.Trim.Split(",")
+                        For Each word In arrNames
+                            If word.Trim.ToString <> "" Then
+                                For Each s In kiosklist
+                                    If s.title.ToLower.Contains(Common.ReplaceSpecialCharacters(word.Trim.ToLower)) Then
+                                        kioskresult.Add(s)
+                                    End If
+                                Next
+                            End If
+                        Next
+                        Return kioskresult.ToList
+                    End If
+                    'End for kiosk searching LLG 09.07.2015
+
+                End If
+			Catch aex As ArgumentException
+				Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+				Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+			Catch hex As HttpResponseException
+				Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+				Throw hex
+			Catch ex As Exception
+				Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+				Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+			End Try
+		End Function
+		'END - Raqi Pinili 08.26.2015
+
+
+        '<HttpGet> <[POST]("/api/kiosk/search")> _
+        'Public Function GetKioskByName2(data As Models.KioskData, Optional status As Integer = 1, Optional codeTrans As Integer = 0, Optional tree As Boolean = False) As Object
+        '    Try
+        '        Dim ds As New DataSet
+        '        Using cmd As New SqlCommand
+        '            With cmd
+        '                Using cn As New SqlConnection(ConnectionString)
+        '                    Try
+        '                        .Connection = cn
+        '                        .CommandType = CommandType.StoredProcedure
+        '                        .CommandText = "[dbo].[API_MANAGE_Generic]"
+        '                        .Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.Profile.CodeSite
+        '                        .Parameters.Add("@Type", SqlDbType.Int).Value = 1
+        '                        .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codeTrans
+        '                        .Parameters.Add("@Status", SqlDbType.Int).Value = status
+        '                        .Parameters.Add("@TableName", SqlDbType.NVarChar, 200).Value = "BRANDSITE"
+        '                        cn.Open()
+        '                        Dim _da As New SqlDataAdapter(cmd)
+        '                        _da.Fill(ds)
+        '                    Finally
+        '                        If Not cn Is Nothing Then
+        '                            cn.Close()
+        '                            CType(cn, IDisposable).Dispose()
+        '                        End If
+        '                    End Try
+        '                End Using
+        '            End With
+        '        End Using
+
+
+        '        If tree Then
+
+        '            Dim kiosk As New List(Of Models.GenericTree)
+        '            For Each r In ds.Tables(0).Rows
+        '                kiosk.Add(New Models.GenericTree With {
+        '                                .Code = GetInt(r("Code")), _
+        '                                .Name = GetStr(r("Name")), _
+        '                                .ParentCode = 0, _
+        '                                .ParentName = "", _
+        '                                .Flagged = False, _
+        '                                .Type = 0, _
+        '                                .Global = GetBool(r("Global"))})
+        '            Next
+        '            Dim kiosklist As New List(Of Models.TreeNode)
+
+        '            Dim parents = kiosk.Where(Function(obj) obj.ParentCode = 0).OrderBy(Function(obj) obj.Name).ToList()
+
+        '            For Each p In parents
+        '                If kiosklist.Where(Function(obj) obj.key = p.Code).Count = 0 Then
+        '                    Dim parent As New Models.TreeNode
+        '                    parent.title = p.Name
+        '                    parent.key = p.Code
+        '                    parent.icon = False
+        '                    parent.children = CreateChildren(kiosk, p.Code)
+        '                    parent.select = p.Flagged
+        '                    parent.parenttitle = p.ParentName
+        '                    kiosklist.Add(parent)
+        '                End If
+        '            Next
+
+        '            Return kiosklist.ToList
+        '        Else
+
+        '            Dim kiosk As New List(Of Models.Kiosk)
+        '            For Each r In ds.Tables(0).Rows
+        '                kiosk.Add(New Models.Kiosk With {
+        '                                .Code = GetInt(r("Code")), _
+        '                               .Name = GetStr(r("Name")), _
+        '                                .Global = GetBool(r("Global"))})
+        '            Next
+
+        '            If name.Trim <> "" Then
+
+        '                Dim kioskresult As New List(Of Models.Kiosk)
+
+        '                Dim arrNames() As String = name.Trim.Split(",")
+        '                For Each word In arrNames
+        '                    If word.Trim.ToString <> "" Then    'RDTC 2015.08.10; added this otherwise the rows are getting duplicated
+        '                        For Each s In kiosk
+        '                            If s.Name.ToLower.Contains(Common.ReplaceSpecialCharacters(word.Trim.ToLower)) Then
+        '                                kioskresult.Add(s)
+        '                            End If
+        '                        Next
+        '                    End If
+        '                Next
+        '                kiosk = kioskresult
+        '            End If
+
+        '            Return kiosk.ToList
+        '        End If
+        '    Catch aex As ArgumentException
+        '        Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+        '        Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+        '    Catch hex As HttpResponseException
+        '        Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+        '        Throw hex
+        '    Catch ex As Exception
+        '        Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+        '        Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+        '    End Try
+        'End Function
+
+        <HttpGet> <[GET]("/api/kiosk/sharing/{codesite:int}/{type:int}/{tree:int}/{codekiosk:int}")> _
+        Public Function GetKioskSharing(codesite As Integer, _
+                                  type As Integer, _
+                                  tree As Integer, _
+                                  codekiosk As Integer) As List(Of Models.TreeNode)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_SharingAll]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@Type", SqlDbType.Int).Value = type
+                                .Parameters.Add("@Code", SqlDbType.Int).Value = codekiosk
+                                .Parameters.Add("@CodeEgswTable", SqlDbType.Int).Value = 151
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim sharings As New List(Of Models.GenericTree)
+                For Each r In ds.Tables(0).Rows
+                    sharings.Add(New Models.GenericTree With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name")), _
+                                    .ParentCode = GetInt(r("ParentCode")), _
+                                    .ParentName = GetStr(r("ParentName")), _
+                                    .Flagged = GetBool(r("Flagged")), _
+                                    .Type = GetInt(r("Type")), _
+                                    .Global = GetBool(r("Global"))})
+                Next
+
+                Dim sharingdata As New List(Of Models.TreeNode)
+
+                Dim parents = sharings.Where(Function(obj) obj.ParentCode = 0 And obj.Type = 1).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each p In parents
+                    If sharingdata.Where(Function(obj) obj.key = p.Code).Count = 0 Then
+                        Dim parent As New Models.TreeNode
+                        parent.title = p.Name
+                        parent.key = p.Code
+                        parent.icon = False
+                        parent.children = CreateChildren(sharings, p.Code)
+                        parent.select = p.Flagged
+                        parent.parenttitle = p.ParentName
+                        sharingdata.Add(parent)
+                    End If
+                Next
+
+                Return sharingdata
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        <HttpGet> <[GET]("/api/getkiosk/{codesite:int}/{codekiosk?}")> _
+        Public Function GetKioskList(codesite As Integer, _
+                                           Optional codekiosk As Integer = -1
+                                           ) As List(Of Models.Kiosk)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[API_GET_KioskCodeName]"
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = codesite
+                                .Parameters.Add("@ActiveOnly", SqlDbType.Bit).Value = True
+                                .Parameters.Add("@CodeKiosk", SqlDbType.Int).Value = codekiosk
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+                Dim kiosk As New List(Of Models.Kiosk)
+                For Each r In ds.Tables(0).Rows
+                    kiosk.Add(New Models.Kiosk With {
+                                    .Code = GetInt(r("Code")), _
+                                   .Name = GetStr(r("Name")), _
+                                    .Global = GetBool(r("Global"))})
+                Next
+
+                Return kiosk.ToList
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        Private Function CreateChildren(_sharingdata As List(Of Models.GenericTree),
+                                    _code As Integer) As List(Of Models.TreeNode)
+
+            Dim children As New List(Of Models.TreeNode)
+            If _sharingdata IsNot Nothing Then
+                Dim kids = _sharingdata.Where(Function(obj) obj.ParentCode = _code And obj.Type = 2).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each k In kids
+                    Dim child As New Models.TreeNode
+                    child.title = k.Name
+                    child.key = k.Code
+                    child.icon = False
+                    child.children = Nothing
+                    children.Add(child)
+                    child.select = k.Flagged
+                    child.parenttitle = k.ParentName
+                    child.note = k.Global
+                Next
+            End If
+            Return children
+
+        End Function
+
+        <HttpPost> <POST("api/kiosk")> _
+        Public Function SaveKiosk(data As Models.KioskData) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim resultCode As Integer
+            Dim _trans As SqlTransaction = Nothing
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + JsonConvert.SerializeObject(data, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+                Using cmd As New SqlCommand
+                    Dim arrSharing As New ArrayList
+                    For Each sh In data.Sharing
+                        If arrSharing.IndexOf(sh.Code) = -1 Then arrSharing.Add(sh.Code)
+                    Next
+                    Dim _codeSiteList As String = Common.Join(arrSharing, "", "", ",")
+
+                    Dim tran As Integer
+                    If data.Info.Code = -1 Then
+                        tran = 1
+                    ElseIf data.Info.Code = -2 Then
+                        tran = 1
+                    Else
+                        tran = 2
+                    End If
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[INSERT_BrandSite]"
+                                .Parameters.Clear()
+                                .Parameters.Add("@retval", SqlDbType.Int)
+                                .Parameters.Add("@intCodeUser", SqlDbType.Int).Value = data.Profile.Code
+                                .Parameters.Add("@intId", SqlDbType.Int).Value = data.Info.Code
+                                .Parameters.Add("@vrName", SqlDbType.NVarChar, 50).Value = data.Info.Name
+                                .Parameters.Add("@vrSearch", SqlDbType.NVarChar, 50).Value = data.Info.Name
+                                .Parameters.Add("@IsGlobal", SqlDbType.Bit).Value = data.Info.Global
+                                .Parameters.Add("@intMetImpBoth", SqlDbType.Int).Value = 1
+                                .Parameters.Add("@strCodeSiteList", SqlDbType.NVarChar, 8000).Value = _codeSiteList
+                                .Parameters("@intId").Direction = ParameterDirection.InputOutput
+                                .Parameters("@retval").Direction = ParameterDirection.ReturnValue
+                                cn.Open()
+                                _trans = cn.BeginTransaction ' RBAJ-2014.01.13
+                                .Transaction = _trans
+                                .ExecuteNonQuery()
+                                Dim codeKiosk As Integer = GetInt(.Parameters("@intId").Value, -1)
+                                resultCode = GetInt(.Parameters("@retval").Value, -1)
+                                If resultCode <> 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Save kiosk failed", resultCode))
+                                End If
+
+                                If codeKiosk <> -1 Then
+
+                                    With cmd
+                                        .Connection = cn
+                                        .CommandText = "DELETE FROM EgswSharing WHERE Code=" & codeKiosk & " AND CodeUserOwner=" & data.Profile.CodeSite & _
+                                                       " AND CodeEgswTable=" & 151 & " AND Type=1"
+                                        .CommandType = CommandType.Text
+                                        .Parameters.Clear()
+                                        .ExecuteNonQuery()
+                                    End With
+
+
+                                    With cmd
+                                        .Connection = cn
+                                        .CommandText = "sp_EgswUpdateSharing"
+                                        .CommandType = CommandType.StoredProcedure
+                                        .Parameters.Clear()
+                                        .Parameters.Add("@intCode", SqlDbType.Int)
+                                        .Parameters.Add("@intCodeSite", SqlDbType.Int)
+                                        .Parameters.Add("@intCodeSitesShared", SqlDbType.Int)
+                                        .Parameters.Add("@intCodeEgswTable", SqlDbType.Int)
+                                        .Parameters.Add("@isGlobal", SqlDbType.Bit)
+
+
+                                        Dim arrCodeSites() As String
+                                        If Not _codeSiteList = "-1" Then
+                                            _codeSiteList = _codeSiteList.Replace("(", "")
+                                            _codeSiteList = _codeSiteList.Replace(")", "")
+                                            arrCodeSites = _codeSiteList.Split(CChar(","))
+
+                                            For i As Integer = 0 To UBound(arrCodeSites)
+                                                If IsNumeric(arrCodeSites(i)) Then
+                                                    .Parameters("@intCode").Value = GetInt(codeKiosk)
+                                                    .Parameters("@intCodeSite").Value = data.Profile.CodeSite
+                                                    .Parameters("@intCodeSitesShared").Value = arrCodeSites(i)
+                                                    .Parameters("@intCodeEgswTable").Value = 151
+                                                    .Parameters("@isGlobal").Value = data.Info.Global
+                                                    .ExecuteNonQuery()
+                                                End If
+                                            Next
+                                        Else
+                                            _codeSiteList = _codeSiteList.Replace("(", "")
+                                            _codeSiteList = _codeSiteList.Replace(")", "")
+                                            .Parameters("@intCode").Value = GetInt(codeKiosk)
+                                            .Parameters("@intCodeSite").Value = data.Profile.CodeSite
+                                            .Parameters("@intCodeSitesShared").Value = CInt(_codeSiteList)
+                                            .Parameters("@intCodeEgswTable").Value = 151
+                                            .Parameters("@isGlobal").Value = data.Info.Global
+                                            .ExecuteNonQuery()
+                                        End If
+                                    End With
+
+
+
+                                    If data.Keywords.Count = 0 Then
+                                        With cmd
+                                            .Connection = cn
+                                            .CommandText = "DELETE FROM EgswBrandSiteKeywords WHERE CodeBrandSite=" & codeKiosk
+                                            .CommandType = CommandType.Text
+                                            .Parameters.Clear()
+                                            .ExecuteNonQuery()
+                                        End With
+                                    Else
+
+                                        With cmd
+                                            .Connection = cn
+                                            .CommandText = "DELETE FROM EgswBrandSiteKeywords WHERE CodeBrandSite=" & codeKiosk
+                                            .CommandType = CommandType.Text
+                                            .Parameters.Clear()
+                                            .ExecuteNonQuery()
+                                        End With
+                                        For Each keyword In data.Keywords
+
+
+                                            'With cmd
+                                            '    .Connection = cn
+                                            '    .CommandText = "DELETE_KeywordsBrandSite"
+                                            '    .CommandType = CommandType.StoredProcedure
+                                            '    .Parameters.Clear()
+                                            '    .Parameters.Add("@CodeKeyword", SqlDbType.Int, 4).Value = keyword.Code
+                                            '    .Parameters.Add("@CodeBrandSite", SqlDbType.Int, 4).Value = codeKiosk
+                                            '    .ExecuteNonQuery()
+                                            'End With
+
+                                            With cmd
+                                                .Connection = cn
+                                                .CommandText = "UPDATE_KeywordsBrandSite"
+                                                .CommandType = CommandType.StoredProcedure
+                                                .Parameters.Clear()
+                                                .Parameters.Add("@CodeKeyword", SqlDbType.Int, 4).Value = keyword.Code
+                                                .Parameters.Add("@CodeBrandSite", SqlDbType.Int, 4).Value = codeKiosk
+                                                .ExecuteNonQuery()
+                                            End With
+
+                                        Next
+
+                                    End If
+
+                                End If
+
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = codeKiosk
+                                response.Status = True
+                                _trans.Commit()
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                Try
+                                    _trans.Rollback()
+                                    If Not _trans Is Nothing Then
+                                        CType(_trans, IDisposable).Dispose()
+                                    End If
+                                Catch
+                                End Try
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.Status = False
+                                response.Message = "Save kiosk failed"
+                                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Kiosk")
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+
+                End Using
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Kiosk")
+            End Try
+            Return response
+        End Function
+
+        <HttpPost> <POST("/api/kiosk/delete")>
+        Public Function DeleteKiosk(data As Models.GenericDeleteData) As Models.ResponseCallBack
+            Dim response As New Models.ResponseCallBack
+            Dim resultCode As Integer
+            Try
+                If DebugEnabled Then Log.Info("Calling " + System.Reflection.MethodBase.GetCurrentMethod().Name + ":" + JsonConvert.SerializeObject(data, Formatting.None, New JsonSerializerSettings() With {.NullValueHandling = NullValueHandling.Ignore}))
+
+                Using cmd As New SqlCommand
+                    Dim arrCategoryCodes As New ArrayList
+                    For Each c In data.CodeList
+                        If arrCategoryCodes.IndexOf(c.Code) = -1 Then arrCategoryCodes.Add(c.Code)
+                    Next
+                    Dim _codeKioskList As String = Common.Join(arrCategoryCodes, "", "", ",")
+                    With cmd
+                        Using cn = New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandText = "API_DELETE_Generic"
+                                .CommandType = CommandType.StoredProcedure
+                                .Parameters.Clear()
+                                .Parameters.Add("@CodeList", SqlDbType.VarChar, 4000).Value = _codeKioskList
+                                .Parameters.Add("@TableName", SqlDbType.VarChar, 200).Value = "BRANDSITE"
+                                .Parameters.Add("@CodeUser", SqlDbType.Int).Value = data.CodeUser                    ''codeuser
+                                .Parameters.Add("@CodeSite", SqlDbType.Int).Value = data.CodeSite                    ''codesite                                                        
+                                .Parameters.Add("@ForceDelete", SqlDbType.Bit).Value = data.ForceDelete              ''force delete
+                                .Parameters.Add("@SkipList", SqlDbType.VarChar, 4000).Direction = ParameterDirection.Output
+                                .Parameters.Add("@Return", SqlDbType.Int)
+                                .Parameters("@Return").Direction = ParameterDirection.ReturnValue
+
+                                cn.Open()
+                                .ExecuteNonQuery()
+                                resultCode = GetInt(.Parameters("@Return").Value, -1)
+                                If resultCode <> 0 Then
+                                    Throw New DatabaseException(String.Format("[{0}] Delete kiosk failed", resultCode))
+                                End If
+
+                                ' Done without errors
+                                response.Code = 0
+                                response.Message = "OK"
+                                response.ReturnValue = GetStr(.Parameters("@SkipList").Value)
+                                response.Status = True
+                            Catch ex As DatabaseException
+                                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Database error occured", ex)
+                                If resultCode = 0 Then
+                                    resultCode = 500
+                                End If
+                                response.Code = resultCode
+                                response.ReturnValue = GetStr(.Parameters("@SkipList").Value) ''JDO 1.21.2014
+                                response.Status = False
+                                response.Message = "Delete kiosk failed"
+                                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Kiosk")
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+
+                End Using
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                response.Status = False
+                response.Message = "Unexpected error occured"
+                response.Code = 500
+                Common.SendEmail(Request.RequestUri.AbsoluteUri.ToString(), ex.Message.ToString(), ex.StackTrace.ToString(), "Kiosk")
+            End Try
+            Return response
+        End Function
+
+        <HttpGet> <[GET]("/api/kiosk/keywords/{codesite:int}/{codetrans:int}/{type:int}/{tree:int}/{codekiosk:int}")> _
+        Public Function GetKioskKeywords(codesite As Integer, _
+                                         codetrans As Integer, _
+                                         type As Integer, _
+                                        tree As Integer, _
+                                        codekiosk As Integer) As List(Of Models.TreeNode)
+            Try
+                Dim ds As New DataSet
+                Using cmd As New SqlCommand
+                    With cmd
+                        Using cn As New SqlConnection(ConnectionString)
+                            Try
+                                .Connection = cn
+                                .CommandType = CommandType.StoredProcedure
+                                .CommandText = "[dbo].[GET_KeywordsbySharing]"
+                                .Parameters.Add("@ListeType", SqlDbType.Int).Value = type
+                                .Parameters.Add("@nCodeSites", SqlDbType.NVarChar, (200)).Value = "1,2,4"
+                                .Parameters.Add("@CodeTrans", SqlDbType.Int).Value = codetrans
+                                cn.Open()
+                                Dim _da As New SqlDataAdapter(cmd)
+                                _da.Fill(ds)
+                            Finally
+                                If Not cn Is Nothing Then
+                                    cn.Close()
+                                    CType(cn, IDisposable).Dispose()
+                                End If
+                            End Try
+                        End Using
+                    End With
+                End Using
+
+                Dim keywords As New List(Of Models.GenericTree)
+                For Each r In ds.Tables(0).Rows
+                    keywords.Add(New Models.GenericTree With {
+                                    .Code = GetInt(r("Code")), _
+                                    .Name = GetStr(r("Name")), _
+                                    .ParentCode = GetInt(r("ParentCode")), _
+                                    .ParentName = GetStr(r("ParentName"))})
+                Next
+
+                Dim keywordsdata As New List(Of Models.TreeNode)
+
+                Dim parents = keywords.Where(Function(obj) obj.ParentCode = 0).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each p In parents
+                    If keywordsdata.Where(Function(obj) obj.key = p.Code).Count = 0 Then
+                        Dim parent As New Models.TreeNode
+                        parent.title = p.Name
+                        parent.key = p.Code
+                        parent.icon = False
+                        parent.children = CreateKeywordChildren(keywords, p.Code, codekiosk)
+                        parent.select = CheckifSelected(codekiosk, p.Code)
+                        parent.parenttitle = p.ParentName
+                        keywordsdata.Add(parent)
+                    End If
+                Next
+
+                Return keywordsdata
+            Catch aex As ArgumentException
+                Log.Warn(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Missing or invalid parameters", aex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.BadRequest, 440))
+            Catch hex As HttpResponseException
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", hex)
+                Throw hex
+            Catch ex As Exception
+                Log.Error(System.Reflection.MethodBase.GetCurrentMethod().Name + ": Unexpected error occured", ex)
+                Throw New HttpResponseException(GenericErrorResponse("Request failed", HttpStatusCode.InternalServerError, 500))
+            End Try
+        End Function
+
+        Private Function CreateKeywordChildren(_keywordsdata As List(Of Models.GenericTree),
+                                   _code As Integer, codekiosk As Integer) As List(Of Models.TreeNode)
+
+            Dim children As New List(Of Models.TreeNode)
+            If _keywordsdata IsNot Nothing Then
+                Dim kids = _keywordsdata.Where(Function(obj) obj.ParentCode = _code).OrderBy(Function(obj) obj.Name).ToList()
+
+                For Each k In kids
+                    Dim child As New Models.TreeNode
+                    child.title = k.Name
+                    child.key = k.Code
+                    child.icon = False
+                    child.children = Nothing
+                    children.Add(child)
+                    child.select = CheckifSelected(codekiosk, k.Code)
+                    child.parenttitle = k.ParentName
+                    child.note = k.Global
+                Next
+            End If
+            Return children
+
+        End Function
+
+        Private Function CheckifSelected(codekiosk As Integer, codekeyword As Integer) As Boolean
+
+            Dim isSelected As Boolean
+
+            Dim sb As New System.Text.StringBuilder
+
+            sb.Append("Select @isSelected = CASE WHEN (COUNT(*)>0)  THEN 1 ELSE 0 END FROM EgswBrandSiteKeywords WHERE CodeBrandsite =  @codekiosk AND CodeKeyword = @codekeyword")
+
+            Try
+                Using cn As SqlConnection = New SqlConnection(ConnectionString)
+                    Using cmd As SqlCommand = New SqlCommand(sb.ToString, cn)
+                        With cmd
+                            .CommandType = CommandType.Text
+                            .Parameters.Add("@codekiosk", SqlDbType.Int).Value = codekiosk
+                            .Parameters.Add("@codekeyword", SqlDbType.Int).Value = codekeyword
+                            .Parameters.Add("@isSelected", SqlDbType.Bit).Direction = ParameterDirection.Output
+                            .Connection.Open()
+                            .ExecuteNonQuery()
+                            .Connection.Close()
+
+                            isSelected = CBool(.Parameters("@isSelected").Value)
+
+                        End With
+                    End Using
+                End Using
+            Catch ex As Exception
+
+            End Try
+
+            Return isSelected
+        End Function
+    End Class
+End Namespace

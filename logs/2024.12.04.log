@@ -1,0 +1,5 @@
+2024-12-04 12:41:43,783 [1] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
+2024-12-04 12:43:35,229 [6] INFO  CalcmenuAPI.CalcmenuAPI.RecipeController - Calling GetCoopWeklyReport
+2024-12-04 12:46:54,000 [6] ERROR CalcmenuAPI.CalcmenuAPI.RecipeController - GetCoopWeklyReport: Unexpected error occured
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at CalcmenuAPI.CalcmenuAPI.RecipeController.GetCoopWeklyReport(Int32 idmain, Int32 coderestaurant, Int32 codetrans, Int32 codesetprice, String baseurl, String culture, Int32 days, DateTime startDate, Int32 codeMenuplan, Int32 codeUser) in C:\TFS Projects\CalcmenuAPI-v7.0.48_COOP_Gastro_CMC\Controllers\RecipeController.vb:line 6271
