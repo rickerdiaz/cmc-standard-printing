@@ -10,6 +10,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CmcStandardPrinting.Applica
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CmcStandardPrinting.Infrastructure", "CmcStandardPrinting.Infrastructure\\CmcStandardPrinting.Infrastructure.csproj", "{B7CA98C0-1D25-4D6C-B5FE-D3A686F3A22B}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CmcStandardPrinting.Tests", "CmcStandardPrinting.Tests\\CmcStandardPrinting.Tests.csproj", "{4E8D1747-4F73-4A7A-909E-8C5764FA5F29}"
+EndProject
 Global
 GlobalSection(SolutionConfigurationPlatforms) = preSolution
 Debug|Any CPU = Debug|Any CPU
@@ -32,6 +34,10 @@ GlobalSection(ProjectConfigurationPlatforms) = postSolution
 {B7CA98C0-1D25-4D6C-B5FE-D3A686F3A22B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 {B7CA98C0-1D25-4D6C-B5FE-D3A686F3A22B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 {B7CA98C0-1D25-4D6C-B5FE-D3A686F3A22B}.Release|Any CPU.Build.0 = Release|Any CPU
+{4E8D1747-4F73-4A7A-909E-8C5764FA5F29}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+{4E8D1747-4F73-4A7A-909E-8C5764FA5F29}.Debug|Any CPU.Build.0 = Debug|Any CPU
+{4E8D1747-4F73-4A7A-909E-8C5764FA5F29}.Release|Any CPU.ActiveCfg = Release|Any CPU
+{4E8D1747-4F73-4A7A-909E-8C5764FA5F29}.Release|Any CPU.Build.0 = Release|Any CPU
 EndGlobalSection
 GlobalSection(SolutionProperties) = preSolution
 HideSolutionNode = FALSE
