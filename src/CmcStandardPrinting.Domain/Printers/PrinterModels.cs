@@ -101,9 +101,15 @@ public sealed class Param
 
 public sealed class GenericTranslation
 {
+    public int Id { get; set; }
+    public int Code { get; set; }
     public int CodeTrans { get; set; }
     public string TranslationName { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
+    public string Name2 { get; set; } = string.Empty;
+    public string NamePlural { get; set; } = string.Empty;
+    public int CodeEgswTable { get; set; }
+    public int CodeSite { get; set; }
 }
 
 public sealed class GenericDeleteData
