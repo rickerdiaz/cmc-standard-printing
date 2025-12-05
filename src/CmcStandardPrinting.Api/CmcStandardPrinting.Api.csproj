@@ -8,4 +8,9 @@
     <ProjectReference Include="..\\CmcStandardPrinting.Application\\CmcStandardPrinting.Application.csproj" />
     <ProjectReference Include="..\\CmcStandardPrinting.Infrastructure\\CmcStandardPrinting.Infrastructure.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="DevExpress.XtraReports" Version="25.1.6" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
+  </ItemGroup>
 </Project>

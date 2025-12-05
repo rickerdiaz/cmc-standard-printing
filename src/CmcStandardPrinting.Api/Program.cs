@@ -1,10 +1,17 @@
 using CmcStandardPrinting.Application.Printing;
 using CmcStandardPrinting.Infrastructure.Printing;
+using Newtonsoft.Json.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+
+builder.Services.AddControllers()
+    .AddNewtonsoftJson(options =>
+    {
+        options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+    });
 
 builder.Services.AddSingleton<IPrintJobRepository, InMemoryPrintJobRepository>();
 builder.Services.AddSingleton<PrintJobService>();
@@ -16,6 +23,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.MapControllers();
 
 app.MapGet("/health", () => Results.Ok(new { status = "ok" }))
     .WithName("GetHealth")
