@@ -62,6 +62,8 @@ public sealed class GenericTree
     public bool Flagged { get; set; }
     public int Type { get; set; }
     public bool Global { get; set; }
+    public string Picture { get; set; } = string.Empty;
+    public bool HasPicture { get; set; }
     public string Link { get; set; } = string.Empty;
     public string Note { get; set; } = string.Empty;
 }
