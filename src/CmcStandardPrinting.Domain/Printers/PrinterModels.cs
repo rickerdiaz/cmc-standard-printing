@@ -62,6 +62,8 @@ public sealed class GenericTree
     public bool Flagged { get; set; }
     public int Type { get; set; }
     public bool Global { get; set; }
+    public string Link { get; set; } = string.Empty;
+    public string Note { get; set; } = string.Empty;
 }
 
 public sealed class TreeNode
@@ -77,6 +79,7 @@ public sealed class TreeNode
     public string ParentTitle { get; set; } = string.Empty;
     public GroupLevel GroupLevel { get; set; }
     public object? Note { get; set; }
+    public string Link { get; set; } = string.Empty;
 }
 
 public sealed class ResponseCallBack
