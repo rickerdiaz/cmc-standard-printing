@@ -38,4 +38,9 @@ public class PrintJobService
         var updated = existing.WithStatus(status);
         return await _repository.UpdateAsync(updated, cancellationToken);
     }
+
+    public Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return _repository.DeleteAsync(id, cancellationToken);
+    }
 }

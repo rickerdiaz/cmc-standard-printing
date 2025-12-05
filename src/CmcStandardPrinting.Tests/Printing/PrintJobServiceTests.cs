@@ -59,6 +59,30 @@ public class PrintJobServiceTests
         Assert.Equal("Completed", persisted!.Status);
     }
 
+    [Fact]
+    public async Task DeleteAsync_RemovesExistingJob()
+    {
+        var repository = new FakePrintJobRepository();
+        var job = await repository.AddAsync(PrintJob.CreateNew("Labels"));
+        var service = new PrintJobService(repository);
+
+        var deleted = await service.DeleteAsync(job.Id);
+
+        Assert.True(deleted);
+        Assert.Empty(repository.StoredJobs);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_ReturnsFalseWhenNotFound()
+    {
+        var repository = new FakePrintJobRepository();
+        var service = new PrintJobService(repository);
+
+        var deleted = await service.DeleteAsync(Guid.NewGuid());
+
+        Assert.False(deleted);
+    }
+
     private class FakePrintJobRepository : IPrintJobRepository
     {
         public List<PrintJob> StoredJobs { get; } = new();
@@ -89,6 +113,12 @@ public class PrintJobServiceTests
 
             StoredJobs[existing] = job;
             return Task.FromResult<PrintJob?>(job);
+        }
+
+        public Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+        {
+            var removed = StoredJobs.RemoveAll(j => j.Id == id) > 0;
+            return Task.FromResult(removed);
         }
     }
 }

@@ -70,6 +70,14 @@ app.MapPut("/print-jobs/{id:guid}/status", async (Guid id, UpdatePrintJobStatusR
 .WithName("UpdatePrintJobStatus")
 .WithOpenApi();
 
+app.MapDelete("/print-jobs/{id:guid}", async (Guid id, PrintJobService service, CancellationToken cancellationToken) =>
+{
+    var deleted = await service.DeleteAsync(id, cancellationToken);
+    return deleted ? Results.NoContent() : Results.NotFound();
+})
+.WithName("DeletePrintJob")
+.WithOpenApi();
+
 app.Run();
 
 internal record CreatePrintJobRequest(string Name);

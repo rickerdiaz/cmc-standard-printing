@@ -49,4 +49,12 @@ public class InMemoryPrintJobRepository : IPrintJobRepository
             return Task.FromResult<PrintJob?>(job);
         }
     }
+
+    public Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        lock (_syncRoot)
+        {
+            return Task.FromResult(_jobs.Remove(id));
+        }
+    }
 }

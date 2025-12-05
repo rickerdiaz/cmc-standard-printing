@@ -8,4 +8,5 @@ public interface IPrintJobRepository
     Task<PrintJob?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
     Task<PrintJob> AddAsync(PrintJob job, CancellationToken cancellationToken = default);
     Task<PrintJob?> UpdateAsync(PrintJob job, CancellationToken cancellationToken = default);
+    Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default);
 }
