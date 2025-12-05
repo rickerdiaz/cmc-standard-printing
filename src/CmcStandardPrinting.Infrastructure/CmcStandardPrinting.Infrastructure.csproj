@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
@@ -6,6 +6,5 @@
   </PropertyGroup>
   <ItemGroup>
     <ProjectReference Include="..\\CmcStandardPrinting.Application\\CmcStandardPrinting.Application.csproj" />
-    <ProjectReference Include="..\\CmcStandardPrinting.Infrastructure\\CmcStandardPrinting.Infrastructure.csproj" />
   </ItemGroup>
 </Project>
