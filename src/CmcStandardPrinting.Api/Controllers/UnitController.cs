@@ -419,19 +419,19 @@ public class UnitController : ControllerBase
             var parents = sharings.Where(o => o.ParentCode == 0 && o.Type == 1).OrderBy(o => o.Name).ToList();
             foreach (var p in parents)
             {
-                if (result.All(o => o.key != p.Code))
-                {
-                    var parent = new TreeNode
+                    if (result.All(o => o.Key != p.Code))
                     {
-                        title = p.Name,
-                        key = p.Code,
-                        icon = false,
-                        children = CreateChildren(sharings, p.Code),
-                        select = p.Flagged,
-                        parenttitle = p.ParentName
-                    };
-                    result.Add(parent);
-                }
+                        var parent = new TreeNode
+                        {
+                            Title = p.Name,
+                            Key = p.Code,
+                            Icon = false,
+                            Children = CreateChildren(sharings, p.Code),
+                            Select = p.Flagged,
+                            ParentTitle = p.ParentName
+                        };
+                        result.Add(parent);
+                    }
             }
 
             return Ok(result);
@@ -729,22 +729,22 @@ public class UnitController : ControllerBase
 
     private static List<TreeNode>? CreateChildren(List<GenericTree> sharingdata, int code)
     {
-        var children = new List<TreeNode>();
-        var kids = sharingdata.Where(o => o.ParentCode == code && o.Type == 2).OrderBy(o => o.Name).ToList();
-        foreach (var k in kids)
-        {
-            var child = new TreeNode
+            var children = new List<TreeNode>();
+            var kids = sharingdata.Where(o => o.ParentCode == code && o.Type == 2).OrderBy(o => o.Name).ToList();
+            foreach (var k in kids)
             {
-                title = k.Name,
-                key = k.Code,
-                icon = false,
-                children = null,
-                select = k.Flagged,
-                parenttitle = k.ParentName,
-                note = k.Global
-            };
-            children.Add(child);
-        }
+                var child = new TreeNode
+                {
+                    Title = k.Name,
+                    Key = k.Code,
+                    Icon = false,
+                    Children = new List<TreeNode>(),
+                    Select = k.Flagged,
+                    ParentTitle = k.ParentName,
+                    Note = k.Global
+                };
+                children.Add(child);
+            }
 
         return children;
     }
