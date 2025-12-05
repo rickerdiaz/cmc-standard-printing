@@ -23,4 +23,29 @@ public class PrintJobTests
         Assert.Equal("Pending", job.Status);
         Assert.True(job.CreatedAtUtc <= DateTime.UtcNow);
     }
+
+    [Theory]
+    [InlineData("Processing")]
+    [InlineData("completed")]
+    public void WithStatus_UpdatesToAllowedStatus(string status)
+    {
+        var job = PrintJob.CreateNew("Labels");
+
+        var updated = job.WithStatus(status);
+
+        Assert.Equal(job.Id, updated.Id);
+        Assert.Equal(job.Name, updated.Name);
+        Assert.Contains(updated.Status, PrintJob.AllowedStatuses);
+    }
+
+    [Fact]
+    public void WithStatus_RejectsInvalidStatus()
+    {
+        var job = PrintJob.CreateNew("Labels");
+
+        Action act = () => job.WithStatus("Unknown");
+
+        var exception = Assert.Throws<ArgumentException>(act);
+        Assert.Equal("status", exception.ParamName);
+    }
 }
