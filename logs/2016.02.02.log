@@ -1,7 +1,0 @@
-2016-02-02 15:02:55,484 [5] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
-2016-02-02 15:02:55,544 [5] ERROR CalcmenuAPI.Global_asax - File does not exist.
-2016-02-02 15:02:55,545 [5] ERROR CalcmenuAPI.Global_asax -    at System.Web.StaticFileHandler.GetFileInfo(String virtualPathWithPathInfo, String physicalPath, HttpResponse response)
-   at System.Web.StaticFileHandler.ProcessRequestInternal(HttpContext context, String overrideVirtualPath)
-   at System.Web.DefaultHttpHandler.BeginProcessRequest(HttpContext context, AsyncCallback callback, Object state)
-   at System.Web.HttpApplication.CallHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
-   at System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)

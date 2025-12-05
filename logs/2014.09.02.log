@@ -1,7 +1,0 @@
-2014-09-02 17:29:46,600 [13] INFO  CalcmenuAPI.Global_asax - CalcmenuAPI was started
-2014-09-02 17:33:10,537 [13] ERROR CalcmenuAPI.CalcmenuAPI.RecipeController - GetRecipe: Unexpected error occured
-System.IndexOutOfRangeException: Step
-   at System.Data.ProviderBase.FieldNameLookup.GetOrdinal(String fieldName)
-   at System.Data.SqlClient.SqlDataReader.GetOrdinal(String name)
-   at System.Data.SqlClient.SqlDataReader.get_Item(String name)
-   at CalcmenuAPI.CalcmenuAPI.RecipeController.GetRecipe(Int32 codeliste, Int32 codesite, Int32 codetrans, Int32 codesetprice, Int32 codenutrientset) in C:\Data\Project\CalcmenuAPI\Controllers\RecipeController.vb:line 206

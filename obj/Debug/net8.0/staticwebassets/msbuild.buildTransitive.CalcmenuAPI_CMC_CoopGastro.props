@@ -1,3 +1,0 @@
-﻿<Project>
-  <Import Project="..\buildMultiTargeting\CalcmenuAPI_CMC_CoopGastro.props" />
-</Project>
