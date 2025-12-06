@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using CmcStandardPrinting.Domain.Translations;
 
 namespace CmcStandardPrinting.Domain.Recipes;
 
@@ -77,4 +78,15 @@ public sealed class ListeFiles
     public int Code { get; set; }
     public string Pictures { get; set; } = string.Empty;
     public string Videos { get; set; } = string.Empty;
+}
+
+public sealed class RecipeProcedure
+{
+    public int NoteId { get; set; }
+    public int Position { get; set; }
+    public string Note { get; set; } = string.Empty;
+    public string AbbrevNote { get; set; } = string.Empty;
+    public List<RecipeProcedureTranslation> Translation { get; set; } = new();
+    public string Picture { get; set; } = string.Empty;
+    public string HasPicture { get; set; } = string.Empty;
 }

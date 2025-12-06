@@ -20,4 +20,5 @@ public sealed class RecipeProcedureTranslation
     public int CodeTrans { get; set; }
     public string Note { get; set; } = string.Empty;
     public string AbbrevNote { get; set; } = string.Empty;
+    public int Position { get; set; }
 }
