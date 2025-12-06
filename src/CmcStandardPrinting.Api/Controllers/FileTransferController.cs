@@ -12,6 +12,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Drawing.Drawing2D;
 
 namespace CmcStandardPrinting.Api.Controllers;
 
@@ -60,6 +61,41 @@ public class FileTransferController : ControllerBase
         }
 
         return DeliverFile(file);
+    }
+
+    [HttpGet("/Thumbnail.ashx")]
+    [HttpHead("/Thumbnail.ashx")]
+    public IActionResult Thumbnail([FromQuery(Name = "f")] string? file, [FromQuery(Name = "size")] int size = 80)
+    {
+        Response.Headers.Add("Pragma", "no-cache");
+        Response.Headers.Add("Cache-Control", "private, no-cache");
+
+        if (string.IsNullOrWhiteSpace(file))
+        {
+            return BadRequest();
+        }
+
+        var maxDimension = size <= 0 ? 80 : size;
+        var filePath = Path.Combine(TempFolder, file);
+        if (!System.IO.File.Exists(filePath))
+        {
+            return NotFound();
+        }
+
+        try
+        {
+            using var image = Image.FromFile(filePath);
+            NormalizeOrientation(image);
+            using var thumbnail = BuildThumbnail(image, maxDimension);
+            using var ms = new MemoryStream();
+            thumbnail.Save(ms, ImageFormat.Jpeg);
+            return File(ms.ToArray(), "image/jpeg");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unable to build thumbnail for {File}", file);
+            return StatusCode(StatusCodes.Status500InternalServerError);
+        }
     }
 
     [HttpPost("/FileTransferHandler.ashx")]
@@ -237,25 +273,10 @@ public class FileTransferController : ControllerBase
         try
         {
             using var img = Image.FromFile(filePath);
-            if (!img.PropertyIdList.Contains(0x0112))
+            if (NormalizeOrientation(img))
             {
-                return;
+                img.Save(filePath, ImageFormat.Jpeg);
             }
-
-            var propOrientation = img.GetPropertyItem(0x0112);
-            var orientation = BitConverter.ToInt16(propOrientation.Value, 0);
-
-            if (orientation == 6)
-            {
-                img.RotateFlip(RotateFlipType.Rotate90FlipNone);
-            }
-            else if (orientation == 8)
-            {
-                img.RotateFlip(RotateFlipType.Rotate270FlipNone);
-            }
-
-            img.RemovePropertyItem(0x0112);
-            img.Save(filePath, ImageFormat.Jpeg);
         }
         catch (Exception ex)
         {
@@ -324,5 +345,55 @@ public class FileTransferController : ControllerBase
         return int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed)
             ? parsed
             : defaultValue;
+    }
+
+    private static bool NormalizeOrientation(Image img)
+    {
+        if (!img.PropertyIdList.Contains(0x0112))
+        {
+            return false;
+        }
+
+        var propOrientation = img.GetPropertyItem(0x0112);
+        var orientation = BitConverter.ToInt16(propOrientation.Value, 0);
+        var rotated = false;
+
+        if (orientation == 6)
+        {
+            img.RotateFlip(RotateFlipType.Rotate90FlipNone);
+            rotated = true;
+        }
+        else if (orientation == 8)
+        {
+            img.RotateFlip(RotateFlipType.Rotate270FlipNone);
+            rotated = true;
+        }
+
+        if (rotated)
+        {
+            img.RemovePropertyItem(0x0112);
+        }
+
+        return rotated;
+    }
+
+    private static Bitmap BuildThumbnail(Image source, int maxDimension)
+    {
+        var widthRatio = maxDimension / (double)source.Width;
+        var heightRatio = maxDimension / (double)source.Height;
+        var scale = Math.Min(1d, Math.Min(widthRatio, heightRatio));
+        var width = Math.Max(1, (int)Math.Round(source.Width * scale));
+        var height = Math.Max(1, (int)Math.Round(source.Height * scale));
+
+        var thumbnail = new Bitmap(width, height);
+        thumbnail.SetResolution(source.HorizontalResolution, source.VerticalResolution);
+
+        using var graphics = Graphics.FromImage(thumbnail);
+        graphics.InterpolationMode = InterpolationMode.HighQualityBicubic;
+        graphics.CompositingQuality = CompositingQuality.HighQuality;
+        graphics.SmoothingMode = SmoothingMode.HighQuality;
+        graphics.DrawImage(source, new Rectangle(0, 0, width, height), new Rectangle(0, 0, source.Width, source.Height), GraphicsUnit.Pixel);
+
+        return thumbnail;
     }
 }
