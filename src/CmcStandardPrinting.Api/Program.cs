@@ -11,6 +11,8 @@ builder.Services.AddControllers()
     .AddNewtonsoftJson(options =>
     {
         options.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
+        options.SerializerSettings.NullValueHandling = Newtonsoft.Json.NullValueHandling.Include;
+        options.SerializerSettings.Formatting = Newtonsoft.Json.Formatting.None;
     });
 
 builder.Services.AddSingleton<IPrintJobRepository, InMemoryPrintJobRepository>();
@@ -23,6 +25,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+
+app.UseMiddleware<CmcStandardPrinting.Api.Middleware.JsonpMiddleware>();
 
 app.MapControllers();
 
