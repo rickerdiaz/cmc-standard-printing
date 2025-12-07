@@ -21,7 +21,9 @@ public class StandardDetailReport : XtraReport
         string footerAddress,
         string footerLogoPath,
         bool hideLines,
-        string? explicitTitle = null)
+        string? explicitTitle = null,
+        double? availableWidth = null,
+        ReportOptions? fontOptions = null)
     {
         DataSource = data;
 
@@ -30,11 +32,13 @@ public class StandardDetailReport : XtraReport
 
         var reportTitle = ResolveTitle(explicitTitle, profileTable);
 
+        var layoutWidth = ResolveWidth(availableWidth);
+
         CreateMargins();
-        CreateReportHeader(reportTitle, titleColor, footerLogoPath);
-        CreatePageHeader(detailTable, hideLines);
-        CreateDetail(detailTable, hideLines);
-        CreateFooter(footerAddress);
+        CreateReportHeader(reportTitle, titleColor, footerLogoPath, fontOptions);
+        CreatePageHeader(detailTable, hideLines, layoutWidth, fontOptions);
+        CreateDetail(detailTable, hideLines, layoutWidth, fontOptions);
+        CreateFooter(footerAddress, fontOptions);
 
         if (detailTable != null)
         {
@@ -49,14 +53,35 @@ public class StandardDetailReport : XtraReport
         Bands.AddRange(new Band[] { TopMargin, BottomMargin });
     }
 
-    private void CreateReportHeader(string title, string titleColor, string footerLogoPath)
+    private static double ResolveWidth(double? availableWidth)
+    {
+        if (availableWidth.HasValue && availableWidth.Value > 0)
+        {
+            return availableWidth.Value;
+        }
+
+        // fallback to a sensible legacy-friendly width
+        return 750;
+    }
+
+    private void CreateReportHeader(
+        string title,
+        string titleColor,
+        string footerLogoPath,
+        ReportOptions? options)
     {
         var header = new ReportHeaderBand { HeightF = 70f };
+
+        var titleFont = ResolveFont(
+            options?.strFontTitleName,
+            options?.sgFontTitleSize > 0 ? options.sgFontTitleSize : 16,
+            FontStyle.Bold,
+            new Font("Arial", 16, FontStyle.Bold));
 
         var label = new XRLabel
         {
             Text = title,
-            Font = new Font("Arial", 16, FontStyle.Bold),
+            Font = titleFont,
             BoundsF = new RectangleF(0, 0, 600, 30),
             Padding = new PaddingInfo(4, 4, 4, 4)
         };
@@ -90,23 +115,33 @@ public class StandardDetailReport : XtraReport
         Bands.Add(header);
     }
 
-    private void CreatePageHeader(DataTable? detailTable, bool hideLines)
+    private void CreatePageHeader(
+        DataTable? detailTable,
+        bool hideLines,
+        double tableWidth,
+        ReportOptions? options)
     {
         if (detailTable == null || detailTable.Columns.Count == 0)
         {
             return;
         }
 
-        var pageHeader = new PageHeaderBand { HeightF = 24f };
-        var headerTable = new XRTable { BoundsF = new RectangleF(0, 0, 750, 24f) };
+        var header = new PageHeaderBand { HeightF = 24f };
+        var headerTable = new XRTable { BoundsF = new RectangleF(0, 0, (float)tableWidth, 24f) };
         var headerRow = new XRTableRow();
+
+        var headerFont = ResolveFont(
+            options?.strFontName,
+            options?.sgFontSize > 0 ? options.sgFontSize : 9,
+            FontStyle.Bold,
+            new Font("Arial", 9, FontStyle.Bold));
 
         foreach (DataColumn column in detailTable.Columns)
         {
             var cell = new XRTableCell
             {
                 Text = column.ColumnName,
-                Font = new Font("Arial", 9, FontStyle.Bold),
+                Font = headerFont,
                 Padding = new PaddingInfo(4, 4, 4, 4)
             };
 
@@ -119,11 +154,15 @@ public class StandardDetailReport : XtraReport
         }
 
         headerTable.Rows.Add(headerRow);
-        pageHeader.Controls.Add(headerTable);
-        Bands.Add(pageHeader);
+        header.Controls.Add(headerTable);
+        Bands.Add(header);
     }
 
-    private void CreateDetail(DataTable? detailTable, bool hideLines)
+    private void CreateDetail(
+        DataTable? detailTable,
+        bool hideLines,
+        double tableWidth,
+        ReportOptions? options)
     {
         var detailBand = new DetailBand();
 
@@ -139,13 +178,20 @@ public class StandardDetailReport : XtraReport
             return;
         }
 
-        var table = new XRTable { BoundsF = new RectangleF(0, 0, 750, 20f) };
+        var table = new XRTable { BoundsF = new RectangleF(0, 0, (float)tableWidth, 20f) };
         var row = new XRTableRow();
+
+        var detailFont = ResolveFont(
+            options?.strFontName,
+            options?.sgFontSize > 0 ? options.sgFontSize : 9,
+            FontStyle.Regular,
+            new Font("Arial", 9));
 
         foreach (DataColumn column in detailTable.Columns)
         {
             var cell = new XRTableCell
             {
+                Font = detailFont,
                 Padding = new PaddingInfo(4, 4, 4, 4),
                 ExpressionBindings =
                 {
@@ -166,16 +212,22 @@ public class StandardDetailReport : XtraReport
         Bands.Add(detailBand);
     }
 
-    private void CreateFooter(string footerAddress)
+    private void CreateFooter(string footerAddress, ReportOptions? options)
     {
         var footer = new PageFooterBand { HeightF = 40f };
+
+        var footerFont = ResolveFont(
+            options?.strFontName,
+            options?.sgFontSize > 0 ? options.sgFontSize : 8,
+            FontStyle.Regular,
+            new Font("Arial", 8));
 
         if (!string.IsNullOrWhiteSpace(footerAddress))
         {
             footer.Controls.Add(new XRLabel
             {
                 Text = footerAddress,
-                Font = new Font("Arial", 8),
+                Font = footerFont,
                 BoundsF = new RectangleF(0, 0, 500, 20),
                 Padding = new PaddingInfo(4, 4, 4, 4)
             });
@@ -186,7 +238,7 @@ public class StandardDetailReport : XtraReport
             PageInfo = PageInfo.NumberOfTotal,
             BoundsF = new RectangleF(650, 0, 100, 20),
             TextAlignment = TextAlignment.MiddleRight,
-            Font = new Font("Arial", 8)
+            Font = footerFont
         };
         footer.Controls.Add(pageInfo);
 
@@ -214,5 +266,22 @@ public class StandardDetailReport : XtraReport
         }
 
         return "Standard Printing";
+    }
+
+    private static Font ResolveFont(string? preferredName, float size, FontStyle style, Font fallback)
+    {
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(preferredName))
+            {
+                return new Font(preferredName, size, style);
+            }
+        }
+        catch (ArgumentException)
+        {
+            // fall back to legacy defaults if the requested font is unavailable
+        }
+
+        return fallback;
     }
 }

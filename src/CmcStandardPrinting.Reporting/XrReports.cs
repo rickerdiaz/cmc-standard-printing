@@ -1,16 +1,17 @@
 using System;
 using System.Data;
 using System.Drawing;
+using System.Drawing.Printing;
 using System.Globalization;
 using DevExpress.XtraReports.UI;
 
 namespace EgsReport;
 
-/// <summary>
-/// Lightweight C# port of the legacy <c>xrReports</c> DevExpress layout. The goal is not to
-/// recreate every designer detail but to preserve the configurable surface area that callers
-/// relied on (title colors, footer metadata, and layout flags) while delegating the actual
-/// rendering to the modern <see cref="StandardDetailReport"/> implementation.
+    /// <summary>
+    /// Lightweight C# port of the legacy <c>xrReports</c> DevExpress layout. The goal is not to
+    /// recreate every designer detail but to preserve the configurable surface area that callers
+    /// relied on (title colors, footer metadata, and layout flags) while delegating the actual
+    /// rendering to the modern <see cref="StandardDetailReport"/> implementation.
 /// </summary>
 public class XrReports : XtraReport
 {
@@ -58,8 +59,42 @@ public class XrReports : XtraReport
 
         Bands.Clear();
 
+        var options = clsGlobal.G_ReportOptions;
+
+        void ApplyPageSettings()
+        {
+            static int AsInt(double value) => value > 0 ? Convert.ToInt32(value) : 0;
+
+            var width = AsInt(options.dblPageWidth);
+            var height = AsInt(options.dblPageHeight);
+
+            if (width > 0 && height > 0)
+            {
+                PaperKind = PaperKind.Custom;
+                PageWidth = width;
+                PageHeight = height;
+            }
+
+            Landscape = options.blLandscape;
+
+            var left = AsInt(options.dblLeftMargin);
+            var right = AsInt(options.dblRightMargin);
+            var top = AsInt(options.dblTopMargin);
+            var bottom = AsInt(options.dblBottomMargin);
+
+            Margins = new Margins(
+                left > 0 ? left : Margins.Left,
+                right > 0 ? right : Margins.Right,
+                top > 0 ? top : Margins.Top,
+                bottom > 0 ? bottom : Margins.Bottom);
+        }
+
+        ApplyPageSettings();
+
         var normalizedTitleColor = NormalizeHtmlColor(TitleColor);
         var footerLogo = string.IsNullOrWhiteSpace(FooterLogoPath) ? clsGlobal.G_strLogoPath : FooterLogoPath;
+
+        var availableWidth = PageWidth - Margins.Left - Margins.Right;
 
         var detailReport = new StandardDetailReport(
             data,
@@ -67,7 +102,9 @@ public class XrReports : XtraReport
             FooterAddress,
             footerLogo,
             HideLines,
-            explicitTitle: ExplicitTitle);
+            explicitTitle: ExplicitTitle,
+            availableWidth: availableWidth > 0 ? availableWidth : null,
+            fontOptions: options);
 
         var detailBand = new DetailBand
         {
