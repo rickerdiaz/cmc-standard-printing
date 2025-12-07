@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Globalization;
+using System.Linq;
 using DevExpress.XtraReports.UI;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -185,6 +187,219 @@ public class clsReport
 
         var profile = data.Tables[0];
         var reportOptions = clsGlobal.G_ReportOptions;
+
+        static T? GetValue<T>(DataRow row, IReadOnlyDictionary<string, DataColumn> columns, string columnName)
+        {
+            if (!columns.TryGetValue(columnName, out var column))
+            {
+                return default;
+            }
+
+            var value = row[column];
+            if (value == DBNull.Value)
+            {
+                return default;
+            }
+
+            try
+            {
+                return (T)Convert.ChangeType(value, typeof(T), CultureInfo.InvariantCulture);
+            }
+            catch
+            {
+                return default;
+            }
+        }
+
+        static bool? GetBool(DataRow row, IReadOnlyDictionary<string, DataColumn> columns, string columnName)
+        {
+            var value = GetValue<object>(row, columns, columnName);
+            if (value == null)
+            {
+                return null;
+            }
+
+            try
+            {
+                return Convert.ToBoolean(value, CultureInfo.InvariantCulture);
+            }
+            catch
+            {
+                if (bool.TryParse(value.ToString(), out var parsed))
+                {
+                    return parsed;
+                }
+
+                return null;
+            }
+        }
+
+        static double? GetDouble(DataRow row, IReadOnlyDictionary<string, DataColumn> columns, string columnName)
+        {
+            var value = GetValue<object>(row, columns, columnName);
+            if (value == null)
+            {
+                return null;
+            }
+
+            if (double.TryParse(value.ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var parsed))
+            {
+                return parsed;
+            }
+
+            return null;
+        }
+
+        static float? GetFloat(DataRow row, IReadOnlyDictionary<string, DataColumn> columns, string columnName)
+        {
+            var dbl = GetDouble(row, columns, columnName);
+            return dbl.HasValue ? (float)dbl.Value : null;
+        }
+
+        static int? GetInt(DataRow row, IReadOnlyDictionary<string, DataColumn> columns, string columnName)
+        {
+            var value = GetValue<object>(row, columns, columnName);
+            if (value == null)
+            {
+                return null;
+            }
+
+            if (int.TryParse(value.ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var parsed))
+            {
+                return parsed;
+            }
+
+            return null;
+        }
+
+        var profileColumns = profile
+            .Columns
+            .Cast<DataColumn>()
+            .ToDictionary(c => c.ColumnName, StringComparer.OrdinalIgnoreCase);
+
+        if (profile.Rows.Count > 0)
+        {
+            var firstRow = profile.Rows[0];
+
+            void MapBool(string columnName, Action<bool> setter)
+            {
+                var value = GetBool(firstRow, profileColumns, columnName);
+                if (value.HasValue)
+                {
+                    setter(value.Value);
+                }
+            }
+
+            void MapString(string columnName, Action<string> setter)
+            {
+                var value = GetValue<string>(firstRow, profileColumns, columnName);
+                if (!string.IsNullOrWhiteSpace(value))
+                {
+                    setter(value);
+                }
+            }
+
+            void MapInt(string columnName, Action<int> setter)
+            {
+                var value = GetInt(firstRow, profileColumns, columnName);
+                if (value.HasValue)
+                {
+                    setter(value.Value);
+                }
+            }
+
+            void MapFloat(string columnName, Action<float> setter)
+            {
+                var value = GetFloat(firstRow, profileColumns, columnName);
+                if (value.HasValue)
+                {
+                    setter(value.Value);
+                }
+            }
+
+            void MapDouble(string columnName, Action<double> setter)
+            {
+                var value = GetDouble(firstRow, profileColumns, columnName);
+                if (value.HasValue)
+                {
+                    setter(value.Value);
+                }
+            }
+
+            MapBool("IncludeNutrients", v => reportOptions.blnIncludeNutrients = v);
+            MapBool("IncludeHaccp", v => reportOptions.blnIncludeHACCP = v);
+            MapBool("IncludeInfo", v => reportOptions.blnIncludeInfo = v);
+            MapBool("IncludeRemark", v => reportOptions.blnIncludeRemark = v);
+            MapBool("IncludeNumber", v => reportOptions.blnIncludeNumber = v);
+            MapBool("IncludeCategory", v => reportOptions.blnIncludeCategory = v);
+            MapBool("IncludeSource", v => reportOptions.blnIncludeSource = v);
+            MapBool("IncludeDate", v => reportOptions.blnIncludeDate = v);
+            MapBool("IncludeCostOfGoods", v => reportOptions.blnIncludeCostOfGoods = v);
+            MapBool("IncludeIngrNumber", v => reportOptions.blnIncludeIngrNumber = v);
+            MapBool("IncludeIngrPreparation", v => reportOptions.blnIncludeIngrPreparation = v);
+            MapBool("IncludePreparation", v => reportOptions.blnIncludePreparation = v);
+            MapBool("IncludeCookingTip", v => reportOptions.blnIncludeCookingTip = v);
+            MapBool("IncludeNetQty", v => reportOptions.blnIncludeNetQty = v);
+            MapBool("IncludeGrossQty", v => reportOptions.blnIncludeGrossQty = v);
+            MapBool("IncludeKeyword", v => reportOptions.blnIncludeKeyword = v);
+            MapBool("IncludeAllergens", v => reportOptions.blnIncludeAllergens = v);
+            MapBool("AllergensAbbrev", v => reportOptions.blnAllergensAbbrev = v);
+            MapBool("IncludePicture", v => reportOptions.blnIncludePicture = v);
+            MapBool("PicturesAll", v => reportOptions.blnPicturesAll = v);
+            MapBool("PicturePathAccessible", v => reportOptions.blnPicturePathAccessible = v);
+            MapBool("IncludeDerivedKeyword", v => reportOptions.blnIncludeDerivedKeyword = v);
+            MapBool("IncludeAlternativeIngredient", v => reportOptions.blnIncludeAlternativeIngredient = v);
+            MapBool("IncludeHighlightSection", v => reportOptions.blnIncludeHighlightSection = v);
+            MapBool("IncludeWastage", v => reportOptions.blnIncludeWastage = v);
+            MapBool("UseMetricImperial", v => reportOptions.blnUseMetricImperial = v);
+            MapBool("IncludeMetric", v => reportOptions.blIncludeMetric = v);
+            MapBool("IncludeImperial", v => reportOptions.blIncludeImperial = v);
+            MapBool("IncludeMetricQtyGross", v => reportOptions.blnIncludeMetricQtyGross = v);
+            MapBool("IncludeMetricQtyNet", v => reportOptions.blnIncludeMetricQtyNet = v);
+            MapBool("IncludeImperialQtyGross", v => reportOptions.blnIncludeImperialQtyGross = v);
+            MapBool("IncludeImperialQtyNet", v => reportOptions.blnIncludeImperialQtyNet = v);
+            MapBool("IncludePlacement", v => reportOptions.blnIncludePlacement = v);
+            MapBool("IncludeProcSequenceNo", v => reportOptions.blnIncludeProcSequenceNo = v);
+            MapBool("RemoveTrailingZeros", v => reportOptions.blnRemoveTrailingZeros = v);
+            MapBool("UseFractions", v => reportOptions.blnUseFractions = v);
+            MapBool("IncludeDescription", v => reportOptions.blnIncludeDescription = v);
+            MapBool("IncludeAddNotes", v => reportOptions.blnIncludeAddNotes = v);
+            MapBool("IncludeRecipeStatus", v => reportOptions.blnIncludeRecipeStatus = v);
+            MapBool("IncludeComposition", v => reportOptions.blnIncludeComposition = v);
+            MapBool("MigrosCustomPrint", v => reportOptions.blnMigrosCustomPrint = v);
+
+            MapString("FontName", v => reportOptions.strFontName = v);
+            MapString("FontName2", v => reportOptions.strFontName2 = v);
+            MapString("FontTitleName", v => reportOptions.strFontTitleName = v);
+            MapString("SortBy", v => reportOptions.strSortBy = v);
+            MapString("GroupBy", v => reportOptions.strGroupBy = v);
+            MapString("TextItemFormat", v => reportOptions.strTextItemFormat = v);
+            MapString("SubStyle", v => reportOptions.strSubStyle = v);
+
+            MapFloat("FontSize", v => reportOptions.sgFontSize = v);
+            MapFloat("FontSize2", v => reportOptions.sgFontSize2 = v);
+            MapFloat("FontTitleSize", v => reportOptions.sgFontTitleSize = v);
+
+            MapDouble("PageWidth", v => reportOptions.dblPageWidth = v);
+            MapDouble("PageHeight", v => reportOptions.dblPageHeight = v);
+            MapDouble("LeftMargin", v => reportOptions.dblLeftMargin = v);
+            MapDouble("RightMargin", v => reportOptions.dblRightMargin = v);
+            MapDouble("TopMargin", v => reportOptions.dblTopMargin = v);
+            MapDouble("BottomMargin", v => reportOptions.dblBottomMargin = v);
+            MapDouble("LineSpace", v => reportOptions.dblLineSpace = v);
+
+            MapBool("Landscape", v => reportOptions.blLandscape = v);
+            MapBool("ShrinkToFit", v => reportOptions.blnShrinkToFit = v);
+            MapBool("IncludeGda", v => reportOptions.blnIncludeGDA = v);
+
+            MapInt("Translation", v => reportOptions.intTranslation = v);
+            MapInt("DataLines", v => reportOptions.intDatalines = v);
+            MapInt("LoadPictureType", v => reportOptions.blnLoadPictureType = v);
+            MapInt("YieldOption", v => reportOptions.intYieldOption = v);
+            MapInt("SelectedNutrientSet", v => reportOptions.intSelectedNutrientSet = v);
+            MapInt("CodeSet", v => reportOptions.intSelectedNutrientSet = v);
+            MapInt("EnergyDisplay", v => reportOptions.intEnergyDisplay = v);
+        }
 
         var printType = enumReportType.None;
         if (profile.Columns.Contains("printprofiletype") && profile.Rows.Count > 0)
