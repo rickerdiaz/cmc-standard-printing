@@ -35,7 +35,7 @@ public class clsReport
 
     public XtraReport CreateReport(
         int intCodePrintList,
-        object udtUser,
+        structUser udtUser,
         string strConnection,
         ref int documentOutput,
         string strPhotoPath,
@@ -43,12 +43,12 @@ public class clsReport
         int intFoodlaw = 1)
     {
         _logger.LogInformation("CreateReport called for print list {PrintList}", intCodePrintList);
-        return BuildBasicReport(strPhotoPath, strLogoPath, strConnection, null);
+        return BuildBasicReport(strPhotoPath, strLogoPath, strConnection, udtUser, null, ref documentOutput);
     }
 
     public XtraReport CreateReport(
         DataSet ds2,
-        object udtUser,
+        structUser udtUser,
         string strConnection,
         ref int documentOutput,
         string strPhotoPath = "",
@@ -61,7 +61,7 @@ public class clsReport
         int CodePrintList = 0)
     {
         _logger.LogInformation("CreateReport called with dataset for print list {PrintList}", CodePrintList);
-        return BuildBasicReport(strPhotoPath, strLogoPath, strConnection, ds2);
+        return BuildBasicReport(strPhotoPath, strLogoPath, strConnection, udtUser, ds2, ref documentOutput);
     }
 
     public XtraReport CreateReport_CMC(
@@ -84,15 +84,50 @@ public class clsReport
             CodePrintList,
             codeUser);
 
-        return BuildBasicReport(strPhotoPath, strLogoPath, strConnection, ds2);
+        var udtUser = new structUser
+        {
+            Code = codeUser,
+            CulturePref = userLocale,
+            Username = string.Empty,
+            Site = new structSite()
+        };
+
+        return BuildBasicReport(strPhotoPath, strLogoPath, strConnection, udtUser, ds2, ref documentOutput);
     }
 
-    private XtraReport BuildBasicReport(string strPhotoPath, string strLogoPath, string strConnection, DataSet? data)
+    private XtraReport BuildBasicReport(
+        string strPhotoPath,
+        string strLogoPath,
+        string strConnection,
+        structUser udtUser,
+        DataSet? data,
+        ref int documentOutput)
     {
+        clsGlobal.G_strPhotoPath = strPhotoPath;
+        clsGlobal.G_strLogoPath = strLogoPath;
+        clsGlobal.G_strLogoPath2 = strLogoPath;
+
+        if (documentOutput == 0)
+        {
+            documentOutput = (int)enumFileType.PDF;
+        }
+
         var report = new XtraReport
         {
             DataSource = data
         };
+
+        var detailBand = new DetailBand();
+        var header = new XRLabel
+        {
+            Text = string.IsNullOrWhiteSpace(TitleColor)
+                ? "Standard Printing"
+                : $"Standard Printing - {TitleColor}",
+            Font = new System.Drawing.Font("Arial", 12, System.Drawing.FontStyle.Bold),
+            WidthF = 500
+        };
+        detailBand.Controls.Add(header);
+        report.Bands.Add(detailBand);
 
         if (data?.Tables.Count > 0)
         {

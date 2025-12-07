@@ -467,10 +467,11 @@ public class PrinterController : ControllerBase
                 var outDir = Path.GetDirectoryName(outputPath) ?? folderPath;
                 if (!Directory.Exists(outDir)) Directory.CreateDirectory(outDir);
 
+                var documentOutput = 1;
                 XtraReport report = cReport.CreateReport_CMC(
                     ds,
                     userConnectionString,
-                    1,
+                    ref documentOutput,
                     picNormal,
                     "",
                     "",
