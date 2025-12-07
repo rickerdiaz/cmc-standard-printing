@@ -1,4 +1,5 @@
 using System.Data;
+using System.Globalization;
 using DevExpress.XtraReports.UI;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -43,7 +44,7 @@ public class clsReport
         int intFoodlaw = 1)
     {
         _logger.LogInformation("CreateReport called for print list {PrintList}", intCodePrintList);
-        return BuildBasicReport(strPhotoPath, strLogoPath, strConnection, udtUser, null, ref documentOutput);
+        return BuildBasicReport(strPhotoPath, strLogoPath, strConnection, udtUser, null, ref documentOutput, IsCalcmenuOnline);
     }
 
     public XtraReport CreateReport(
@@ -61,7 +62,7 @@ public class clsReport
         int CodePrintList = 0)
     {
         _logger.LogInformation("CreateReport called with dataset for print list {PrintList}", CodePrintList);
-        return BuildBasicReport(strPhotoPath, strLogoPath, strConnection, udtUser, ds2, ref documentOutput);
+        return BuildBasicReport(strPhotoPath, strLogoPath, strConnection, udtUser, ds2, ref documentOutput, IsCalcmenuOnline);
     }
 
     public XtraReport CreateReport_CMC(
@@ -92,7 +93,7 @@ public class clsReport
             Site = new structSite()
         };
 
-        return BuildBasicReport(strPhotoPath, strLogoPath, strConnection, udtUser, ds2, ref documentOutput);
+        return BuildBasicReport(strPhotoPath, strLogoPath, strConnection, udtUser, ds2, ref documentOutput, IsCalcmenuOnline);
     }
 
     private XtraReport BuildBasicReport(
@@ -101,39 +102,30 @@ public class clsReport
         string strConnection,
         structUser udtUser,
         DataSet? data,
-        ref int documentOutput)
+        ref int documentOutput,
+        bool isCalcmenuOnline)
     {
         clsGlobal.G_strPhotoPath = strPhotoPath;
         clsGlobal.G_strLogoPath = strLogoPath;
         clsGlobal.G_strLogoPath2 = strLogoPath;
+        clsGlobal.G_IsCalcmenuOnline = isCalcmenuOnline;
 
         if (documentOutput == 0)
         {
             documentOutput = (int)enumFileType.PDF;
         }
 
-        var report = new XtraReport
-        {
-            DataSource = data
-        };
+        var normalizedTitleColor = NormalizeHtmlColor(TitleColor);
 
-        var detailBand = new DetailBand();
-        var header = new XRLabel
-        {
-            Text = string.IsNullOrWhiteSpace(TitleColor)
-                ? "Standard Printing"
-                : $"Standard Printing - {TitleColor}",
-            Font = new System.Drawing.Font("Arial", 12, System.Drawing.FontStyle.Bold),
-            WidthF = 500
-        };
-        detailBand.Controls.Add(header);
-        report.Bands.Add(detailBand);
+        var report = new StandardDetailReport(
+            data,
+            normalizedTitleColor,
+            FooterAddress,
+            string.IsNullOrWhiteSpace(FooterLogoPath) ? strLogoPath : FooterLogoPath,
+            NoPrintLines,
+            explicitTitle: CLIENT);
 
-        if (data?.Tables.Count > 0)
-        {
-            report.DataMember = data.Tables[0].TableName;
-            report.CreateDocument(false);
-        }
+        report.CreateDocument(false);
 
         _logger.LogDebug(
             "Report prepared. PhotoPath={PhotoPath}, LogoPath={LogoPath}, Connection={Connection}",
@@ -142,5 +134,23 @@ public class clsReport
             strConnection);
 
         return report;
+    }
+
+    private static string NormalizeHtmlColor(string color)
+    {
+        if (string.IsNullOrWhiteSpace(color))
+        {
+            return string.Empty;
+        }
+
+        if (!color.StartsWith("#", true, CultureInfo.InvariantCulture))
+        {
+            return color;
+        }
+
+        // ensure #RRGGBB
+        return color.Length == 4
+            ? $"#{color[1]}{color[1]}{color[2]}{color[2]}{color[3]}{color[3]}"
+            : color;
     }
 }
