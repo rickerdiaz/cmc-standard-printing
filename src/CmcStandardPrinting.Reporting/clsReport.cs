@@ -110,6 +110,24 @@ public class clsReport
         clsGlobal.G_strLogoPath2 = strLogoPath;
         clsGlobal.G_IsCalcmenuOnline = isCalcmenuOnline;
 
+        clsGlobal.G_ReportOptions.strFooterAddress = FooterAddress;
+        clsGlobal.G_ReportOptions.strFooterLogoPath = string.IsNullOrWhiteSpace(FooterLogoPath)
+            ? strLogoPath
+            : FooterLogoPath;
+        clsGlobal.G_ReportOptions.flagNoLines = NoPrintLines;
+        clsGlobal.G_ReportOptions.blnPictureOneRight = PictureOneRight;
+        clsGlobal.G_ReportOptions.intPageLanguage = udtUser.CodeLang;
+
+        if (data?.Tables.Count > 0)
+        {
+            clsGlobal.G_ReportOptions.dtProfile = data.Tables[0];
+        }
+
+        if (data?.Tables.Count > 1)
+        {
+            clsGlobal.G_ReportOptions.dtDetail = data.Tables[1];
+        }
+
         if (documentOutput == 0)
         {
             documentOutput = (int)enumFileType.PDF;
@@ -117,13 +135,27 @@ public class clsReport
 
         var normalizedTitleColor = NormalizeHtmlColor(TitleColor);
 
-        var report = new StandardDetailReport(
-            data,
-            normalizedTitleColor,
-            FooterAddress,
-            string.IsNullOrWhiteSpace(FooterLogoPath) ? strLogoPath : FooterLogoPath,
-            NoPrintLines,
-            explicitTitle: CLIENT);
+        var report = new XrReports(data ?? new DataSet())
+        {
+            TitleColor = normalizedTitleColor,
+            FooterAddress = FooterAddress,
+            FooterLogoPath = string.IsNullOrWhiteSpace(FooterLogoPath) ? strLogoPath : FooterLogoPath,
+            HideLines = NoPrintLines,
+            PictureOneRight = PictureOneRight,
+            DisplaySubRecipeAsterisk = DisplaySubRecipeAstrisk,
+            DisplaySubRecipeNormalFont = DisplaySubRecipeNormalFont,
+            DisplayRecipeDetails = DisplayRecipeDetails,
+            MigrosParam = strMigrosParam,
+            ThumbnailsView = blnThumbnailsView,
+            SelectedWeek = SelectedWeek,
+            CodeUserPlan = CodeUserPlan,
+            Culture = string.IsNullOrWhiteSpace(udtUser.CulturePref)
+                ? CultureInfo.InvariantCulture.Name
+                : udtUser.CulturePref,
+            ExplicitTitle = CLIENT
+        };
+
+        report.ApplyData(data ?? new DataSet());
 
         report.CreateDocument(false);
 

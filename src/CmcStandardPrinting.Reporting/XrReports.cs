@@ -52,12 +52,9 @@ public class XrReports : XtraReport
     /// Callers can set any of the public properties before invoking this method to influence
     /// colors, footer content, and optional flags.
     /// </summary>
-    public void ApplyData(DataSet data)
+    public void ApplyData(DataSet? data)
     {
-        if (data is null)
-        {
-            throw new ArgumentNullException(nameof(data));
-        }
+        data ??= new DataSet();
 
         Bands.Clear();
 
