@@ -122,9 +122,12 @@ public class clsReport
             : FooterLogoPath;
         clsGlobal.G_ReportOptions.flagNoLines = NoPrintLines;
         clsGlobal.G_ReportOptions.blnPictureOneRight = PictureOneRight;
+        var printType = ApplyProfileMetadata(data, ref udtUser, ref documentOutput);
+
         clsGlobal.G_ReportOptions.intPageLanguage = udtUser.CodeLang;
         clsGlobal.G_ReportOptions.strTitleColor = NormalizeHtmlColor(TitleColor);
         clsGlobal.G_ReportOptions.intfoodLaw = intFoodlaw;
+        clsGlobal.G_ReportOptions.dblReportType = (double)printType;
 
         ApplyReportOptions(data);
 
@@ -176,6 +179,69 @@ public class clsReport
             strConnection);
 
         return report;
+    }
+
+    private static enumReportType ApplyProfileMetadata(DataSet? data, ref structUser udtUser, ref int documentOutput)
+    {
+        if (data == null || data.Tables.Count == 0 || data.Tables[0].Rows.Count == 0)
+        {
+            return enumReportType.None;
+        }
+
+        var profile = data.Tables[0];
+        var columns = profile
+            .Columns
+            .Cast<DataColumn>()
+            .ToDictionary(c => c.ColumnName, StringComparer.OrdinalIgnoreCase);
+
+        var row = profile.Rows[0];
+
+        static int? GetInt(DataRow row, IReadOnlyDictionary<string, DataColumn> columns, string columnName)
+        {
+            if (!columns.TryGetValue(columnName, out var column))
+            {
+                return null;
+            }
+
+            var value = row[column];
+            if (value == DBNull.Value)
+            {
+                return null;
+            }
+
+            if (int.TryParse(value.ToString(), NumberStyles.Any, CultureInfo.InvariantCulture, out var parsed))
+            {
+                return parsed;
+            }
+
+            return null;
+        }
+
+        var codeLang = GetInt(row, columns, "codelang");
+        if (codeLang.HasValue)
+        {
+            udtUser.CodeLang = codeLang.Value;
+        }
+
+        var codeTrans = GetInt(row, columns, "codetrans");
+        if (codeTrans.HasValue)
+        {
+            udtUser.CodeTrans = codeTrans.Value;
+            clsGlobal.G_ReportOptions.intCodeTrans = codeTrans.Value;
+        }
+
+        var docOutput = GetInt(row, columns, "documentoutput");
+        if (docOutput.HasValue)
+        {
+            documentOutput = docOutput.Value;
+        }
+
+        var printType = GetInt(row, columns, "printprofiletype");
+        return printType.HasValue
+            ? Enum.IsDefined(typeof(enumReportType), printType.Value)
+                ? (enumReportType)printType.Value
+                : enumReportType.None
+            : enumReportType.None;
     }
 
     private static void ApplyReportOptions(DataSet? data)
