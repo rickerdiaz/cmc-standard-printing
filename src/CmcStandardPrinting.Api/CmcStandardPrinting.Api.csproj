@@ -8,6 +8,7 @@
   <ItemGroup>
     <ProjectReference Include="..\\CmcStandardPrinting.Application\\CmcStandardPrinting.Application.csproj" />
     <ProjectReference Include="..\\CmcStandardPrinting.Infrastructure\\CmcStandardPrinting.Infrastructure.csproj" />
+    <ProjectReference Include="..\\CmcStandardPrinting.Reporting\\CmcStandardPrinting.Reporting.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="DevExpress.XtraReports" Version="25.1.6" />
