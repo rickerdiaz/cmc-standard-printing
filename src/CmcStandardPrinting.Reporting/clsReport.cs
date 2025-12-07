@@ -1,3 +1,4 @@
+using System;
 using System.Data;
 using System.Globalization;
 using DevExpress.XtraReports.UI;
@@ -103,12 +104,15 @@ public class clsReport
         structUser udtUser,
         DataSet? data,
         ref int documentOutput,
-        bool isCalcmenuOnline)
+        bool isCalcmenuOnline,
+        int intFoodlaw = 1)
     {
         clsGlobal.G_strPhotoPath = strPhotoPath;
         clsGlobal.G_strLogoPath = strLogoPath;
         clsGlobal.G_strLogoPath2 = strLogoPath;
         clsGlobal.G_IsCalcmenuOnline = isCalcmenuOnline;
+        clsGlobal.G_strConnection = strConnection;
+        clsGlobal.G_CLIENT = CLIENT;
 
         clsGlobal.G_ReportOptions.strFooterAddress = FooterAddress;
         clsGlobal.G_ReportOptions.strFooterLogoPath = string.IsNullOrWhiteSpace(FooterLogoPath)
@@ -117,6 +121,10 @@ public class clsReport
         clsGlobal.G_ReportOptions.flagNoLines = NoPrintLines;
         clsGlobal.G_ReportOptions.blnPictureOneRight = PictureOneRight;
         clsGlobal.G_ReportOptions.intPageLanguage = udtUser.CodeLang;
+        clsGlobal.G_ReportOptions.strTitleColor = NormalizeHtmlColor(TitleColor);
+        clsGlobal.G_ReportOptions.intfoodLaw = intFoodlaw;
+
+        ApplyReportOptions(data);
 
         if (data?.Tables.Count > 0)
         {
@@ -166,6 +174,139 @@ public class clsReport
             strConnection);
 
         return report;
+    }
+
+    private static void ApplyReportOptions(DataSet? data)
+    {
+        if (data == null || data.Tables.Count == 0)
+        {
+            return;
+        }
+
+        var profile = data.Tables[0];
+        var reportOptions = clsGlobal.G_ReportOptions;
+
+        var printType = enumReportType.None;
+        if (profile.Columns.Contains("printprofiletype") && profile.Rows.Count > 0)
+        {
+            try
+            {
+                printType = (enumReportType)Convert.ToInt32(profile.Rows[0]["printprofiletype"]);
+            }
+            catch
+            {
+                printType = enumReportType.None;
+            }
+        }
+
+        static DataTable? TableAt(DataSet dataSet, int index)
+        {
+            return dataSet.Tables.Count > index ? dataSet.Tables[index] : null;
+        }
+
+        static bool HasRows(DataTable? table) => table?.Rows.Count > 0;
+
+        reportOptions.dtKeywords = TableAt(data, 2);
+        reportOptions.dtCodes = TableAt(data, 3);
+
+        var table4 = TableAt(data, 4);
+        var table5 = TableAt(data, 5);
+        var table6 = TableAt(data, 6);
+        var table7 = TableAt(data, 7);
+        var table8 = TableAt(data, 8);
+        var table9 = TableAt(data, 9);
+        var table10 = TableAt(data, 10);
+        var table11 = TableAt(data, 11);
+        var table12 = TableAt(data, 12);
+        var table13 = TableAt(data, 13);
+        var table14 = TableAt(data, 14);
+        var table15 = TableAt(data, 15);
+
+        switch (printType)
+        {
+            case enumReportType.RecipeDetail:
+                reportOptions.dtSteps = HasRows(table4) ? table4 : reportOptions.dtSteps;
+                reportOptions.dtListeNote = HasRows(table5) ? table5 : reportOptions.dtListeNote;
+                reportOptions.dtAllergens = HasRows(table15)
+                    ? table15
+                    : HasRows(table4)
+                        ? table4
+                        : reportOptions.dtAllergens;
+                break;
+            case enumReportType.MenuDetail:
+                reportOptions.dtSteps = HasRows(table4) ? table4 : reportOptions.dtSteps;
+                reportOptions.dtListeNote = HasRows(table5) ? table5 : reportOptions.dtListeNote;
+                reportOptions.dtAllergens = HasRows(table6) ? table6 : reportOptions.dtAllergens;
+                break;
+            case enumReportType.MerchandiseDetail:
+                reportOptions.dtAllergens = HasRows(table4) ? table4 : reportOptions.dtAllergens;
+                reportOptions.dtProductLink = HasRows(table5) ? table5 : reportOptions.dtProductLink;
+                break;
+            default:
+                if (HasRows(table4) && reportOptions.dtAllergens == null)
+                {
+                    reportOptions.dtAllergens = table4;
+                }
+
+                if (HasRows(table5) && reportOptions.dtListeNote == null)
+                {
+                    reportOptions.dtListeNote = table5;
+                }
+
+                if (HasRows(table4) && reportOptions.dtSteps == null)
+                {
+                    reportOptions.dtSteps = table4;
+                }
+
+                break;
+        }
+
+        reportOptions.dtSubtitle = HasRows(table6) ? table6 : reportOptions.dtSubtitle;
+        reportOptions.blnIncludeSubtitle = HasRows(reportOptions.dtSubtitle);
+
+        reportOptions.dtTimeTypes = HasRows(table7) ? table7 : reportOptions.dtTimeTypes;
+        reportOptions.blnIncludeTimeTypes = HasRows(reportOptions.dtTimeTypes);
+
+        if (printType == enumReportType.RecipeDetail && HasRows(table8))
+        {
+            reportOptions.dtNotes = table8;
+        }
+        else if (printType == enumReportType.MenuDetail && HasRows(table7))
+        {
+            reportOptions.dtNotes = table7;
+        }
+
+        reportOptions.blnIncludeNotes = HasRows(reportOptions.dtNotes);
+
+        reportOptions.dtComplementPreparation = HasRows(table9) ? table9 : reportOptions.dtComplementPreparation;
+        reportOptions.blnIncludeIngredientComplement = HasRows(reportOptions.dtComplementPreparation);
+
+        reportOptions.dtBrands = HasRows(table10) ? table10 : reportOptions.dtBrands;
+        reportOptions.blnIncludeBrand = HasRows(reportOptions.dtBrands);
+
+        reportOptions.dtPublications = HasRows(table11) ? table11 : reportOptions.dtPublications;
+        reportOptions.blnIncludePublication = HasRows(reportOptions.dtPublications);
+
+        reportOptions.dtCookbook = HasRows(table12) ? table12 : reportOptions.dtCookbook;
+        reportOptions.blnIncludeCookbook = HasRows(reportOptions.dtCookbook);
+
+        if (HasRows(table13))
+        {
+            reportOptions.dtComment = table13;
+            reportOptions.blnIncludeComment = true;
+        }
+        else if (printType == enumReportType.MenuDetail && HasRows(table8))
+        {
+            reportOptions.dtComment = table8;
+            reportOptions.blnIncludeComment = true;
+        }
+
+        reportOptions.dtKiosk = HasRows(table14) ? table14 : reportOptions.dtKiosk;
+        reportOptions.blnIncludeKiosk = HasRows(reportOptions.dtKiosk);
+
+        reportOptions.blnIncludeIngredientPreparation = HasRows(reportOptions.dtSteps);
+        reportOptions.blnIncludeAllergens = HasRows(reportOptions.dtAllergens);
+        reportOptions.blnIncludeKeyword = HasRows(reportOptions.dtKeywords);
     }
 
     private static string NormalizeHtmlColor(string color)
