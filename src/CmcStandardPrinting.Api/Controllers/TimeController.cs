@@ -2,11 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-<<<<<<< HEAD
 using Microsoft.Data.SqlClient;
-=======
-using System.Data.SqlClient;
->>>>>>> main
 using System.Globalization;
 using System.Linq;
 using CmcStandardPrinting.Domain.Categories;

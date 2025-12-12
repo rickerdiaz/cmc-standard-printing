@@ -1,11 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-<<<<<<< HEAD
 using Microsoft.Data.SqlClient;
-=======
-using System.Data.SqlClient;
->>>>>>> main
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;

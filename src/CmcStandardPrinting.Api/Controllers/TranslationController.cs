@@ -1,11 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
-<<<<<<< HEAD
 using Microsoft.Data.SqlClient;
-=======
-using System.Data.SqlClient;
->>>>>>> main
 using System.Globalization;
 using CmcStandardPrinting.Domain.Printers;
 using CmcStandardPrinting.Domain.Translations;

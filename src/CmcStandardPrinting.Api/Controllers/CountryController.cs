@@ -1,10 +1,6 @@
 using System;
 using System.Collections.Generic;
-<<<<<<< HEAD
 using Microsoft.Data.SqlClient;
-=======
-using System.Data.SqlClient;
->>>>>>> main
 using CmcStandardPrinting.Domain.Units;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
