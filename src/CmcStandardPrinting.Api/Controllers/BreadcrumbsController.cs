@@ -1,6 +1,10 @@
 using System;
 using System.Data;
+<<<<<<< HEAD
 using Microsoft.Data.SqlClient;
+=======
+using System.Data.SqlClient;
+>>>>>>> main
 using CmcStandardPrinting.Domain.Breadcrumbs;
 using CmcStandardPrinting.Domain.Printers;
 using Microsoft.AspNetCore.Mvc;

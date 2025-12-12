@@ -1,7 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+<<<<<<< HEAD
 using Microsoft.Data.SqlClient;
+=======
+using System.Data.SqlClient;
+>>>>>>> main
 using CmcStandardPrinting.Domain.RssFeeds;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
