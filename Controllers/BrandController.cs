@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -863,8 +863,8 @@ namespace CalcmenuAPI_CMC_CoopGastro.Controllers
         private static string SanitizeName(string? s)
         {
             var t = s ?? string.Empty;
-            t = t.Replace("[r]", "®").Replace("[tm]", "™").Replace("[c]", "©");
-            t = t.Replace("[R]", "®").Replace("[TM]", "™").Replace("[C]", "©");
+            t = t.Replace("[r]", "Â®").Replace("[tm]", "Â™").Replace("[c]", "Â©");
+            t = t.Replace("[R]", "Â®").Replace("[TM]", "Â™").Replace("[C]", "Â©");
             return t;
         }
 
