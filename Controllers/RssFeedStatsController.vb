@@ -4,7 +4,7 @@ Imports System.Web.Http
 Imports System.Collections.Generic
 Imports System.Linq
 Imports AttributeRouting.Web.Http
-Imports System.Data.SqlClient
+Imports Microsoft.Data.SqlClient
 Imports System.Web.Script.Serialization
 Imports log4net
 Imports System.Threading
