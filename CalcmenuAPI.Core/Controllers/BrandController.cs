@@ -2,7 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
+using Microsoft.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using log4net;
@@ -548,12 +548,12 @@ namespace CalcmenuAPI.Core.Controllers
             int resultCode;
             SqlTransaction? _trans = null;
             string strName = data.Info.Name
-                .Replace("[r]", "®")
-                .Replace("[tm]", "™")
-                .Replace("[c]", "©")
-                .Replace("[R]", "®")
-                .Replace("[TM]", "™")
-                .Replace("[C]", "©");
+                .Replace("[r]", "Â®")
+                .Replace("[tm]", "Â™")
+                .Replace("[c]", "Â©")
+                .Replace("[R]", "Â®")
+                .Replace("[TM]", "Â™")
+                .Replace("[C]", "Â©");
 
             try
             {
